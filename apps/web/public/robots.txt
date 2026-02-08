@@ -1,0 +1,13 @@
+# Golden Ridge Apartments - robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow admin/management areas from indexing
+Disallow: /sprava/
+Disallow: /vlastnik/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://podzlatymnavrsim.cz/sitemap.xml

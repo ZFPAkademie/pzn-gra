@@ -1,0 +1,129 @@
+{
+  "confirmation": {
+    "subject": "Potvrzení rezervace - {{referenceNumber}}",
+    "greeting": "Dobrý den, {{name}}",
+    "intro": "Děkujeme za Vaši rezervaci v apartmánu {{apartmentName}}.",
+    
+    "details": {
+      "title": "Detail rezervace",
+      "referenceNumber": "Číslo rezervace",
+      "apartment": "Apartmán",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "nights": "Počet nocí",
+      "guests": "Počet hostů",
+      "total": "Celková cena"
+    },
+    
+    "payment": {
+      "title": "Platební údaje",
+      "intro": "Prosím uhraďte rezervaci bankovním převodem na následující účet:",
+      "iban": "IBAN",
+      "bank": "Banka",
+      "reference": "Variabilní symbol",
+      "amount": "Částka",
+      "deadline": "Platbu prosím proveďte do {{date}}"
+    },
+    
+    "accessLink": {
+      "title": "Přístup k rezervaci",
+      "intro": "Pro zobrazení detailů rezervace a pokynů k check-inu použijte následující odkaz:",
+      "button": "Zobrazit rezervaci",
+      "note": "Tento odkaz je platný do {{date}}"
+    },
+    
+    "footer": {
+      "questions": "Máte otázky? Kontaktujte nás na",
+      "thanks": "Těšíme se na Vaši návštěvu!",
+      "signature": "S pozdravem,",
+      "team": "Tým Golden Ridge Apartments"
+    }
+  },
+  
+  "checkIn": {
+    "subject": "Pokyny k check-inu - {{referenceNumber}}",
+    "greeting": "Dobrý den, {{name}}",
+    "intro": "Váš pobyt v apartmánu {{apartmentName}} se blíží! Zde jsou pokyny k příjezdu.",
+    
+    "arrival": {
+      "title": "Informace o příjezdu",
+      "date": "Datum příjezdu",
+      "time": "Check-in od",
+      "checkOutTime": "Check-out do"
+    },
+    
+    "access": {
+      "title": "Přístup do apartmánu",
+      "address": "Adresa",
+      "accessCode": "Přístupový kód",
+      "instructions": "Pokyny"
+    },
+    
+    "parking": {
+      "title": "Parkování",
+      "info": "Informace o parkování"
+    },
+    
+    "wifi": {
+      "title": "WiFi připojení",
+      "network": "Název sítě",
+      "password": "Heslo"
+    },
+    
+    "emergency": {
+      "title": "Nouzový kontakt",
+      "phone": "V případě nouze volejte"
+    },
+    
+    "footer": {
+      "viewReservation": "Kompletní informace naleznete zde:",
+      "button": "Zobrazit rezervaci",
+      "safeTravel": "Přejeme Vám příjemnou cestu!",
+      "signature": "S pozdravem,",
+      "team": "Tým Golden Ridge Apartments"
+    }
+  },
+  
+  "tokenRequest": {
+    "subject": "Nový přístupový odkaz - {{referenceNumber}}",
+    "greeting": "Dobrý den, {{name}}",
+    "intro": "Obdrželi jsme Vaši žádost o nový přístupový odkaz k rezervaci.",
+    
+    "link": {
+      "title": "Váš nový přístupový odkaz",
+      "button": "Zobrazit rezervaci",
+      "validity": "Tento odkaz je platný do {{date}}"
+    },
+    
+    "security": {
+      "note": "Pokud jste o tento odkaz nežádali, můžete tento e-mail ignorovat."
+    },
+    
+    "footer": {
+      "signature": "S pozdravem,",
+      "team": "Tým Golden Ridge Apartments"
+    }
+  },
+  
+  "guestMessage": {
+    "subject": "Zpráva od hosta - {{referenceNumber}}",
+    "intro": "Obdrželi jste novou zprávu od hosta:",
+    
+    "details": {
+      "reservation": "Rezervace",
+      "guest": "Host",
+      "email": "E-mail",
+      "dates": "Termín"
+    },
+    
+    "message": {
+      "title": "Zpráva"
+    }
+  },
+  
+  "common": {
+    "currency": "EUR",
+    "dateFormat": "d. M. yyyy",
+    "timeFormat": "HH:mm"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "months": {
+    "january": "Leden",
+    "february": "Únor",
+    "march": "Březen",
+    "april": "Duben",
+    "may": "Květen",
+    "june": "Červen",
+    "july": "Červenec",
+    "august": "Srpen",
+    "september": "Září",
+    "october": "Říjen",
+    "november": "Listopad",
+    "december": "Prosinec"
+  },
+  
+  "weekdays": {
+    "monday": "Po",
+    "tuesday": "Út",
+    "wednesday": "St",
+    "thursday": "Čt",
+    "friday": "Pá",
+    "saturday": "So",
+    "sunday": "Ne"
+  },
+  
+  "navigation": {
+    "previousMonth": "Předchozí měsíc",
+    "nextMonth": "Další měsíc"
+  },
+  
+  "status": {
+    "available": "Volno",
+    "unavailable": "Obsazeno",
+    "selected": "Vybráno",
+    "today": "Dnes"
+  },
+  
+  "errors": {
+    "loadFailed": "Nepodařilo se načíst dostupnost",
+    "tryAgain": "Zkusit znovu"
+  }
+}

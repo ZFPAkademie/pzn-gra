@@ -1,0 +1,110 @@
+{
+  "title": "Rezervace",
+  "subtitle": "Dokončete svou rezervaci",
+  
+  "steps": {
+    "dates": "Termín",
+    "details": "Údaje",
+    "confirmation": "Potvrzení"
+  },
+  
+  "dates": {
+    "title": "Vyberte termín pobytu",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "nights": "nocí",
+    "night": "noc",
+    "minNights": "Minimální délka pobytu je {{count}} noci",
+    "selectDates": "Vyberte termín",
+    "continue": "Pokračovat"
+  },
+  
+  "guests": {
+    "title": "Počet hostů",
+    "guest": "host",
+    "guests": "hostů",
+    "max": "Maximum {{count}} hostů"
+  },
+  
+  "form": {
+    "title": "Údaje o hostu",
+    "firstName": "Jméno",
+    "lastName": "Příjmení",
+    "email": "E-mail",
+    "phone": "Telefon",
+    "country": "Země",
+    "specialRequests": "Speciální požadavky",
+    "specialRequestsPlaceholder": "Např. pozdní příjezd, dětská postýlka..."
+  },
+  
+  "consent": {
+    "gdpr": "Souhlasím se zpracováním osobních údajů",
+    "gdprLink": "Zásady ochrany osobních údajů",
+    "terms": "Souhlasím s obchodními podmínkami",
+    "termsLink": "Obchodní podmínky"
+  },
+  
+  "validation": {
+    "required": "Povinné pole",
+    "invalidEmail": "Neplatný e-mail",
+    "invalidPhone": "Neplatné telefonní číslo",
+    "nameTooShort": "Minimálně 2 znaky",
+    "mustAccept": "Musíte souhlasit"
+  },
+  
+  "price": {
+    "title": "Cena",
+    "perNight": "za noc",
+    "total": "Celkem",
+    "seasonal": "Sezónní ceny",
+    "breakdown": "Rozpis ceny",
+    "calculating": "Počítám cenu..."
+  },
+  
+  "submit": {
+    "button": "Dokončit rezervaci",
+    "processing": "Zpracovávám...",
+    "back": "Zpět"
+  },
+  
+  "confirmation": {
+    "title": "Rezervace potvrzena!",
+    "subtitle": "Děkujeme za Vaši rezervaci",
+    "emailSent": "Potvrzení bylo odesláno na:",
+    "referenceNumber": "Číslo rezervace",
+    "viewReservation": "Zobrazit rezervaci"
+  },
+  
+  "payment": {
+    "title": "Platební údaje",
+    "info": "Prosím uhraďte rezervaci bankovním převodem",
+    "iban": "IBAN",
+    "reference": "Variabilní symbol",
+    "amount": "Částka"
+  },
+  
+  "nextSteps": {
+    "title": "Co bude následovat?",
+    "step1": "Obdržíte e-mail s potvrzením a platebními údaji",
+    "step2": "Po přijetí platby Vám potvrdíme rezervaci",
+    "step3": "Den před příjezdem obdržíte pokyny k check-inu"
+  },
+  
+  "errors": {
+    "generic": "Došlo k chybě. Zkuste to prosím znovu.",
+    "notAvailable": "Vybraný termín není dostupný",
+    "bookingFailed": "Rezervaci se nepodařilo vytvořit",
+    "rateLimited": "Příliš mnoho pokusů",
+    "rateLimitedDescription": "Prosím počkejte několik minut a zkuste to znovu.",
+    "unavailable": "Termín není dostupný",
+    "unavailableDescription": "Vybraný termín byl právě obsazen. Zkuste prosím jiný termín.",
+    "serverError": "Chyba serveru",
+    "serverErrorDescription": "Omlouváme se, došlo k technické chybě. Zkuste to prosím později.",
+    "validation": "Neplatné údaje",
+    "validationDescription": "Zkontrolujte prosím vyplněné údaje a opravte chyby.",
+    "retry": "Zkusit znovu",
+    "backToApartment": "Zpět na apartmán",
+    "backHome": "Zpět na hlavní stránku",
+    "contactUs": "Kontaktujte nás"
+  }
+}

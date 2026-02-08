@@ -1,0 +1,122 @@
+{
+  "common": {
+    "home": "Domů",
+    "contact": "Kontakt",
+    "sale": "Prodej",
+    "rental": "Pronájem",
+    "about": "O projektu",
+    "location": "Lokalita",
+    "standards": "Standardy",
+    "investment": "Investice",
+    "suites": "Suites",
+    "apartments": "Apartmány",
+    "language": "Jazyk",
+    "czech": "Čeština",
+    "english": "English",
+    "phone": "Telefon",
+    "email": "Email",
+    "address": "Adresa",
+    "learnMore": "Zjistit více",
+    "viewAll": "Zobrazit vše",
+    "priceFrom": "od",
+    "perNight": "/ noc",
+    "guests": "hostů",
+    "send": "Odeslat",
+    "loading": "Načítání...",
+    "error": "Chyba",
+    "success": "Úspěch"
+  },
+  "nav": {
+    "home": "Domů",
+    "about": "O projektu",
+    "location": "Lokalita",
+    "standards": "Standardy",
+    "investment": "Investiční příležitost",
+    "suites": "Suites",
+    "rental": "Pronájem",
+    "contact": "Kontakt"
+  },
+  "home": {
+    "heroTitle": "Luxusní apartmány ve Špindlerově Mlýně",
+    "heroSubtitle": "Pod Zlatým návrším – exkluzivní bydlení v srdci Krkonoš",
+    "ctaSale": "Koupit apartmán",
+    "ctaSaleSubtitle": "Poslední šance vlastnit kousek hor",
+    "ctaRental": "Pronajmout si pobyt",
+    "ctaRentalSubtitle": "Luxusní ubytování pro váš odpočinek",
+    "whyUs": "Proč Pod Zlatým návrším",
+    "whyUsDesc": "Kombinace luxusu, přírody a skvělé investice",
+    "feature1Title": "Prémiová lokalita",
+    "feature1Desc": "Přímo v centru Špindlerova Mlýna s výhledem na hory",
+    "feature2Title": "Vysoký standard",
+    "feature2Desc": "Kvalitní materiály a moderní design v každém detailu",
+    "feature3Title": "Investiční potenciál",
+    "feature3Desc": "Stabilní výnosy z krátkodobého pronájmu"
+  },
+  "rental": {
+    "title": "Pronájem apartmánů",
+    "subtitle": "Golden Ridge Apartments",
+    "availableCount": "{{count}} apartmánů k dispozici",
+    "viewApartment": "Zobrazit apartmán",
+    "capacity": "Kapacita až {{count}} hostů",
+    "amenities": "Vybavení",
+    "description": "Popis",
+    "gallery": "Galerie",
+    "bookNow": "Rezervovat",
+    "bookingComingSoon": "Rezervace bude brzy k dispozici",
+    "priceFrom": "Cena od {{price}} € / noc"
+  },
+  "contact": {
+    "title": "Kontaktujte nás",
+    "subtitle": "Máte zájem o apartmán nebo ubytování? Napište nám.",
+    "saleTitle": "Prodej apartmánů",
+    "saleDesc": "Pro informace o posledním dostupném apartmánu kontaktujte:",
+    "rentalTitle": "Pronájem",
+    "rentalDesc": "Pro rezervace a dotazy k ubytování:",
+    "formTitle": "Napište nám",
+    "formName": "Jméno a příjmení",
+    "formEmail": "Email",
+    "formPhone": "Telefon",
+    "formMessage": "Zpráva",
+    "formSubmit": "Odeslat zprávu",
+    "formSuccess": "Děkujeme! Vaše zpráva byla odeslána.",
+    "formError": "Omlouváme se, něco se pokazilo. Zkuste to prosím znovu."
+  },
+  "pages": {
+    "location": {
+      "title": "Lokalita",
+      "subtitle": "Špindlerův Mlýn – perla Krkonoš"
+    },
+    "investment": {
+      "title": "Investiční příležitost",
+      "subtitle": "Vlastněte kousek hor",
+      "lastChance": "Poslední šance",
+      "lastApartment": "Poslední dostupný apartmán"
+    },
+    "standards": {
+      "title": "Standardy",
+      "subtitle": "Kvalita v každém detailu"
+    },
+    "about": {
+      "title": "O projektu",
+      "subtitle": "Pod Zlatým návrším"
+    },
+    "builder": {
+      "title": "Kdo staví",
+      "subtitle": "Zkušený developer s tradicí"
+    },
+    "suites": {
+      "title": "Suites",
+      "subtitle": "Přehled apartmánů"
+    }
+  },
+  "footer": {
+    "company": "Pod Zlatým návrším",
+    "tagline": "Luxusní apartmány ve Špindlerově Mlýně",
+    "quickLinks": "Rychlé odkazy",
+    "contact": "Kontakt",
+    "legal": "Právní informace",
+    "privacy": "Ochrana soukromí",
+    "terms": "Obchodní podmínky",
+    "copyright": "© {{year}} Pod Zlatým návrším. Všechna práva vyhrazena."
+  }
+}
