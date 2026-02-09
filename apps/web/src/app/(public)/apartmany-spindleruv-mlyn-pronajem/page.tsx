@@ -15,15 +15,15 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { 
-
-// Force dynamic rendering (uses cookies for locale)
-export const dynamic = 'force-dynamic';
   getRentApartments, 
   formatAreaDisplay, 
   formatPriceDisplay,
   getApartmentDisplayName,
   getCTALabel,
 } from '@/lib/apartments';
+
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Apartmány k pronájmu | Špindlerův Mlýn | Pod Zlatým návrším',
