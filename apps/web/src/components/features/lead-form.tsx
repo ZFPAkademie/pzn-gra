@@ -154,17 +154,17 @@ export function LeadForm({
   if (submitted) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 bg-gold-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-xl font-medium text-slate-900 mb-2">{t.successTitle}</h3>
-        <p className="text-slate-600 mb-6">{t.successMessage}</p>
+        <h3 className="text-xl font-medium text-navy mb-2">{t.successTitle}</h3>
+        <p className="text-stone-700 mb-6">{t.successMessage}</p>
         {(onSuccess || onCancel) && (
           <button
             onClick={onSuccess || onCancel}
-            className="px-6 py-2.5 bg-slate-900 text-white font-medium rounded hover:bg-slate-800 transition-colors"
+            className="px-6 py-2.5 bg-navy text-white font-medium rounded hover:bg-navy-700 transition-colors"
           >
             {t.close}
           </button>
@@ -175,11 +175,11 @@ export function LeadForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <h3 className="text-xl font-medium text-slate-900">{t.title}</h3>
+      <h3 className="text-xl font-medium text-navy">{t.title}</h3>
       
       {apartmentTitle && (
-        <div className="bg-slate-50 px-4 py-3 rounded border border-slate-200">
-          <span className="text-slate-900">{apartmentTitle}</span>
+        <div className="bg-stone px-4 py-3 rounded border border-stone-300">
+          <span className="text-navy">{apartmentTitle}</span>
         </div>
       )}
 
@@ -187,7 +187,7 @@ export function LeadForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            {t.firstName} <span className="text-amber-600">*</span>
+            {t.firstName} <span className="text-gold">*</span>
           </label>
           <input
             type="text"
@@ -195,12 +195,12 @@ export function LeadForm({
             value={formData.first_name}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+            className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            {t.lastName} <span className="text-amber-600">*</span>
+            {t.lastName} <span className="text-gold">*</span>
           </label>
           <input
             type="text"
@@ -208,7 +208,7 @@ export function LeadForm({
             value={formData.last_name}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+            className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
           />
         </div>
       </div>
@@ -216,7 +216,7 @@ export function LeadForm({
       {/* Email */}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          {t.email} <span className="text-amber-600">*</span>
+          {t.email} <span className="text-gold">*</span>
         </label>
         <input
           type="email"
@@ -224,21 +224,21 @@ export function LeadForm({
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+          className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
         />
       </div>
 
       {/* Phone (optional) */}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          {t.phone} <span className="text-slate-400 text-xs">({t.optional})</span>
+          {t.phone} <span className="text-stone-500 text-xs">({t.optional})</span>
         </label>
         <input
           type="tel"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+          className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
         />
       </div>
 
@@ -247,7 +247,7 @@ export function LeadForm({
         <>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              {t.preferredDates} <span className="text-slate-400 text-xs">({t.optional})</span>
+              {t.preferredDates} <span className="text-stone-500 text-xs">({t.optional})</span>
             </label>
             <input
               type="text"
@@ -255,12 +255,12 @@ export function LeadForm({
               value={formData.preferred_dates}
               onChange={handleChange}
               placeholder={locale === 'cs' ? 'např. 15. 3. – 20. 3. 2025' : 'e.g. March 15-20, 2025'}
-              className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              {t.guestCount} <span className="text-slate-400 text-xs">({t.optional})</span>
+              {t.guestCount} <span className="text-stone-500 text-xs">({t.optional})</span>
             </label>
             <input
               type="number"
@@ -269,7 +269,7 @@ export function LeadForm({
               onChange={handleChange}
               min="1"
               max="10"
-              className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
             />
           </div>
         </>
@@ -279,7 +279,7 @@ export function LeadForm({
       {type === 'investment_share_request' && (
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            {t.shareCount} <span className="text-slate-400 text-xs">({t.optional})</span>
+            {t.shareCount} <span className="text-stone-500 text-xs">({t.optional})</span>
           </label>
           <input
             type="number"
@@ -289,7 +289,7 @@ export function LeadForm({
             min="1"
             max="50"
             placeholder={locale === 'cs' ? '1–50 podílů' : '1–50 shares'}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+            className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
           />
         </div>
       )}
@@ -298,14 +298,14 @@ export function LeadForm({
       {/* Message */}
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          {t.message} <span className="text-slate-400 text-xs">({t.optional})</span>
+          {t.message} <span className="text-stone-500 text-xs">({t.optional})</span>
         </label>
         <textarea
           name="message"
           value={formData.message}
           onChange={handleChange}
           rows={4}
-          className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors resize-none"
+          className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors resize-none"
         />
       </div>
 
@@ -318,10 +318,10 @@ export function LeadForm({
             checked={formData.gdpr_consent}
             onChange={handleChange}
             required
-            className="mt-0.5 w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500"
+            className="mt-0.5 w-4 h-4 text-gold border-stone-400 rounded focus:ring-gold"
           />
-          <span className="text-sm text-slate-600">
-            {t.gdprConsent} <span className="text-amber-600">*</span>
+          <span className="text-sm text-stone-700">
+            {t.gdprConsent} <span className="text-gold">*</span>
           </span>
         </label>
 
@@ -332,10 +332,10 @@ export function LeadForm({
             checked={formData.terms_accepted}
             onChange={handleChange}
             required
-            className="mt-0.5 w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500"
+            className="mt-0.5 w-4 h-4 text-gold border-stone-400 rounded focus:ring-gold"
           />
-          <span className="text-sm text-slate-600">
-            {t.termsAccepted} <span className="text-amber-600">*</span>
+          <span className="text-sm text-stone-700">
+            {t.termsAccepted} <span className="text-gold">*</span>
           </span>
         </label>
 
@@ -345,9 +345,9 @@ export function LeadForm({
             name="marketing_consent"
             checked={formData.marketing_consent}
             onChange={handleChange}
-            className="mt-0.5 w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500"
+            className="mt-0.5 w-4 h-4 text-gold border-stone-400 rounded focus:ring-gold"
           />
-          <span className="text-sm text-slate-600">{t.marketingConsent}</span>
+          <span className="text-sm text-stone-700">{t.marketingConsent}</span>
         </label>
       </div>
 
@@ -364,7 +364,7 @@ export function LeadForm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 font-medium rounded hover:bg-slate-50 transition-colors"
+            className="flex-1 px-4 py-2.5 border border-stone-400 text-slate-700 font-medium rounded hover:bg-gold-400 transition-colors"
           >
             {locale === 'cs' ? 'Zrušit' : 'Cancel'}
           </button>
@@ -372,7 +372,7 @@ export function LeadForm({
         <button
           type="submit"
           disabled={submitting}
-          className={`flex-1 px-4 py-2.5 bg-slate-900 text-white font-medium rounded hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+          className={`flex-1 px-4 py-2.5 bg-navy text-white font-medium rounded hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
             !onCancel ? 'w-full' : ''
           }`}
         >

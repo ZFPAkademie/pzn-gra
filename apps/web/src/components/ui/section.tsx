@@ -13,8 +13,8 @@ interface SectionProps {
 export function Section({ children, className = '', background = 'white', id }: SectionProps) {
   const backgrounds = {
     white: 'bg-white',
-    light: 'bg-slate-50',
-    dark: 'bg-slate-900 text-white',
+    light: 'bg-stone',
+    dark: 'bg-navy text-white',
   };
 
   return (
@@ -38,7 +38,7 @@ export function SectionHeader({ title, subtitle, centered = false, className = '
   return (
     <div className={`mb-12 ${centered ? 'text-center' : ''} ${className}`}>
       <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{title}</h2>
-      {subtitle && <p className="mt-4 text-lg text-slate-600">{subtitle}</p>}
+      {subtitle && <p className="mt-4 text-lg text-stone-700">{subtitle}</p>}
     </div>
   );
 }

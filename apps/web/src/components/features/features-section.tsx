@@ -54,13 +54,13 @@ export function FeaturesSection() {
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="text-center">
-              <div className="w-12 h-12 mx-auto bg-slate-100 rounded-lg flex items-center justify-center text-slate-700 mb-4">
+              <div className="w-12 h-12 mx-auto bg-stone rounded-lg flex items-center justify-center text-slate-700 mb-4">
                 {feature.icon}
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <h3 className="text-lg font-semibold text-navy mb-2">
                 {feature.title}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-stone-700">
                 {feature.description}
               </p>
             </div>

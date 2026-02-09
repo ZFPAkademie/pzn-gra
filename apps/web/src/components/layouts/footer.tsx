@@ -22,14 +22,14 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-900 text-slate-300">
+    <footer className="bg-navy text-stone-400">
       <Container>
         <div className="py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="lg:col-span-2">
               <h3 className="text-xl font-bold text-white mb-2">{t('footer.company')}</h3>
-              <p className="text-slate-400 mb-4">{t('footer.tagline')}</p>
+              <p className="text-stone-500 mb-4">{t('footer.tagline')}</p>
               <div className="mt-4">
                 <LanguageSwitcherCompact />
               </div>
@@ -45,7 +45,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-slate-400 hover:text-white transition-colors"
+                      className="text-stone-500 hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -59,7 +59,7 @@ export function Footer() {
               <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
                 {t('footer.contact')}
               </h4>
-              <ul className="space-y-2 text-slate-400">
+              <ul className="space-y-2 text-stone-500">
                 <li>
                   <span className="block text-sm text-slate-500">{t('common.phone')}:</span>
                   <a href="tel:+420736242624" className="hover:text-white transition-colors">
@@ -88,10 +88,10 @@ export function Footer() {
               {t('footer.copyright', { year: currentYear.toString() })}
             </p>
             <div className="flex space-x-6 text-sm">
-              <Link href="/privacy" className="text-slate-500 hover:text-slate-300 transition-colors">
+              <Link href="/privacy" className="text-slate-500 hover:text-stone-400 transition-colors">
                 {t('footer.privacy')}
               </Link>
-              <Link href="/terms" className="text-slate-500 hover:text-slate-300 transition-colors">
+              <Link href="/terms" className="text-slate-500 hover:text-stone-400 transition-colors">
                 {t('footer.terms')}
               </Link>
             </div>

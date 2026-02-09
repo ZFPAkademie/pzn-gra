@@ -49,11 +49,11 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
   return (
     <>
       {/* Back link */}
-      <Section className="py-4 border-b border-slate-200">
+      <Section className="py-4 border-b border-stone-300">
         <Container>
           <Link
             href="/golden-ridge-apartments"
-            className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center text-sm text-stone-700 hover:text-navy"
           >
             <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -76,14 +76,14 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Main content */}
             <div className="lg:col-span-2">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-navy mb-4">
                 {apartment.name}
               </h1>
 
               {/* Quick stats */}
               <div className="flex flex-wrap gap-4 mb-8">
                 {apartment.capacity && (
-                  <div className="flex items-center text-slate-600">
+                  <div className="flex items-center text-stone-700">
                     <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
@@ -91,7 +91,7 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
                   </div>
                 )}
                 {apartment.sizeSqm && (
-                  <div className="flex items-center text-slate-600">
+                  <div className="flex items-center text-stone-700">
                     <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
@@ -102,10 +102,10 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
 
               {/* Description */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">
+                <h2 className="text-xl font-semibold text-navy mb-4">
                   {t('rental.description')}
                 </h2>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-stone-700 leading-relaxed">
                   {apartment.description}
                 </p>
               </div>
@@ -113,14 +113,14 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
               {/* Amenities */}
               {apartment.amenities.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900 mb-4">
+                  <h2 className="text-xl font-semibold text-navy mb-4">
                     {t('rental.amenities')}
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {apartment.amenities.map((amenity) => (
                       <div
                         key={amenity}
-                        className="flex items-center p-3 bg-slate-50 rounded-lg"
+                        className="flex items-center p-3 bg-stone rounded-lg"
                       >
                         <svg className="w-5 h-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -137,11 +137,11 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
 
             {/* Sidebar - Booking card */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div className="sticky top-24 bg-white border border-stone-300 rounded-xl p-6 shadow-sm">
                 {apartment.priceFrom && (
                   <div className="mb-6">
                     <span className="text-sm text-slate-500">{t('common.priceFrom')}</span>
-                    <div className="text-3xl font-bold text-slate-900">
+                    <div className="text-3xl font-bold text-navy">
                       €{apartment.priceFrom}
                       <span className="text-base font-normal text-slate-500"> / {locale === 'cs' ? 'noc' : 'night'}</span>
                     </div>
@@ -168,13 +168,13 @@ export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
                 </div>
 
                 {/* Contact info */}
-                <div className="mt-6 pt-6 border-t border-slate-200">
-                  <p className="text-sm text-slate-600 mb-2">
+                <div className="mt-6 pt-6 border-t border-stone-300">
+                  <p className="text-sm text-stone-700 mb-2">
                     {locale === 'cs' ? 'Máte dotazy?' : 'Have questions?'}
                   </p>
                   <a
                     href="tel:+420736242624"
-                    className="flex items-center text-slate-900 hover:text-sky-600"
+                    className="flex items-center text-navy hover:text-sky-600"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

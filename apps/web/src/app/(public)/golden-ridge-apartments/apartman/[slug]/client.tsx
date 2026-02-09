@@ -27,7 +27,7 @@ export function RentDetailCTA({ apartment, locale }: RentDetailCTAProps) {
     <>
       <button
         onClick={() => setShowForm(true)}
-        className="w-full py-3 px-6 bg-slate-900 text-white font-medium rounded hover:bg-slate-800 transition-colors"
+        className="w-full py-3 px-6 bg-navy text-white font-medium rounded hover:bg-navy-700 transition-colors"
       >
         {label}
       </button>
@@ -40,7 +40,7 @@ export function RentDetailCTA({ apartment, locale }: RentDetailCTAProps) {
               <div className="flex justify-end mb-2">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  className="text-stone-500 hover:text-stone-700 p-1"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

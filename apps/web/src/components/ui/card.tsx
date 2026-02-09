@@ -13,7 +13,7 @@ export function Card({ children, className = '', hover = false }: CardProps) {
   return (
     <div
       className={`
-        bg-white rounded-lg border border-slate-200 overflow-hidden
+        bg-white rounded-lg border border-stone-300 overflow-hidden
         ${hover ? 'transition-shadow hover:shadow-lg' : ''}
         ${className}
       `}
@@ -24,7 +24,7 @@ export function Card({ children, className = '', hover = false }: CardProps) {
 }
 
 export function CardHeader({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 py-4 border-b border-slate-200 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 border-b border-stone-300 ${className}`}>{children}</div>;
 }
 
 export function CardContent({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -32,5 +32,5 @@ export function CardContent({ children, className = '' }: { children: React.Reac
 }
 
 export function CardFooter({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 py-4 border-t border-slate-200 bg-slate-50 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 border-t border-stone-300 bg-stone ${className}`}>{children}</div>;
 }

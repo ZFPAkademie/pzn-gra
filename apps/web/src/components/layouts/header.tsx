@@ -27,12 +27,12 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
+    <header className="sticky top-0 z-50 bg-white border-b border-stone-300">
       <Container>
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-slate-900">Pod Zlatým návrším</span>
+            <span className="text-xl font-bold text-navy">Pod Zlatým návrším</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -41,7 +41,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
+                className="px-3 py-2 text-sm font-medium text-stone-700 hover:text-navy hover:bg-stone rounded-md transition-colors"
               >
                 {item.label}
               </Link>
@@ -55,7 +55,7 @@ export function Header() {
             {/* Mobile menu button */}
             <button
               type="button"
-              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+              className="lg:hidden p-2 text-stone-700 hover:text-navy hover:bg-stone rounded-md"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu"
             >
@@ -74,13 +74,13 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="lg:hidden py-4 border-t border-slate-200">
+          <nav className="lg:hidden py-4 border-t border-stone-300">
             <div className="flex flex-col space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="px-3 py-2 text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                  className="px-3 py-2 text-base font-medium text-stone-700 hover:text-navy hover:bg-stone rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}

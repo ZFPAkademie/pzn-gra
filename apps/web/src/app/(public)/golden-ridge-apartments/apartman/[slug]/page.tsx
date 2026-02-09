@@ -84,11 +84,11 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
   return (
     <>
       {/* Breadcrumb */}
-      <section className="bg-slate-100 py-4">
+      <section className="bg-stone py-4">
         <div className="max-w-6xl mx-auto px-6">
           <Link 
             href="/apartmany-spindleruv-mlyn-pronajem" 
-            className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            className="text-sm text-stone-700 hover:text-navy transition-colors"
           >
             ← {t.back}
           </Link>
@@ -102,8 +102,8 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
             {/* Left: Images & Info (3 cols) */}
             <div className="lg:col-span-3">
               {/* Main image placeholder */}
-              <div className="aspect-[4/3] bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                <div className="text-center text-slate-300">
+              <div className="aspect-[4/3] bg-stone rounded-lg flex items-center justify-center mb-4">
+                <div className="text-center text-stone-400">
                   <svg className="w-20 h-20 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 22V12h6v10" />
@@ -114,34 +114,34 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
               {/* Thumbnail placeholders */}
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="aspect-square bg-slate-100 rounded" />
+                  <div key={i} className="aspect-square bg-stone rounded" />
                 ))}
               </div>
 
               {/* Room breakdown */}
               <div className="mt-12">
-                <h2 className="text-xl font-medium text-slate-900 mb-6">{t.layoutTitle}</h2>
+                <h2 className="text-xl font-medium text-navy mb-6">{t.layoutTitle}</h2>
                 <div className="space-y-3">
                   {apartment.m2.breakdown.map((room, index) => (
                     <div key={index} className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-600">{room.room}</span>
-                      <span className="font-medium text-slate-900">{room.m2.toFixed(2)} m²</span>
+                      <span className="text-stone-700">{room.room}</span>
+                      <span className="font-medium text-navy">{room.m2.toFixed(2)} m²</span>
                     </div>
                   ))}
                   <div className="flex justify-between py-2">
-                    <span className="font-medium text-slate-900">{t.total}</span>
-                    <span className="font-medium text-slate-900">{apartment.m2.total.toFixed(2)} m²</span>
+                    <span className="font-medium text-navy">{t.total}</span>
+                    <span className="font-medium text-navy">{apartment.m2.total.toFixed(2)} m²</span>
                   </div>
                 </div>
               </div>
 
               {/* Amenities */}
               <div className="mt-12">
-                <h2 className="text-xl font-medium text-slate-900 mb-6">{t.amenitiesTitle}</h2>
+                <h2 className="text-xl font-medium text-navy mb-6">{t.amenitiesTitle}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {t.amenities.map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-slate-50 rounded">
-                      <span className="text-slate-400">✓</span>
+                    <div key={index} className="flex items-center gap-3 p-3 bg-stone rounded">
+                      <span className="text-stone-500">✓</span>
                       <span className="text-slate-700">{item}</span>
                     </div>
                   ))}
@@ -151,21 +151,21 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
 
             {/* Right: CTA Panel (2 cols) */}
             <div className="lg:col-span-2">
-              <div className="sticky top-8 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+              <div className="sticky top-8 bg-white border border-stone-300 rounded-lg p-6 shadow-sm">
                 {/* Badge */}
-                <span className="inline-block bg-slate-100 text-slate-700 text-xs font-medium px-2.5 py-1 rounded mb-4">
+                <span className="inline-block bg-stone text-slate-700 text-xs font-medium px-2.5 py-1 rounded mb-4">
                   {t.badge}
                 </span>
                 
                 {/* Title */}
-                <h1 className="text-2xl font-medium text-slate-900 mb-4">
+                <h1 className="text-2xl font-medium text-navy mb-4">
                   {displayName}
                 </h1>
 
                 {/* Price */}
                 <div className="mb-6">
                   <div className="text-sm text-slate-500 mb-1">{t.priceLabel}</div>
-                  <div className="text-2xl font-medium text-slate-900">
+                  <div className="text-2xl font-medium text-navy">
                     {formatPriceDisplay(apartment, locale)}
                   </div>
                 </div>
@@ -174,15 +174,15 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
                 <div className="grid grid-cols-2 gap-4 mb-6 py-4 border-y border-slate-100">
                   <div>
                     <div className="text-sm text-slate-500">{t.areaLabel}</div>
-                    <div className="font-medium text-slate-900">{formatAreaDisplay(apartment.m2.total)}</div>
+                    <div className="font-medium text-navy">{formatAreaDisplay(apartment.m2.total)}</div>
                   </div>
                   <div>
                     <div className="text-sm text-slate-500">{t.roomsLabel}</div>
-                    <div className="font-medium text-slate-900">{apartment.m2.breakdown.length}</div>
+                    <div className="font-medium text-navy">{apartment.m2.breakdown.length}</div>
                   </div>
                   <div className="col-span-2">
                     <div className="text-sm text-slate-500">{t.buildingLabel}</div>
-                    <div className="font-medium text-slate-900">{apartment.building}</div>
+                    <div className="font-medium text-navy">{apartment.building}</div>
                   </div>
                 </div>
 
@@ -198,14 +198,14 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
       </section>
 
       {/* Location */}
-      <section className="py-12 md:py-16 bg-slate-50">
+      <section className="py-12 md:py-16 bg-stone">
         <div className="max-w-6xl mx-auto px-6">
           <div className="max-w-3xl">
-            <h2 className="text-xl font-medium text-slate-900 mb-4">{t.locationTitle}</h2>
-            <p className="text-slate-600 mb-4">{t.locationText}</p>
+            <h2 className="text-xl font-medium text-navy mb-4">{t.locationTitle}</h2>
+            <p className="text-stone-700 mb-4">{t.locationText}</p>
             <Link 
               href="/lokalita"
-              className="inline-flex items-center text-slate-900 font-medium hover:text-amber-600 transition-colors"
+              className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
             >
               {t.locationLink}
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

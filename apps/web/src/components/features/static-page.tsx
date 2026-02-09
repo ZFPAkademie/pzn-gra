@@ -21,11 +21,11 @@ export function StaticPage({ title, subtitle, children }: StaticPageProps) {
       {/* Page Header */}
       <Section background="light" className="py-12 md:py-16">
         <Container size="narrow">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-navy mb-4">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xl text-slate-600">
+            <p className="text-xl text-stone-700">
               {subtitle}
             </p>
           )}
@@ -50,7 +50,7 @@ export function StaticPage({ title, subtitle, children }: StaticPageProps) {
  */
 export function PlaceholderContent({ pageName }: { pageName: string }) {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-amber-800">
+    <div className="bg-gold-50 border border-amber-200 rounded-lg p-6 text-amber-800">
       <p className="font-medium mb-2">Placeholder content</p>
       <p className="text-sm">
         Real content for &quot;{pageName}&quot; will be provided by the client. 

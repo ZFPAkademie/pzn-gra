@@ -80,13 +80,13 @@ export default async function SaleApartmentsPage() {
   return (
     <>
       {/* Header */}
-      <section className="bg-slate-900 text-white py-16 md:py-24">
+      <section className="bg-navy text-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-amber-400 font-medium mb-4">{t.subtitle}</p>
+          <p className="text-gold font-medium mb-4">{t.subtitle}</p>
           <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
             {t.title}
           </h1>
-          <p className="text-lg text-slate-400 max-w-2xl">
+          <p className="text-lg text-stone-500 max-w-2xl">
             {t.description}
           </p>
         </div>
@@ -102,39 +102,39 @@ export default async function SaleApartmentsPage() {
               {apartments.map((apt) => (
                 <article 
                   key={apt.slug}
-                  className="group bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-slate-300 hover:shadow-lg transition-all"
+                  className="group bg-white border border-stone-300 rounded-lg overflow-hidden hover:border-stone-400 hover:shadow-lg transition-all"
                 >
                   {/* Image placeholder */}
-                  <div className="aspect-[4/3] bg-slate-100 relative">
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                  <div className="aspect-[4/3] bg-stone relative">
+                    <div className="absolute inset-0 flex items-center justify-center text-stone-400">
                       <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 22V12h6v10" />
                       </svg>
                     </div>
                     {/* Mode badge */}
-                    <span className="absolute top-4 left-4 bg-amber-500 text-slate-900 text-xs font-medium px-2.5 py-1 rounded">
+                    <span className="absolute top-4 left-4 bg-gold text-navy text-xs font-medium px-2.5 py-1 rounded">
                       {t.badge}
                     </span>
                   </div>
                   
                   {/* Content */}
                   <div className="p-5">
-                    <h2 className="text-lg font-medium text-slate-900 mb-2 group-hover:text-amber-600 transition-colors">
+                    <h2 className="text-lg font-medium text-navy mb-2 group-hover:text-gold transition-colors">
                       {apt.title}
                     </h2>
                     
-                    <p className="text-sm text-slate-600 mb-4">
+                    <p className="text-sm text-stone-700 mb-4">
                       {formatAreaDisplay(apt.m2.total)} · {apt.m2.breakdown.length} {t.rooms} · {apt.building}
                     </p>
                     
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                      <span className="font-medium text-amber-600">
+                      <span className="font-medium text-gold">
                         {t.priceOnRequest}
                       </span>
                       <Link
                         href={`/apartmany-prodej/${apt.slug}`}
-                        className="text-sm text-slate-600 hover:text-amber-600 font-medium transition-colors"
+                        className="text-sm text-stone-700 hover:text-gold font-medium transition-colors"
                       >
                         {t.viewDetail} →
                       </Link>
@@ -152,9 +152,9 @@ export default async function SaleApartmentsPage() {
       </section>
 
       {/* Investment Benefits */}
-      <section className="py-16 md:py-24 bg-slate-50">
+      <section className="py-16 md:py-24 bg-stone">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-slate-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-light text-navy mb-12 text-center">
             {t.investTitle}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -163,8 +163,8 @@ export default async function SaleApartmentsPage() {
                 <span className="inline-flex w-14 h-14 bg-white rounded-full items-center justify-center text-2xl mb-4 shadow-sm">
                   {item.icon}
                 </span>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-600">{item.desc}</p>
+                <h3 className="text-lg font-medium text-navy mb-2">{item.title}</h3>
+                <p className="text-stone-700">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -172,17 +172,17 @@ export default async function SaleApartmentsPage() {
       </section>
 
       {/* Contact CTA */}
-      <section className="py-16 md:py-24 bg-slate-900 text-white">
+      <section className="py-16 md:py-24 bg-navy text-white">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-2xl md:text-3xl font-light text-white mb-4">
             {t.contactTitle}
           </h2>
-          <p className="text-slate-400 mb-8 max-w-xl mx-auto">
+          <p className="text-stone-500 mb-8 max-w-xl mx-auto">
             {t.contactText}
           </p>
           <Link 
             href="/kontakt"
-            className="inline-block px-6 py-3 bg-amber-500 text-slate-900 font-medium rounded hover:bg-amber-400 transition-colors"
+            className="inline-block px-6 py-3 bg-gold text-navy font-medium rounded hover:bg-gold-400 transition-colors"
           >
             {t.contactCta}
           </Link>

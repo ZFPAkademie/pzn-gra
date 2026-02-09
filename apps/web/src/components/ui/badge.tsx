@@ -11,8 +11,8 @@ interface BadgeProps {
 
 export function Badge({ children, variant = 'default', className = '' }: BadgeProps) {
   const variants = {
-    default: 'bg-slate-100 text-slate-700',
-    highlight: 'bg-amber-100 text-amber-800',
+    default: 'bg-stone text-slate-700',
+    highlight: 'bg-gold-100 text-amber-800',
     success: 'bg-green-100 text-green-800',
     warning: 'bg-red-100 text-red-800',
   };

@@ -17,8 +17,8 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
   const [showModal, setShowModal] = useState(false);
 
   const buttonClasses = variant === 'dark'
-    ? 'px-8 py-3.5 bg-amber-500 text-slate-900 font-semibold rounded hover:bg-amber-400 transition-colors'
-    : 'px-8 py-3.5 bg-white text-slate-900 font-semibold rounded hover:bg-slate-100 transition-colors';
+    ? 'px-8 py-3.5 bg-gold text-navy font-semibold rounded hover:bg-gold-400 transition-colors'
+    : 'px-8 py-3.5 bg-gold text-navy font-semibold rounded hover:bg-gold-400 transition-colors';
 
   return (
     <>
@@ -34,7 +34,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-navy/60 backdrop-blur-sm"
             onClick={() => setShowModal(false)}
           />
           
@@ -43,7 +43,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
             {/* Close button */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute top-4 right-4 p-1 text-stone-500 hover:text-stone-700 transition-colors"
               aria-label="Zavřít"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

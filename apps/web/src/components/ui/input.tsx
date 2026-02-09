@@ -27,11 +27,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           className={`
             w-full px-3 py-2 
             border rounded-md 
-            text-slate-900 
-            placeholder:text-slate-400
+            text-navy 
+            placeholder:text-stone-500
             focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent
-            disabled:bg-slate-100 disabled:cursor-not-allowed
-            ${error ? 'border-red-500' : 'border-slate-300'}
+            disabled:bg-stone disabled:cursor-not-allowed
+            ${error ? 'border-red-500' : 'border-stone-400'}
             ${className}
           `}
           {...props}
@@ -71,12 +71,12 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={`
             w-full px-3 py-2 
             border rounded-md 
-            text-slate-900 
-            placeholder:text-slate-400
+            text-navy 
+            placeholder:text-stone-500
             focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent
-            disabled:bg-slate-100 disabled:cursor-not-allowed
+            disabled:bg-stone disabled:cursor-not-allowed
             min-h-[100px]
-            ${error ? 'border-red-500' : 'border-slate-300'}
+            ${error ? 'border-red-500' : 'border-stone-400'}
             ${className}
           `}
           {...props}

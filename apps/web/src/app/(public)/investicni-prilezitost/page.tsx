@@ -148,13 +148,13 @@ export default async function InvestmentPage() {
   return (
     <>
       {/* Header */}
-      <section className="bg-slate-900 text-white py-16 md:py-24">
+      <section className="bg-navy text-white py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-amber-400 font-medium mb-4">{t.subtitle}</p>
+          <p className="text-gold font-medium mb-4">{t.subtitle}</p>
           <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
             {t.title}
           </h1>
-          <p className="text-lg text-slate-400 max-w-2xl">
+          <p className="text-lg text-stone-500 max-w-2xl">
             {t.description}
           </p>
         </div>
@@ -163,15 +163,15 @@ export default async function InvestmentPage() {
       {/* Why Invest */}
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-slate-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-light text-navy mb-12 text-center">
             {t.whyTitle}
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {t.whyItems.map((item, index) => (
-              <div key={index} className="p-6 bg-slate-50 rounded-lg">
+              <div key={index} className="p-6 bg-stone rounded-lg">
                 <span className="text-3xl mb-4 block">{item.icon}</span>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-600">{item.desc}</p>
+                <h3 className="text-lg font-medium text-navy mb-2">{item.title}</h3>
+                <p className="text-stone-700">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -179,7 +179,7 @@ export default async function InvestmentPage() {
       </section>
 
       {/* Numbers */}
-      <section className="py-16 md:py-24 bg-slate-900 text-white">
+      <section className="py-16 md:py-24 bg-navy text-white">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-2xl md:text-3xl font-light text-white mb-12 text-center">
             {t.numbersTitle}
@@ -187,10 +187,10 @@ export default async function InvestmentPage() {
           <div className="grid md:grid-cols-3 gap-8 text-center">
             {t.numbers.map((item, index) => (
               <div key={index}>
-                <div className="text-4xl md:text-5xl font-light text-amber-400 mb-2">
+                <div className="text-4xl md:text-5xl font-light text-gold mb-2">
                   {item.value}
                 </div>
-                <div className="text-slate-400">{item.label}</div>
+                <div className="text-stone-500">{item.label}</div>
               </div>
             ))}
           </div>
@@ -200,15 +200,15 @@ export default async function InvestmentPage() {
       {/* Process */}
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-slate-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-light text-navy mb-12 text-center">
             {t.processTitle}
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
             {t.processSteps.map((item, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl font-light text-amber-500 mb-4">{item.step}</div>
-                <h3 className="text-lg font-medium text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-600 text-sm">{item.desc}</p>
+                <div className="text-4xl font-light text-gold mb-4">{item.step}</div>
+                <h3 className="text-lg font-medium text-navy mb-2">{item.title}</h3>
+                <p className="text-stone-700 text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -216,12 +216,12 @@ export default async function InvestmentPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-slate-50">
+      <section className="py-16 md:py-24 bg-stone">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-light text-slate-900 mb-4">
+          <h2 className="text-2xl md:text-3xl font-light text-navy mb-4">
             {t.ctaTitle}
           </h2>
-          <p className="text-slate-600 mb-8">
+          <p className="text-stone-700 mb-8">
             {t.ctaText}
           </p>
           <InvestmentCTA label={t.ctaButton} locale={locale} />
@@ -229,16 +229,16 @@ export default async function InvestmentPage() {
       </section>
 
       {/* Link to Nemovitostní produkt */}
-      <section className="py-12 bg-white border-t border-slate-200">
+      <section className="py-12 bg-white border-t border-stone-300">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <p className="text-slate-600 mb-4">
+          <p className="text-stone-700 mb-4">
             {locale === 'cs' 
               ? 'Nechcete kupovat celý apartmán? Zvažte koupi podílu.' 
               : 'Don\'t want to buy a whole apartment? Consider buying a share.'}
           </p>
           <Link 
             href="/nemovitostni-produkt" 
-            className="text-amber-600 hover:text-amber-700 font-medium inline-flex items-center gap-2"
+            className="text-gold hover:text-amber-700 font-medium inline-flex items-center gap-2"
           >
             {locale === 'cs' ? 'Zjistit více o nemovitostním produktu' : 'Learn more about real estate shares'}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,9 +249,9 @@ export default async function InvestmentPage() {
       </section>
 
       {/* Disclaimer */}
-      <section className="py-8 bg-white border-t border-slate-200">
+      <section className="py-8 bg-white border-t border-stone-300">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-stone-500">
             <strong className="text-slate-500">{t.disclaimerTitle}:</strong> {t.disclaimer}
           </p>
         </div>

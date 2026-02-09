@@ -16,7 +16,7 @@ const statusColors: Record<string, string> = {
   new: 'bg-blue-100 text-blue-800',
   in_progress: 'bg-yellow-100 text-yellow-800',
   closed: 'bg-green-100 text-green-800',
-  spam: 'bg-slate-100 text-slate-600',
+  spam: 'bg-stone text-stone-700',
 };
 
 // Type labels
@@ -65,13 +65,13 @@ export default async function AdminLeadsPage({
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-navy">
             Leads Inbox
           </h1>
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-sm text-slate-600 hover:text-slate-900"
+              className="text-sm text-stone-700 hover:text-navy"
             >
               Odhlásit se
             </button>
@@ -89,7 +89,7 @@ export default async function AdminLeadsPage({
             }`}
           >
             <div className="text-3xl font-bold text-blue-600">{counts.new || 0}</div>
-            <div className="text-sm text-slate-600">Nové</div>
+            <div className="text-sm text-stone-700">Nové</div>
           </Link>
           <Link
             href="/admin/leads?status=in_progress"
@@ -98,7 +98,7 @@ export default async function AdminLeadsPage({
             }`}
           >
             <div className="text-3xl font-bold text-yellow-600">{counts.in_progress || 0}</div>
-            <div className="text-sm text-slate-600">V řešení</div>
+            <div className="text-sm text-stone-700">V řešení</div>
           </Link>
           <Link
             href="/admin/leads?status=closed"
@@ -107,7 +107,7 @@ export default async function AdminLeadsPage({
             }`}
           >
             <div className="text-3xl font-bold text-green-600">{counts.closed || 0}</div>
-            <div className="text-sm text-slate-600">Uzavřené</div>
+            <div className="text-sm text-stone-700">Uzavřené</div>
           </Link>
           <Link
             href="/admin/leads"
@@ -115,15 +115,15 @@ export default async function AdminLeadsPage({
               !statusFilter ? 'ring-2 ring-sky-500' : ''
             }`}
           >
-            <div className="text-3xl font-bold text-slate-600">{total}</div>
-            <div className="text-sm text-slate-600">Celkem</div>
+            <div className="text-3xl font-bold text-stone-700">{total}</div>
+            <div className="text-sm text-stone-700">Celkem</div>
           </Link>
         </div>
 
         {/* Leads Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+            <thead className="bg-stone">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Datum
@@ -154,20 +154,20 @@ export default async function AdminLeadsPage({
                 </tr>
               ) : (
                 leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                  <tr key={lead.id} className="hover:bg-stone">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-stone-700">
                       {formatDate(lead.created_at)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
-                      <span className="px-2 py-1 text-xs font-medium rounded bg-slate-100 text-slate-700">
+                      <span className="px-2 py-1 text-xs font-medium rounded bg-stone text-slate-700">
                         {typeLabels[lead.type] || lead.type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-900">
+                    <td className="px-4 py-3 text-sm text-navy">
                       {lead.apartment_title || lead.apartment_slug || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-navy">
                         {lead.first_name} {lead.last_name}
                       </div>
                       <div className="text-sm text-slate-500">

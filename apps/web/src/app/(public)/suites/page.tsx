@@ -83,7 +83,7 @@ export default function SuitesPage() {
               <Card key={suite.id} className="overflow-hidden">
                 {/* Placeholder image */}
                 <div className="aspect-[16/10] bg-slate-200 relative">
-                  <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+                  <div className="absolute inset-0 flex items-center justify-center text-stone-500">
                     <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -95,13 +95,13 @@ export default function SuitesPage() {
                   )}
                 </div>
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{suite.name}</h3>
-                  <div className="flex items-center space-x-4 text-sm text-slate-600 mb-4">
+                  <h3 className="text-xl font-bold text-navy mb-2">{suite.name}</h3>
+                  <div className="flex items-center space-x-4 text-sm text-stone-700 mb-4">
                     <span>{suite.size}</span>
                     <span>•</span>
                     <span>{suite.capacity}</span>
                   </div>
-                  <p className="text-slate-600 mb-4">{suite.description}</p>
+                  <p className="text-stone-700 mb-4">{suite.description}</p>
                   {suite.available ? (
                     <Link href="/kontakt">
                       <Button variant="primary" size="sm">
@@ -124,12 +124,12 @@ export default function SuitesPage() {
       <Section background="light">
         <Container>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+            <h2 className="text-2xl font-bold text-navy mb-4">
               {locale === 'cs' 
                 ? 'Hledáte ubytování místo koupě?' 
                 : 'Looking for accommodation instead of purchase?'}
             </h2>
-            <p className="text-slate-600 mb-6">
+            <p className="text-stone-700 mb-6">
               {locale === 'cs'
                 ? 'Prohlédněte si naše apartmány k pronájmu v rámci Golden Ridge Apartments.'
                 : 'Browse our apartments for rent within Golden Ridge Apartments.'}

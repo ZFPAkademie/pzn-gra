@@ -21,19 +21,19 @@ export function PathSelector() {
             <Card hover className="h-full p-8 text-center">
               <div className="mb-6">
                 {/* House/Key icon */}
-                <div className="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center group-hover:bg-amber-200 transition-colors">
-                  <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-16 h-16 mx-auto bg-gold-100 rounded-full flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+                  <svg className="w-8 h-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              <h3 className="text-2xl font-bold text-navy mb-2">
                 {t('home.ctaSale')}
               </h3>
-              <p className="text-slate-600 mb-4">
+              <p className="text-stone-700 mb-4">
                 {t('home.ctaSaleSubtitle')}
               </p>
-              <span className="inline-flex items-center text-amber-600 font-medium group-hover:text-amber-700">
+              <span className="inline-flex items-center text-gold font-medium group-hover:text-amber-700">
                 {t('common.learnMore')}
                 <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -53,10 +53,10 @@ export function PathSelector() {
                   </svg>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              <h3 className="text-2xl font-bold text-navy mb-2">
                 {t('home.ctaRental')}
               </h3>
-              <p className="text-slate-600 mb-4">
+              <p className="text-stone-700 mb-4">
                 {t('home.ctaRentalSubtitle')}
               </p>
               <span className="inline-flex items-center text-sky-600 font-medium group-hover:text-sky-700">

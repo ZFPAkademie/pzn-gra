@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-6 text-center">
+          <h1 className="text-2xl font-bold text-navy mb-6 text-center">
             Admin Login
           </h1>
           
@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-stone-400 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 placeholder="Enter admin password"
                 required
                 autoFocus

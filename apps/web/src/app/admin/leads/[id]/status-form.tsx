@@ -61,7 +61,7 @@ export function LeadStatusForm({ leadId, currentStatus, currentNotes }: LeadStat
             { value: 'new', label: 'Nový', color: 'bg-blue-100 text-blue-800 border-blue-300' },
             { value: 'in_progress', label: 'V řešení', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
             { value: 'closed', label: 'Uzavřeno', color: 'bg-green-100 text-green-800 border-green-300' },
-            { value: 'spam', label: 'Spam', color: 'bg-slate-100 text-slate-600 border-slate-300' },
+            { value: 'spam', label: 'Spam', color: 'bg-stone text-stone-700 border-stone-400' },
           ].map((option) => (
             <button
               key={option.value}
@@ -70,7 +70,7 @@ export function LeadStatusForm({ leadId, currentStatus, currentNotes }: LeadStat
               className={`px-4 py-2 rounded-md border-2 font-medium transition-all ${
                 status === option.value
                   ? `${option.color} border-current`
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  : 'bg-white text-stone-700 border-stone-300 hover:border-stone-400'
               }`}
             >
               {option.label}
@@ -88,7 +88,7 @@ export function LeadStatusForm({ leadId, currentStatus, currentNotes }: LeadStat
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
-          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 border border-stone-400 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
           placeholder="Poznámky pro interní použití..."
         />
       </div>
