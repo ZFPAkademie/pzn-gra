@@ -10,7 +10,7 @@ import { getAdminClient, getSupabase } from './supabase';
 // ===========================================
 
 export interface LeadInput {
-  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'general_inquiry';
+  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'investment_share_request' | 'general_inquiry';
   apartment_slug?: string;
   apartment_title?: string;
   source_url?: string;
@@ -21,6 +21,7 @@ export interface LeadInput {
   message?: string;
   preferred_dates?: string;
   guest_count?: number;
+  share_count?: number; // For investment_share_request
   gdpr_consent: boolean;
   terms_accepted: boolean;
   marketing_consent?: boolean;

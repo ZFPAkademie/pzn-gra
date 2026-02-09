@@ -29,6 +29,7 @@ const typeLabels: Record<string, string> = {
   rent_inquiry: 'Poptávka pronájmu',
   sale_inquiry: 'Poptávka prodeje',
   investment_inquiry: 'Investiční poptávka',
+  investment_share_request: 'Poptávka podílů',
   general_inquiry: 'Obecný dotaz',
 };
 

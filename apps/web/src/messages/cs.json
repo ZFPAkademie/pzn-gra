@@ -32,6 +32,7 @@
     "location": "Lokalita",
     "standards": "Standardy",
     "investment": "Investiční příležitost",
+    "realEstateProduct": "Nemovitostní produkt",
     "suites": "Suites",
     "rental": "Pronájem",
     "contact": "Kontakt"
@@ -91,6 +92,11 @@
       "subtitle": "Vlastněte kousek hor",
       "lastChance": "Poslední šance",
       "lastApartment": "Poslední dostupný apartmán"
+    },
+    "realEstateProduct": {
+      "title": "Nemovitostní produkt",
+      "subtitle": "Kupte si podíl na apartmánu ve Špindlu",
+      "cta": "Získat nabídku podílů"
     },
     "standards": {
       "title": "Standardy",

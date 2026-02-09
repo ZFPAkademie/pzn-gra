@@ -58,7 +58,7 @@ export function isSupabaseConfigured(): boolean {
 
 export interface Lead {
   id: string;
-  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'general_inquiry';
+  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'investment_share_request' | 'general_inquiry';
   apartment_slug: string | null;
   apartment_title: string | null;
   source_url: string | null;

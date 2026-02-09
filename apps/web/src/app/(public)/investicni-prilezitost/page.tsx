@@ -228,6 +228,26 @@ export default async function InvestmentPage() {
         </div>
       </section>
 
+      {/* Link to Nemovitostní produkt */}
+      <section className="py-12 bg-white border-t border-slate-200">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <p className="text-slate-600 mb-4">
+            {locale === 'cs' 
+              ? 'Nechcete kupovat celý apartmán? Zvažte koupi podílu.' 
+              : 'Don\'t want to buy a whole apartment? Consider buying a share.'}
+          </p>
+          <Link 
+            href="/nemovitostni-produkt" 
+            className="text-amber-600 hover:text-amber-700 font-medium inline-flex items-center gap-2"
+          >
+            {locale === 'cs' ? 'Zjistit více o nemovitostním produktu' : 'Learn more about real estate shares'}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
       {/* Disclaimer */}
       <section className="py-8 bg-white border-t border-slate-200">
         <div className="max-w-6xl mx-auto px-6">

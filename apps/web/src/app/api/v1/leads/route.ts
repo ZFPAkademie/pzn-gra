@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Validate type
-    const validTypes = ['rent_inquiry', 'sale_inquiry', 'investment_inquiry', 'general_inquiry'];
+    const validTypes = ['rent_inquiry', 'sale_inquiry', 'investment_inquiry', 'investment_share_request', 'general_inquiry'];
     if (!validTypes.includes(body.type)) {
       return NextResponse.json(
         { error: 'Invalid inquiry type' },

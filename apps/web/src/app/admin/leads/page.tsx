@@ -24,6 +24,7 @@ const typeLabels: Record<string, string> = {
   rent_inquiry: 'Pronájem',
   sale_inquiry: 'Prodej',
   investment_inquiry: 'Investice',
+  investment_share_request: 'Podíly',
   general_inquiry: 'Obecný',
 };
 

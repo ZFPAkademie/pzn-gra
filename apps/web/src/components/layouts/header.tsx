@@ -20,6 +20,7 @@ export function Header() {
     { href: '/lokalita', label: t('nav.location') },
     { href: '/standardy', label: t('nav.standards') },
     { href: '/investicni-prilezitost', label: t('nav.investment') },
+    { href: '/nemovitostni-produkt', label: t('nav.realEstateProduct') },
     { href: '/suites', label: t('nav.suites') },
     { href: '/apartmany-spindleruv-mlyn-pronajem', label: t('nav.rental') },
     { href: '/kontakt', label: t('nav.contact') },

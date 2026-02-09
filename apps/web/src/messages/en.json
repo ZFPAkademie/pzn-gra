@@ -32,6 +32,7 @@
     "location": "Location",
     "standards": "Standards",
     "investment": "Investment opportunity",
+    "realEstateProduct": "Real Estate Shares",
     "suites": "Suites",
     "rental": "Rental",
     "contact": "Contact"
@@ -91,6 +92,11 @@
       "subtitle": "Own a piece of the mountains",
       "lastChance": "Last chance",
       "lastApartment": "Last available apartment"
+    },
+    "realEstateProduct": {
+      "title": "Real Estate Shares",
+      "subtitle": "Buy a share in an apartment in Špindl",
+      "cta": "Get share offer"
     },
     "standards": {
       "title": "Standards",

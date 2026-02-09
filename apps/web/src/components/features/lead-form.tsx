@@ -6,6 +6,7 @@
  * - rent → "Poptat termín"
  * - sale → "Nezávazně poptat cenu"
  * - investment → "Kontaktovat investiční tým"
+ * - investment_share → "Získat nabídku podílů"
  */
 
 'use client';
@@ -13,7 +14,7 @@
 import { useState } from 'react';
 
 interface LeadFormProps {
-  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'general_inquiry';
+  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'investment_share_request' | 'general_inquiry';
   apartmentSlug?: string;
   apartmentTitle?: string;
   locale?: string;
@@ -37,6 +38,7 @@ export function LeadForm({
     message: '',
     preferred_dates: '',
     guest_count: '',
+    share_count: '',
     gdpr_consent: false,
     terms_accepted: false,
     marketing_consent: false,
@@ -53,7 +55,9 @@ export function LeadForm({
         ? 'Nezávazně poptat cenu'
         : type === 'investment_inquiry'
           ? 'Kontaktovat investiční tým'
-          : 'Kontaktujte nás',
+          : type === 'investment_share_request'
+            ? 'Získat nabídku podílů'
+            : 'Kontaktujte nás',
     firstName: 'Jméno',
     lastName: 'Příjmení',
     email: 'E-mail',
@@ -61,6 +65,7 @@ export function LeadForm({
     message: 'Zpráva',
     preferredDates: 'Preferované termíny',
     guestCount: 'Počet hostů',
+    shareCount: 'Orientační počet podílů',
     gdprConsent: 'Souhlasím se zpracováním osobních údajů',
     termsAccepted: 'Souhlasím s obchodními podmínkami',
     marketingConsent: 'Souhlasím se zasíláním novinek',
@@ -77,7 +82,9 @@ export function LeadForm({
         ? 'Request price information'
         : type === 'investment_inquiry'
           ? 'Contact investment team'
-          : 'Contact us',
+          : type === 'investment_share_request'
+            ? 'Request share offer'
+            : 'Contact us',
     firstName: 'First Name',
     lastName: 'Last Name',
     email: 'Email',
@@ -85,6 +92,7 @@ export function LeadForm({
     message: 'Message',
     preferredDates: 'Preferred Dates',
     guestCount: 'Number of Guests',
+    shareCount: 'Estimated number of shares',
     gdprConsent: 'I agree to the processing of personal data',
     termsAccepted: 'I accept the terms and conditions',
     marketingConsent: 'I agree to receive news and updates',
@@ -265,6 +273,26 @@ export function LeadForm({
             />
           </div>
         </>
+      )}
+
+      {/* Share request-specific fields */}
+      {type === 'investment_share_request' && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            {t.shareCount} <span className="text-slate-400 text-xs">({t.optional})</span>
+          </label>
+          <input
+            type="number"
+            name="share_count"
+            value={formData.share_count}
+            onChange={handleChange}
+            min="1"
+            max="50"
+            placeholder={locale === 'cs' ? '1–50 podílů' : '1–50 shares'}
+            className="w-full px-3 py-2.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
+          />
+        </div>
+      )}
       )}
 
       {/* Message */}
