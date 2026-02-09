@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { getLeads, getLeadCounts } from '@/lib/leads-service';
 
+// Force dynamic rendering (uses cookies)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Check authentication

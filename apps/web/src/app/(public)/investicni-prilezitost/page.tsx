@@ -13,6 +13,9 @@ import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { InvestmentCTA } from './client';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Investiční příležitost | Pod Zlatým návrším',
   description: 'Investujte do luxusních apartmánů v Krkonoších. Stabilní zhodnocení s možností vlastního využití.',

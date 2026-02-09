@@ -4,6 +4,9 @@ import './globals.css';
 import { LanguageProvider } from '@/components/providers/language-provider';
 import { getLocaleFromCookie, Locale } from '@/lib/i18n';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Pod Zlatým návrším | Luxusní apartmány Špindlerův Mlýn',
   description: 'Luxusní apartmány ve Špindlerově Mlýně - prodej a pronájem. Golden Ridge Apartments.',

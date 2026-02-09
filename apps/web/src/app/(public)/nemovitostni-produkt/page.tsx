@@ -9,6 +9,9 @@ import Link from 'next/link';
 import { Container, Section } from '@/components/ui';
 import { ShareRequestCTA } from './client';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Nemovitostní produkt – Podíl na apartmánu | Pod Zlatým návrším',
   description: 'Získejte družstevní podíl na horském apartmánu ve Špindlerově Mlýně. Nemovitost v prémiové lokalitě, podíl na výnosech z pronájmu, možnost vlastního využití se slevou.',

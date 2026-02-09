@@ -15,6 +15,9 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { 
+
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
   getRentApartments, 
   formatAreaDisplay, 
   formatPriceDisplay,

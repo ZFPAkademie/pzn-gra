@@ -10,6 +10,9 @@ import { cookies } from 'next/headers';
 import { getLocaleFromCookie, createT } from '@/lib/i18n';
 import { StaticPage, PlaceholderContent } from '@/components/features/static-page';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);

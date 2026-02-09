@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminLogin, isAdminConfigured } from '@/lib/admin-auth';
 
+// Force dynamic rendering (uses cookies)
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     if (!isAdminConfigured()) {

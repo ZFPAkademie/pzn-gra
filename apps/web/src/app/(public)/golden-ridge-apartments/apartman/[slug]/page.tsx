@@ -22,6 +22,9 @@ import {
 } from '@/lib/apartments';
 import { RentDetailCTA } from './client';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: { slug: string };
 }

@@ -10,7 +10,6 @@ import { getLeadById } from '@/lib/leads-service';
 import { LeadStatusForm } from './status-form';
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic';
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);

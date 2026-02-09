@@ -9,7 +9,6 @@ import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { getLeads, getLeadCounts } from '@/lib/leads-service';
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic';
 
 // Status badge colors
 const statusColors: Record<string, string> = {

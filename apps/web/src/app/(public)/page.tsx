@@ -16,6 +16,9 @@ import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { getRentApartments, getSaleApartments } from '@/lib/apartments';
 
+// Force dynamic rendering (uses cookies for locale)
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Pod Zlatým návrším | Apartmány Špindlerův Mlýn',
   description: 'Luxusní apartmány v srdci Krkonoš. Pronájem, prodej a investiční příležitosti ve Špindlerově Mlýně.',
