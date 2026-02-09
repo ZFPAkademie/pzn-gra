@@ -3,6 +3,11 @@ const nextConfig = {
   // Strict mode for development
   reactStrictMode: true,
 
+  // Disable ESLint during build (run separately)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Experimental features
   experimental: {
     // Enable server actions
