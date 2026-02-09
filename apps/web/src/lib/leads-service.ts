@@ -78,30 +78,32 @@ export async function createLead(input: LeadInput): Promise<{ success: boolean; 
       return { success: false, error: 'Invalid email format' };
     }
 
-    const supabase = getSupabase();
+    const supabase = getAdminClient();
+    
+    const insertData = {
+      type: input.type,
+      apartment_slug: input.apartment_slug || null,
+      apartment_title: input.apartment_title || null,
+      source_url: input.source_url || null,
+      first_name: input.first_name.trim(),
+      last_name: input.last_name.trim(),
+      email: input.email.trim().toLowerCase(),
+      phone: input.phone?.trim() || null,
+      message: input.message?.trim() || null,
+      preferred_dates: input.preferred_dates || null,
+      guest_count: input.guest_count || null,
+      gdpr_consent: input.gdpr_consent,
+      terms_accepted: input.terms_accepted,
+      marketing_consent: input.marketing_consent || false,
+      language: input.language || 'cs',
+      ip_address: input.ip_address || null,
+      user_agent: input.user_agent || null,
+      status: 'new' as const,
+    };
     
     const { data, error } = await supabase
       .from('leads')
-      .insert({
-        type: input.type,
-        apartment_slug: input.apartment_slug || null,
-        apartment_title: input.apartment_title || null,
-        source_url: input.source_url || null,
-        first_name: input.first_name.trim(),
-        last_name: input.last_name.trim(),
-        email: input.email.trim().toLowerCase(),
-        phone: input.phone?.trim() || null,
-        message: input.message?.trim() || null,
-        preferred_dates: input.preferred_dates || null,
-        guest_count: input.guest_count || null,
-        gdpr_consent: input.gdpr_consent,
-        terms_accepted: input.terms_accepted,
-        marketing_consent: input.marketing_consent || false,
-        language: input.language || 'cs',
-        ip_address: input.ip_address || null,
-        user_agent: input.user_agent || null,
-        status: 'new',
-      })
+      .insert(insertData)
       .select('id')
       .single();
 

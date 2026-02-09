@@ -8,7 +8,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // Types for our database tables
 export interface Lead {
   id: string;
-  type: 'rent_inquiry' | 'sale_inquiry' | 'general_inquiry';
+  type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'general_inquiry';
   apartment_slug: string | null;
   apartment_title: string | null;
   source_url: string | null;
