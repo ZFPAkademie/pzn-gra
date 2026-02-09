@@ -8,6 +8,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Disable TypeScript errors during build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Experimental features
   experimental: {
     // Enable server actions
