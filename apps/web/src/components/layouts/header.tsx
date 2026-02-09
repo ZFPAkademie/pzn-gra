@@ -2,12 +2,11 @@
 
 /**
  * Header Component
- * Sprint 1: Main header with navigation per SPRINT_1_PLAN.md §5.1
+ * Design Checklist 2030: Pouze wordmark, glassmorphism pro sticky nav
  */
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Container } from '@/components/ui';
 import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from './language-switcher';
 
@@ -27,45 +26,46 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-stone-300">
-      <Container>
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-navy">Pod Zlatým návrším</span>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-navy/5">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-20">
+          {/* Wordmark only */}
+          <Link href="/" className="text-navy tracking-wide">
+            <span className="text-lg font-medium">Pod Zlatým</span>
+            <span className="text-lg font-light ml-1">návrším</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          {/* Desktop Navigation - minimal */}
+          <nav className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-3 py-2 text-sm font-medium text-stone-700 hover:text-navy hover:bg-stone rounded-md transition-colors"
+                className="text-sm text-navy/60 hover:text-navy transition-colors"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          {/* Right side: Language + Mobile menu */}
-          <div className="flex items-center space-x-4">
+          {/* Right side */}
+          <div className="flex items-center space-x-6">
             <LanguageSwitcher />
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button - minimal */}
             <button
               type="button"
-              className="lg:hidden p-2 text-stone-700 hover:text-navy hover:bg-stone rounded-md"
+              className="lg:hidden text-navy/60 hover:text-navy"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu"
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h16M4 16h16" />
                 </svg>
               )}
             </button>
@@ -74,13 +74,13 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="lg:hidden py-4 border-t border-stone-300">
-            <div className="flex flex-col space-y-1">
+          <nav className="lg:hidden py-8 border-t border-navy/5">
+            <div className="flex flex-col space-y-4">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="px-3 py-2 text-base font-medium text-stone-700 hover:text-navy hover:bg-stone rounded-md"
+                  className="text-navy/60 hover:text-navy transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -89,7 +89,7 @@ export function Header() {
             </div>
           </nav>
         )}
-      </Container>
+      </div>
     </header>
   );
 }
