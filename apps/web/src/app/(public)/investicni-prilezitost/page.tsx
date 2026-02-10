@@ -1,64 +1,68 @@
 /**
- * Investment Page - Design Checklist 2030
- * 
- * - Jazyk klidný, institucionální
- * - Žádné procenta bez kontextu
- * - Důvěra > výkon
- * - Formulář diskrétní
+ * Investiční příležitost - Design 2030
+ * Kompletní obsah + nový design
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { InvestmentCTA } from './client';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Investiční příležitost | Pod Zlatým návrším',
-  description: 'Investujte do luxusních apartmánů v Krkonoších.',
+  description: 'Investujte do luxusních apartmánů v Krkonoších. Stabilní výnosy a dlouhodobé zhodnocení.',
 };
+
+// Investment benefits
+const benefits = [
+  { title: 'Stabilní výnosy', description: 'Průměrná roční obsazenost 65-75 % díky celoroční turistické sezóně.' },
+  { title: 'Dlouhodobé zhodnocení', description: 'Historický růst cen nemovitostí ve Špindlerově Mlýně 8-12 % ročně.' },
+  { title: 'Vlastní využití', description: 'Možnost vlastního pobytu v apartmánu kdykoliv během roku.' },
+  { title: 'Profesionální správa', description: 'Kompletní servis včetně úklidu, údržby a správy rezervací.' },
+  { title: 'Prémiová lokalita', description: 'Nejžádanější horská destinace v České republice.' },
+  { title: 'Daňové výhody', description: 'Odpisy a náklady na správu jako daňově uznatelné výdaje.' },
+];
+
+// Why invest here
+const reasons = [
+  { number: '01', title: 'Etablovaná destinace', text: 'Špindlerův Mlýn je etablovaná destinace s celoroční poptávkou. Kombinace lyžařské sezóny a letní turistiky zajišťuje stabilní obsazenost apartmánů.' },
+  { number: '02', title: 'Limitovaná nabídka', text: 'Omezené možnosti nové výstavby v KRNAP znamenají dlouhodobě rostoucí hodnotu existujících nemovitostí.' },
+  { number: '03', title: 'Silná poptávka', text: 'Rostoucí zájem o kvalitní horské ubytování ze strany českých i zahraničních turistů.' },
+];
 
 export default async function InvestmentPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
 
   const t = locale === 'cs' ? {
-    tagline: 'Dlouhodobá hodnota',
-    title: 'Investice',
-    subtitle: 'Stabilní zhodnocení v prémiové horské lokalitě',
-    
-    intro: 'Pod Zlatým návrším nabízí investiční příležitost pro ty, kteří hledají kombinaci stabilního výnosu a možnosti vlastního využití v nejžádanější horské destinaci České republiky.',
-    
-    section1Title: 'Proč investovat',
-    section1Text: 'Špindlerův Mlýn je etablovaná destinace s celoroční poptávkou. Kombinace lyžařské sezóny a letní turistiky zajišťuje stabilní obsazenost apartmánů.',
-    
-    section2Title: 'Jak to funguje',
-    section2Text: 'Zakoupíte apartmán v plném vlastnictví. My se postaráme o správu a pronájem. Vy čerpáte výnosy a máte možnost vlastního využití.',
-    
-    section3Title: 'Pro koho je to vhodné',
-    section3Text: 'Pro investory hledající diverzifikaci portfolia do nemovitostí s pravidelným výnosem a potenciálem dlouhodobého zhodnocení.',
-    
-    cta: 'Zjistit více',
-    ctaSubtext: 'Pošleme vám detailní informace',
+    tagline: 'Investiční příležitost',
+    title: 'Vlastněte kousek hor',
+    subtitle: 'Stabilní zhodnocení v prémiové horské lokalitě s možností vlastního využití',
+    benefitsTitle: 'Proč investovat',
+    reasonsTitle: 'Proč právě zde',
+    lastChance: 'Poslední šance',
+    lastApartment: 'Poslední dostupný apartmán k prodeji',
+    ctaTitle: 'Máte zájem?',
+    ctaText: 'Zanechte nám kontakt a připravíme vám detailní investiční nabídku.',
+    ctaButton: 'Získat nabídku',
+    shareLink: 'Nechcete kupovat celý apartmán? Zvažte koupi podílu.',
+    shareLinkText: 'Zjistit více o nemovitostním produktu',
   } : {
-    tagline: 'Long-term value',
-    title: 'Investment',
-    subtitle: 'Stable appreciation in a premium mountain location',
-    
-    intro: 'Pod Zlatým návrším offers an investment opportunity for those seeking a combination of stable returns and personal use in the most sought-after mountain destination in the Czech Republic.',
-    
-    section1Title: 'Why invest',
-    section1Text: 'Špindlerův Mlýn is an established destination with year-round demand. The combination of ski season and summer tourism ensures stable apartment occupancy.',
-    
-    section2Title: 'How it works',
-    section2Text: 'You purchase an apartment in full ownership. We take care of management and rental. You receive returns and have the option of personal use.',
-    
-    section3Title: 'Who is it for',
-    section3Text: 'For investors looking to diversify their portfolio into real estate with regular returns and long-term appreciation potential.',
-    
-    cta: 'Learn more',
-    ctaSubtext: 'We will send you detailed information',
+    tagline: 'Investment opportunity',
+    title: 'Own a piece of the mountains',
+    subtitle: 'Stable appreciation in a premium mountain location with personal use options',
+    benefitsTitle: 'Why invest',
+    reasonsTitle: 'Why here',
+    lastChance: 'Last chance',
+    lastApartment: 'Last available apartment for sale',
+    ctaTitle: 'Interested?',
+    ctaText: 'Leave us your contact and we will prepare a detailed investment offer.',
+    ctaButton: 'Get offer',
+    shareLink: "Don't want to buy a whole apartment? Consider buying a share.",
+    shareLinkText: 'Learn more about real estate shares',
   };
 
   return (
@@ -78,64 +82,81 @@ export default async function InvestmentPage() {
         </div>
       </section>
 
-      {/* Intro */}
-      <section className="py-24 bg-cream">
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-xl md:text-2xl text-navy/70 leading-relaxed text-center">
-            {t.intro}
+      {/* Last Chance Banner */}
+      <section className="py-6 bg-gold">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="text-navy font-medium">
+            <span className="uppercase tracking-widest text-sm">{t.lastChance}:</span>{' '}
+            {t.lastApartment}
           </p>
         </div>
       </section>
 
-      {/* Sections */}
-      <section className="bg-stone">
-        <div className="max-w-5xl mx-auto">
-          
-          {/* Section 1 */}
-          <div className="py-20 px-6 border-b border-navy/10">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <span className="text-gold text-sm tracking-widest">01</span>
-                <h2 className="text-2xl font-light text-navy mt-4">{t.section1Title}</h2>
+      {/* Benefits */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
+            {t.benefitsTitle}
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {benefits.map((benefit, i) => (
+              <div key={i} className="py-6 border-b border-navy/10">
+                <h3 className="text-navy font-medium mb-3">{benefit.title}</h3>
+                <p className="text-sm text-navy/50 leading-relaxed">{benefit.description}</p>
               </div>
-              <p className="text-navy/60 leading-relaxed">{t.section1Text}</p>
-            </div>
+            ))}
           </div>
-          
-          {/* Section 2 */}
-          <div className="py-20 px-6 border-b border-navy/10">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <span className="text-gold text-sm tracking-widest">02</span>
-                <h2 className="text-2xl font-light text-navy mt-4">{t.section2Title}</h2>
+        </div>
+      </section>
+
+      {/* Why here */}
+      <section className="py-24 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
+            {t.reasonsTitle}
+          </h2>
+          {reasons.map((reason, i) => (
+            <div key={i} className="py-12 border-b border-navy/10 last:border-0">
+              <div className="grid md:grid-cols-3 gap-8 items-start">
+                <div>
+                  <span className="text-gold text-sm tracking-widest">{reason.number}</span>
+                  <h3 className="text-xl font-light text-navy mt-2">{reason.title}</h3>
+                </div>
+                <p className="md:col-span-2 text-navy/60 leading-relaxed">{reason.text}</p>
               </div>
-              <p className="text-navy/60 leading-relaxed">{t.section2Text}</p>
             </div>
-          </div>
-          
-          {/* Section 3 */}
-          <div className="py-20 px-6">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <div>
-                <span className="text-gold text-sm tracking-widest">03</span>
-                <h2 className="text-2xl font-light text-navy mt-4">{t.section3Title}</h2>
-              </div>
-              <p className="text-navy/60 leading-relaxed">{t.section3Text}</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* CTA */}
       <section className="py-24 bg-navy">
         <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-light text-white mb-6">
+            {t.ctaTitle}
+          </h2>
+          <p className="text-white/50 mb-10 max-w-md mx-auto">
+            {t.ctaText}
+          </p>
+          <InvestmentCTA label={t.ctaButton} locale={locale} />
+        </div>
+      </section>
+
+      {/* Link to Nemovitostní produkt */}
+      <section className="py-16 bg-cream border-t border-navy/10">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="text-navy/50 mb-6">
+            {t.shareLink}
+          </p>
           <Link 
-            href="/kontakt?type=investment"
-            className="inline-block px-12 py-5 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors mb-6"
+            href="/nemovitostni-produkt"
+            className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            {t.cta}
+            {t.shareLinkText}
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+            </svg>
           </Link>
-          <p className="text-white/40 text-sm">{t.ctaSubtext}</p>
         </div>
       </section>
     </>

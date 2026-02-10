@@ -1,5 +1,5 @@
 /**
- * Lokalita - Design Checklist 2030
+ * Lokalita - Design 2030
  */
 
 import { Metadata } from 'next';
@@ -23,17 +23,47 @@ export default async function LocationPage() {
     title: 'Lokalita',
     subtitle: 'Nejžádanější horská destinace České republiky',
     
+    intro: 'Pod Zlatým návrším se nachází v srdci Špindlerova Mlýna, v těsné blízkosti lyžařských areálů a turistických tras. Ideální výchozí bod pro zimní i letní aktivity.',
+    
     stats: [
       { value: '1.5h', label: 'z Prahy' },
       { value: '2h', label: 'z Berlína' },
-      { value: '365', label: 'dní v roce' },
+      { value: '765m', label: 'n.m.' },
     ],
     
-    winterTitle: 'Zima',
-    winterText: 'Nejlepší lyžařské středisko v Česku. Sjezdovky pro všechny úrovně, moderní lanovky a skvělé podmínky od prosince do dubna.',
+    sections: [
+      {
+        title: 'Zima',
+        items: [
+          'Nejlepší lyžařské středisko v ČR',
+          'Sjezdovky pro všechny úrovně',
+          'Moderní lanovky a vleky',
+          'Sezóna: prosinec – duben',
+          'Večerní lyžování',
+          'Ski areál Svatý Petr 400m',
+        ],
+      },
+      {
+        title: 'Léto',
+        items: [
+          'Stovky km turistických tras',
+          'Cyklistické stezky',
+          'Krkonošský národní park',
+          'Vodopády a rozhledny',
+          'Golfové hřiště v okolí',
+          'Wellness a relaxace',
+        ],
+      },
+    ],
     
-    summerTitle: 'Léto',
-    summerText: 'Ideální zázemí pro turistiku, cyklistiku a odpočinek. Stovky kilometrů značených tras v Krkonošském národním parku.',
+    nearby: 'V okolí',
+    nearbyItems: [
+      { name: 'Ski areál Svatý Petr', distance: '400 m' },
+      { name: 'Centrum města', distance: '500 m' },
+      { name: 'Restaurace a obchody', distance: '300 m' },
+      { name: 'Labská bouda', distance: '8 km' },
+      { name: 'Sněžka', distance: '12 km' },
+    ],
     
     cta: 'Kontaktovat nás',
   } : {
@@ -41,17 +71,47 @@ export default async function LocationPage() {
     title: 'Location',
     subtitle: 'The most sought-after mountain destination in the Czech Republic',
     
+    intro: 'Pod Zlatým návrším is located in the heart of Špindlerův Mlýn, close to ski resorts and hiking trails. An ideal starting point for winter and summer activities.',
+    
     stats: [
       { value: '1.5h', label: 'from Prague' },
       { value: '2h', label: 'from Berlin' },
-      { value: '365', label: 'days a year' },
+      { value: '765m', label: 'altitude' },
     ],
     
-    winterTitle: 'Winter',
-    winterText: 'The best ski resort in the Czech Republic. Slopes for all levels, modern lifts, and excellent conditions from December to April.',
+    sections: [
+      {
+        title: 'Winter',
+        items: [
+          'Best ski resort in Czech Republic',
+          'Slopes for all levels',
+          'Modern lifts',
+          'Season: December – April',
+          'Night skiing',
+          'Ski area Svatý Petr 400m',
+        ],
+      },
+      {
+        title: 'Summer',
+        items: [
+          'Hundreds of km of hiking trails',
+          'Cycling paths',
+          'Krkonoše National Park',
+          'Waterfalls and lookouts',
+          'Golf courses nearby',
+          'Wellness and relaxation',
+        ],
+      },
+    ],
     
-    summerTitle: 'Summer',
-    summerText: 'Ideal base for hiking, cycling, and relaxation. Hundreds of kilometers of marked trails in Krkonoše National Park.',
+    nearby: 'Nearby',
+    nearbyItems: [
+      { name: 'Ski area Svatý Petr', distance: '400 m' },
+      { name: 'Town center', distance: '500 m' },
+      { name: 'Restaurants and shops', distance: '300 m' },
+      { name: 'Labská bouda', distance: '8 km' },
+      { name: 'Sněžka peak', distance: '12 km' },
+    ],
     
     cta: 'Contact us',
   };
@@ -74,34 +134,62 @@ export default async function LocationPage() {
       </section>
 
       {/* Stats */}
-      <section className="py-16 bg-stone">
+      <section className="py-16 bg-gold">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-3 gap-8 text-center">
             {t.stats.map((stat, i) => (
               <div key={i}>
                 <p className="text-4xl font-light text-navy mb-2">{stat.value}</p>
-                <p className="text-sm text-navy/40 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-sm text-navy/60 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Intro */}
+      <section className="py-20 bg-cream">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xl text-navy/70 leading-relaxed text-center">
+            {t.intro}
+          </p>
+        </div>
+      </section>
+
       {/* Seasons */}
-      <section className="bg-cream">
-        <div className="max-w-5xl mx-auto">
-          <div className="py-20 px-6 border-b border-navy/10">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <h2 className="text-2xl font-light text-navy">{t.winterTitle}</h2>
-              <p className="text-navy/60 leading-relaxed">{t.winterText}</p>
-            </div>
+      <section className="py-24 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16">
+            {t.sections.map((section, i) => (
+              <div key={i}>
+                <h2 className="text-2xl font-light text-navy mb-8">{section.title}</h2>
+                <ul className="space-y-4">
+                  {section.items.map((item, j) => (
+                    <li key={j} className="flex items-center text-navy/60">
+                      <span className="w-6 h-px bg-gold mr-4" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          
-          <div className="py-20 px-6">
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-              <h2 className="text-2xl font-light text-navy">{t.summerTitle}</h2>
-              <p className="text-navy/60 leading-relaxed">{t.summerText}</p>
-            </div>
+        </div>
+      </section>
+
+      {/* Nearby */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-12">
+            {t.nearby}
+          </h2>
+          <div className="max-w-2xl mx-auto">
+            {t.nearbyItems.map((item, i) => (
+              <div key={i} className="flex justify-between py-4 border-b border-navy/10">
+                <span className="text-navy">{item.name}</span>
+                <span className="text-navy/40">{item.distance}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
