@@ -35,6 +35,7 @@
     "realEstateProduct": "Real Estate Shares",
     "suites": "Suites",
     "rental": "Rental",
+    "sale": "Sale",
     "contact": "Contact"
   },
   "home": {
@@ -118,6 +119,8 @@
   "footer": {
     "company": "Pod Zlatým návrším",
     "tagline": "Luxury apartments in Špindlerův Mlýn",
+    "description": "Residential project in the heart of the Giant Mountains. Luxury apartments for rent and sale in Špindlerův Mlýn.",
+    "navigation": "Navigation",
     "quickLinks": "Quick links",
     "contact": "Contact",
     "legal": "Legal",

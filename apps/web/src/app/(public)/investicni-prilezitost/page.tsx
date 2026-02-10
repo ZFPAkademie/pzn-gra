@@ -1,25 +1,22 @@
 /**
- * Investiční příležitost
- * Production v1: Investment landing page
+ * Investment Page - Design Checklist 2030
  * 
- * URL: /investicni-prilezitost
- * 
- * CTA: "Kontaktovat investiční tým"
+ * - Jazyk klidný, institucionální
+ * - Žádné procenta bez kontextu
+ * - Důvěra > výkon
+ * - Formulář diskrétní
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
-import { InvestmentCTA } from './client';
 
-// Force dynamic rendering (uses cookies for locale)
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Investiční příležitost | Pod Zlatým návrším',
-  description: 'Investujte do luxusních apartmánů v Krkonoších. Stabilní zhodnocení s možností vlastního využití.',
-  keywords: 'investice apartmány, investiční nemovitost, Krkonoše, pasivní příjem, zhodnocení',
+  description: 'Investujte do luxusních apartmánů v Krkonoších.',
 };
 
 export default async function InvestmentPage() {
@@ -27,236 +24,118 @@ export default async function InvestmentPage() {
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
 
   const t = locale === 'cs' ? {
-    subtitle: 'Pod Zlatým návrším',
-    title: 'Investiční příležitost',
-    description: 'Investujte do nemovitosti v nejžádanější horské destinaci České republiky. Kombinace luxusního bydlení, stabilního zhodnocení a možnosti vlastního využití.',
+    tagline: 'Dlouhodobá hodnota',
+    title: 'Investice',
+    subtitle: 'Stabilní zhodnocení v prémiové horské lokalitě',
     
-    whyTitle: 'Proč investovat do apartmánu v Krkonoších',
-    whyItems: [
-      {
-        icon: '🏔️',
-        title: 'Prémiová lokalita',
-        desc: 'Špindlerův Mlýn je nejnavštěvovanější horské středisko v ČR s celoroční atraktivitou.',
-      },
-      {
-        icon: '📈',
-        title: 'Růst hodnoty',
-        desc: 'Nemovitosti v horských oblastech dlouhodobě rostou na hodnotě rychleji než průměr.',
-      },
-      {
-        icon: '💰',
-        title: 'Výnosy z pronájmu',
-        desc: 'Vysoká obsazenost díky celoroční poptávce — lyžování v zimě, turistika v létě.',
-      },
-      {
-        icon: '🏠',
-        title: 'Vlastní využití',
-        desc: 'Užijte si vlastní apartmán kdykoliv během roku, zbytek pronajímejte.',
-      },
-      {
-        icon: '🛎️',
-        title: 'Profesionální správa',
-        desc: 'O vše se postaráme — marketing, rezervace, úklid, údržba.',
-      },
-      {
-        icon: '📋',
-        title: 'Bez starostí',
-        desc: 'Pasivní příjem bez nutnosti aktivní správy nemovitosti.',
-      },
-    ],
+    intro: 'Pod Zlatým návrším nabízí investiční příležitost pro ty, kteří hledají kombinaci stabilního výnosu a možnosti vlastního využití v nejžádanější horské destinaci České republiky.',
     
-    numbersTitle: 'Proč právě teď',
-    numbers: [
-      { value: '2M+', label: 'návštěvníků Krkonoš ročně' },
-      { value: '85%', label: 'průměrná obsazenost' },
-      { value: '7%+', label: 'očekávaný roční výnos' },
-    ],
+    section1Title: 'Proč investovat',
+    section1Text: 'Špindlerův Mlýn je etablovaná destinace s celoroční poptávkou. Kombinace lyžařské sezóny a letní turistiky zajišťuje stabilní obsazenost apartmánů.',
     
-    processTitle: 'Jak to funguje',
-    processSteps: [
-      { step: '01', title: 'Konzultace', desc: 'Probereme vaše požadavky a představíme možnosti.' },
-      { step: '02', title: 'Výběr apartmánu', desc: 'Pomůžeme vám vybrat ideální jednotku.' },
-      { step: '03', title: 'Nákup', desc: 'Zajistíme hladký průběh celé transakce.' },
-      { step: '04', title: 'Správa', desc: 'Převezmeme kompletní správu a pronájem.' },
-    ],
+    section2Title: 'Jak to funguje',
+    section2Text: 'Zakoupíte apartmán v plném vlastnictví. My se postaráme o správu a pronájem. Vy čerpáte výnosy a máte možnost vlastního využití.',
     
-    ctaTitle: 'Začněte investovat',
-    ctaText: 'Kontaktujte náš investiční tým pro nezávaznou konzultaci a podrobné informace o dostupných jednotkách a očekávaných výnosech.',
-    ctaButton: 'Kontaktovat investiční tým',
+    section3Title: 'Pro koho je to vhodné',
+    section3Text: 'Pro investory hledající diverzifikaci portfolia do nemovitostí s pravidelným výnosem a potenciálem dlouhodobého zhodnocení.',
     
-    disclaimerTitle: 'Důležité upozornění',
-    disclaimer: 'Uvedené výnosy jsou orientační a vycházejí z historických dat. Skutečné výnosy se mohou lišit v závislosti na tržních podmínkách a obsazenosti.',
+    cta: 'Zjistit více',
+    ctaSubtext: 'Pošleme vám detailní informace',
   } : {
-    subtitle: 'Pod Zlatým návrším',
-    title: 'Investment opportunity',
-    description: 'Invest in real estate in the most sought-after mountain destination in the Czech Republic. A combination of luxury living, stable appreciation, and personal use options.',
+    tagline: 'Long-term value',
+    title: 'Investment',
+    subtitle: 'Stable appreciation in a premium mountain location',
     
-    whyTitle: 'Why invest in an apartment in the Giant Mountains',
-    whyItems: [
-      {
-        icon: '🏔️',
-        title: 'Premium location',
-        desc: 'Špindlerův Mlýn is the most visited mountain resort in the Czech Republic with year-round appeal.',
-      },
-      {
-        icon: '📈',
-        title: 'Value growth',
-        desc: 'Real estate in mountain areas appreciates faster than average in the long term.',
-      },
-      {
-        icon: '💰',
-        title: 'Rental income',
-        desc: 'High occupancy due to year-round demand — skiing in winter, hiking in summer.',
-      },
-      {
-        icon: '🏠',
-        title: 'Personal use',
-        desc: 'Enjoy your own apartment anytime during the year, rent out the rest.',
-      },
-      {
-        icon: '🛎️',
-        title: 'Professional management',
-        desc: 'We take care of everything — marketing, reservations, cleaning, maintenance.',
-      },
-      {
-        icon: '📋',
-        title: 'Hassle-free',
-        desc: 'Passive income without the need for active property management.',
-      },
-    ],
+    intro: 'Pod Zlatým návrším offers an investment opportunity for those seeking a combination of stable returns and personal use in the most sought-after mountain destination in the Czech Republic.',
     
-    numbersTitle: 'Why now',
-    numbers: [
-      { value: '2M+', label: 'visitors to the Giant Mountains annually' },
-      { value: '85%', label: 'average occupancy' },
-      { value: '7%+', label: 'expected annual return' },
-    ],
+    section1Title: 'Why invest',
+    section1Text: 'Špindlerův Mlýn is an established destination with year-round demand. The combination of ski season and summer tourism ensures stable apartment occupancy.',
     
-    processTitle: 'How it works',
-    processSteps: [
-      { step: '01', title: 'Consultation', desc: 'We discuss your requirements and present options.' },
-      { step: '02', title: 'Selection', desc: 'We help you choose the ideal unit.' },
-      { step: '03', title: 'Purchase', desc: 'We ensure a smooth transaction process.' },
-      { step: '04', title: 'Management', desc: 'We take over complete management and rental.' },
-    ],
+    section2Title: 'How it works',
+    section2Text: 'You purchase an apartment in full ownership. We take care of management and rental. You receive returns and have the option of personal use.',
     
-    ctaTitle: 'Start investing',
-    ctaText: 'Contact our investment team for a non-binding consultation and detailed information about available units and expected returns.',
-    ctaButton: 'Contact investment team',
+    section3Title: 'Who is it for',
+    section3Text: 'For investors looking to diversify their portfolio into real estate with regular returns and long-term appreciation potential.',
     
-    disclaimerTitle: 'Important notice',
-    disclaimer: 'Stated returns are indicative and based on historical data. Actual returns may vary depending on market conditions and occupancy.',
+    cta: 'Learn more',
+    ctaSubtext: 'We will send you detailed information',
   };
 
   return (
     <>
-      {/* Header */}
-      <section className="bg-navy text-white py-16 md:py-24">
+      {/* Hero */}
+      <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-gold font-medium mb-4">{t.subtitle}</p>
-          <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
+          <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
+            {t.tagline}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
             {t.title}
           </h1>
-          <p className="text-lg text-stone-500 max-w-2xl">
-            {t.description}
+          <p className="text-xl text-white/50 max-w-xl">
+            {t.subtitle}
           </p>
         </div>
       </section>
 
-      {/* Why Invest */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-navy mb-12 text-center">
-            {t.whyTitle}
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {t.whyItems.map((item, index) => (
-              <div key={index} className="p-6 bg-stone rounded-lg">
-                <span className="text-3xl mb-4 block">{item.icon}</span>
-                <h3 className="text-lg font-medium text-navy mb-2">{item.title}</h3>
-                <p className="text-stone-700">{item.desc}</p>
-              </div>
-            ))}
-          </div>
+      {/* Intro */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xl md:text-2xl text-navy/70 leading-relaxed text-center">
+            {t.intro}
+          </p>
         </div>
       </section>
 
-      {/* Numbers */}
-      <section className="py-16 md:py-24 bg-navy text-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-white mb-12 text-center">
-            {t.numbersTitle}
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            {t.numbers.map((item, index) => (
-              <div key={index}>
-                <div className="text-4xl md:text-5xl font-light text-gold mb-2">
-                  {item.value}
-                </div>
-                <div className="text-stone-500">{item.label}</div>
+      {/* Sections */}
+      <section className="bg-stone">
+        <div className="max-w-5xl mx-auto">
+          
+          {/* Section 1 */}
+          <div className="py-20 px-6 border-b border-navy/10">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div>
+                <span className="text-gold text-sm tracking-widest">01</span>
+                <h2 className="text-2xl font-light text-navy mt-4">{t.section1Title}</h2>
               </div>
-            ))}
+              <p className="text-navy/60 leading-relaxed">{t.section1Text}</p>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Process */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl md:text-3xl font-light text-navy mb-12 text-center">
-            {t.processTitle}
-          </h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            {t.processSteps.map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-light text-gold mb-4">{item.step}</div>
-                <h3 className="text-lg font-medium text-navy mb-2">{item.title}</h3>
-                <p className="text-stone-700 text-sm">{item.desc}</p>
+          
+          {/* Section 2 */}
+          <div className="py-20 px-6 border-b border-navy/10">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div>
+                <span className="text-gold text-sm tracking-widest">02</span>
+                <h2 className="text-2xl font-light text-navy mt-4">{t.section2Title}</h2>
               </div>
-            ))}
+              <p className="text-navy/60 leading-relaxed">{t.section2Text}</p>
+            </div>
+          </div>
+          
+          {/* Section 3 */}
+          <div className="py-20 px-6">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div>
+                <span className="text-gold text-sm tracking-widest">03</span>
+                <h2 className="text-2xl font-light text-navy mt-4">{t.section3Title}</h2>
+              </div>
+              <p className="text-navy/60 leading-relaxed">{t.section3Text}</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-stone">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-light text-navy mb-4">
-            {t.ctaTitle}
-          </h2>
-          <p className="text-stone-700 mb-8">
-            {t.ctaText}
-          </p>
-          <InvestmentCTA label={t.ctaButton} locale={locale} />
-        </div>
-      </section>
-
-      {/* Link to Nemovitostní produkt */}
-      <section className="py-12 bg-white border-t border-stone-300">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <p className="text-stone-700 mb-4">
-            {locale === 'cs' 
-              ? 'Nechcete kupovat celý apartmán? Zvažte koupi podílu.' 
-              : 'Don\'t want to buy a whole apartment? Consider buying a share.'}
-          </p>
+      <section className="py-24 bg-navy">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           <Link 
-            href="/nemovitostni-produkt" 
-            className="text-gold hover:text-amber-700 font-medium inline-flex items-center gap-2"
+            href="/kontakt?type=investment"
+            className="inline-block px-12 py-5 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors mb-6"
           >
-            {locale === 'cs' ? 'Zjistit více o nemovitostním produktu' : 'Learn more about real estate shares'}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            {t.cta}
           </Link>
-        </div>
-      </section>
-
-      {/* Disclaimer */}
-      <section className="py-8 bg-white border-t border-stone-300">
-        <div className="max-w-6xl mx-auto px-6">
-          <p className="text-xs text-stone-500">
-            <strong className="text-slate-500">{t.disclaimerTitle}:</strong> {t.disclaimer}
-          </p>
+          <p className="text-white/40 text-sm">{t.ctaSubtext}</p>
         </div>
       </section>
     </>

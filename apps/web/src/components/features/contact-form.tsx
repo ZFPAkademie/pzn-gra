@@ -1,69 +1,59 @@
 'use client';
 
 /**
- * Contact Form Component
- * Sprint 1: Sale inquiry form per SPRINT_1_PLAN.md §5.2
+ * Contact Form - Design Checklist 2030
+ * Diskrétní, minimalistický
  */
 
 import { useState } from 'react';
-import { Button, Input, Textarea } from '@/components/ui';
-import { useLanguage } from '@/components/providers/language-provider';
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
+interface ContactFormProps {
+  locale: string;
 }
 
-export function ContactForm() {
-  const { t } = useLanguage();
-  const [formData, setFormData] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
-  });
+export function ContactForm({ locale }: ContactFormProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errors, setErrors] = useState<Partial<ContactFormData>>({});
 
-  const validate = (): boolean => {
-    const newErrors: Partial<ContactFormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = t('common.error');
-    }
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('common.error');
-    }
-    if (!formData.message.trim()) {
-      newErrors.message = t('common.error');
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const t = locale === 'cs' ? {
+    name: 'Jméno',
+    email: 'E-mail',
+    phone: 'Telefon',
+    message: 'Zpráva',
+    submit: 'Odeslat',
+    sending: 'Odesílám...',
+    success: 'Děkujeme za zprávu. Ozveme se vám co nejdříve.',
+    error: 'Něco se pokazilo. Zkuste to prosím znovu.',
+  } : {
+    name: 'Name',
+    email: 'Email',
+    phone: 'Phone',
+    message: 'Message',
+    submit: 'Send',
+    sending: 'Sending...',
+    success: 'Thank you for your message. We will get back to you soon.',
+    error: 'Something went wrong. Please try again.',
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!validate()) return;
-
     setStatus('loading');
-
+    
+    const formData = new FormData(e.currentTarget);
+    
     try {
-      const response = await fetch('/api/v1/contact', {
+      const res = await fetch('/api/v1/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          type: 'sale',
+          name: formData.get('name'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          message: formData.get('message'),
         }),
       });
 
-      if (response.ok) {
+      if (res.ok) {
         setStatus('success');
-        setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
         setStatus('error');
       }
@@ -72,85 +62,66 @@ export function ContactForm() {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof ContactFormData]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
   if (status === 'success') {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-        <svg
-          className="w-12 h-12 text-green-500 mx-auto mb-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <p className="text-green-800 font-medium">{t('contact.formSuccess')}</p>
+      <div className="py-12 text-center">
+        <p className="text-navy/70">{t.success}</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Input
-        label={t('contact.formName')}
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        error={errors.name}
-        required
-      />
-
-      <Input
-        label={t('contact.formEmail')}
-        name="email"
-        type="email"
-        value={formData.email}
-        onChange={handleChange}
-        error={errors.email}
-        required
-      />
-
-      <Input
-        label={t('contact.formPhone')}
-        name="phone"
-        type="tel"
-        value={formData.phone}
-        onChange={handleChange}
-      />
-
-      <Textarea
-        label={t('contact.formMessage')}
-        name="message"
-        value={formData.message}
-        onChange={handleChange}
-        error={errors.message}
-        rows={5}
-        required
-      />
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div>
+        <label className="block text-sm text-navy/40 mb-3">{t.name}</label>
+        <input
+          type="text"
+          name="name"
+          required
+          className="w-full px-0 py-3 bg-transparent border-0 border-b border-navy/20 text-navy focus:border-gold focus:ring-0 outline-none transition-colors"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm text-navy/40 mb-3">{t.email}</label>
+        <input
+          type="email"
+          name="email"
+          required
+          className="w-full px-0 py-3 bg-transparent border-0 border-b border-navy/20 text-navy focus:border-gold focus:ring-0 outline-none transition-colors"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm text-navy/40 mb-3">{t.phone}</label>
+        <input
+          type="tel"
+          name="phone"
+          className="w-full px-0 py-3 bg-transparent border-0 border-b border-navy/20 text-navy focus:border-gold focus:ring-0 outline-none transition-colors"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm text-navy/40 mb-3">{t.message}</label>
+        <textarea
+          name="message"
+          rows={4}
+          required
+          className="w-full px-0 py-3 bg-transparent border-0 border-b border-navy/20 text-navy focus:border-gold focus:ring-0 outline-none transition-colors resize-none"
+        />
+      </div>
 
       {status === 'error' && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
-          {t('contact.formError')}
-        </div>
+        <p className="text-red-600 text-sm">{t.error}</p>
       )}
-
-      <Button type="submit" disabled={status === 'loading'} className="w-full">
-        {status === 'loading' ? t('common.loading') : t('contact.formSubmit')}
-      </Button>
+      
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className="px-10 py-4 bg-navy text-white text-sm tracking-widest uppercase hover:bg-navy-700 transition-colors disabled:opacity-50"
+      >
+        {status === 'loading' ? t.sending : t.submit}
+      </button>
     </form>
   );
 }

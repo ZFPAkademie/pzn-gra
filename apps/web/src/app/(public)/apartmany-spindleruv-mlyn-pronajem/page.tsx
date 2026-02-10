@@ -1,156 +1,124 @@
 /**
- * Apartmány k pronájmu
- * Production v1: Rental catalog
+ * Apartmány k pronájmu - Design Checklist 2030
  * 
- * URL: /apartmany-spindleruv-mlyn-pronajem (SEO Critical)
- * 
- * Design Rules:
- * - Premium, quiet tone
- * - Gold/bronze accent (5-10% max)
- * - No "brzy" or disabled states
+ * Pravidla:
+ * - Hero = emoce
+ * - Karty bez ikon
+ * - Prostor a ticho
+ * - Premium feel
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
-import { 
-  getRentApartments, 
-  formatAreaDisplay, 
-  formatPriceDisplay,
-  getApartmentDisplayName,
-  getCTALabel,
-} from '@/lib/apartments';
+import { getRentApartments } from '@/lib/apartments';
 
-// Force dynamic rendering (uses cookies for locale)
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Apartmány k pronájmu | Špindlerův Mlýn | Pod Zlatým návrším',
-  description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně. Krátkodobé pobyty v plně vybavených apartmánech v Krkonoších.',
-  keywords: 'apartmány Špindl, apartmány Špindlerův Mlýn, pronájem apartmánů, ubytování Krkonoše, Golden Ridge',
+  description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně.',
 };
 
 export default async function RentApartmentsPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-
   const apartments = getRentApartments();
 
   const t = locale === 'cs' ? {
-    badge: 'Pronájem',
-    title: 'Apartmány k pronájmu',
-    subtitle: 'Špindlerův Mlýn · Krkonoše',
-    description: 'Vyberte si z nabídky plně vybavených apartmánů pro váš pobyt v srdci Krkonoš.',
-    count: `${apartments.length} apartmánů`,
-    noApartments: 'Momentálně nejsou k dispozici žádné apartmány k pronájmu.',
-    viewDetail: 'Zobrazit detail',
-    rooms: 'místnosti',
-    contactTitle: 'Nenašli jste, co hledáte?',
-    contactText: 'Kontaktujte nás a rádi vám pomůžeme s výběrem ideálního apartmánu.',
-    contactCta: 'Kontaktovat nás',
+    tagline: 'Špindlerův Mlýn · Krkonoše',
+    title: 'Pronájem',
+    subtitle: 'Vyberte si z nabídky plně vybavených apartmánů',
+    rooms: 'místností',
+    view: 'Zobrazit',
+    price: 'od',
+    perNight: '/ noc',
+    contact: 'Kontaktovat nás',
+    contactText: 'Potřebujete poradit s výběrem?',
   } : {
-    badge: 'Rent',
-    title: 'Apartments for rent',
-    subtitle: 'Špindlerův Mlýn · Giant Mountains',
-    description: 'Choose from our selection of fully equipped apartments for your stay in the heart of the Giant Mountains.',
-    count: `${apartments.length} apartments`,
-    noApartments: 'No apartments are currently available for rent.',
-    viewDetail: 'View details',
+    tagline: 'Špindlerův Mlýn · Giant Mountains',
+    title: 'Rent',
+    subtitle: 'Choose from our selection of fully equipped apartments',
     rooms: 'rooms',
-    contactTitle: "Didn't find what you're looking for?",
-    contactText: 'Contact us and we will be happy to help you choose the perfect apartment.',
-    contactCta: 'Contact us',
+    view: 'View',
+    price: 'from',
+    perNight: '/ night',
+    contact: 'Contact us',
+    contactText: 'Need help choosing?',
   };
 
   return (
     <>
-      {/* Header */}
-      <section className="bg-navy text-white py-16 md:py-24">
+      {/* Hero - minimalist */}
+      <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-gold font-medium mb-4">{t.subtitle}</p>
-          <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
+          <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
+            {t.tagline}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
             {t.title}
           </h1>
-          <p className="text-lg text-stone-500 max-w-2xl">
-            {t.description}
+          <p className="text-xl text-white/50 max-w-xl">
+            {t.subtitle}
           </p>
         </div>
       </section>
 
       {/* Apartments Grid */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-sm text-slate-500 mb-8">{t.count}</p>
           
-          {apartments.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {apartments.map((apt) => (
-                <article 
-                  key={apt.slug}
-                  className="group bg-white border border-stone-300 rounded-lg overflow-hidden hover:border-stone-400 hover:shadow-lg transition-all"
-                >
-                  {/* Image placeholder */}
-                  <div className="aspect-[4/3] bg-stone relative">
-                    <div className="absolute inset-0 flex items-center justify-center text-stone-400">
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 22V12h6v10" />
-                      </svg>
-                    </div>
-                    {/* Mode badge */}
-                    <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-medium px-2.5 py-1 rounded">
-                      {t.badge}
-                    </span>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-5">
-                    <h2 className="text-lg font-medium text-navy mb-2 group-hover:text-gold transition-colors">
-                      {getApartmentDisplayName(apt, locale)}
-                    </h2>
-                    
-                    <p className="text-sm text-stone-700 mb-4">
-                      {formatAreaDisplay(apt.m2.total)} · {apt.m2.breakdown.length} {t.rooms} · {apt.building}
-                    </p>
-                    
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                      <span className="font-medium text-navy">
-                        {formatPriceDisplay(apt, locale)}
-                      </span>
-                      <Link
-                        href={`/golden-ridge-apartments/apartman/${apt.slug}`}
-                        className="text-sm text-stone-700 hover:text-gold font-medium transition-colors"
-                      >
-                        {t.viewDetail} →
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-slate-500">{t.noApartments}</p>
-            </div>
-          )}
+          {/* Count - subtle */}
+          <p className="text-sm text-navy/40 mb-16">
+            {apartments.length} {locale === 'cs' ? 'apartmánů' : 'apartments'}
+          </p>
+
+          {/* Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {apartments.map((apt) => (
+              <Link 
+                key={apt.slug} 
+                href={`/golden-ridge-apartments/apartman/${apt.slug}`}
+                className="group block"
+              >
+                {/* Image placeholder */}
+                <div className="aspect-[4/3] bg-stone mb-8 overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 group-hover:scale-105 transition-transform duration-700" />
+                </div>
+                
+                {/* Content */}
+                <h3 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-3">
+                  {apt.title}
+                </h3>
+                
+                <p className="text-sm text-navy/40 mb-4">
+                  {apt.area} m² · {apt.rooms} {t.rooms}
+                </p>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-navy/10">
+                  <span className="text-navy/60">
+                    {t.price} <span className="text-navy font-medium">{apt.priceFrom?.toLocaleString()} Kč</span> {t.perNight}
+                  </span>
+                  <span className="text-sm text-navy/40 group-hover:text-gold transition-colors">
+                    {t.view} →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Contact CTA */}
-      <section className="py-16 md:py-24 bg-stone">
+      <section className="py-24 bg-stone">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-light text-navy mb-4">
-            {t.contactTitle}
-          </h2>
-          <p className="text-stone-700 mb-8 max-w-xl mx-auto">
-            {t.contactText}
-          </p>
+          <p className="text-navy/50 mb-6">{t.contactText}</p>
           <Link 
             href="/kontakt"
-            className="inline-block px-6 py-3 bg-navy text-white font-medium rounded hover:bg-navy-700 transition-colors"
+            className="inline-block px-10 py-4 border border-navy/20 text-navy text-sm tracking-widest uppercase hover:bg-navy hover:text-white transition-colors"
           >
-            {t.contactCta}
+            {t.contact}
           </Link>
         </div>
       </section>

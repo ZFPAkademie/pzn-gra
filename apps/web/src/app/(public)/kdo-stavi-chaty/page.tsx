@@ -1,72 +1,105 @@
 /**
- * Kdo staví (The Builder) Page
- * Sprint 1: Existing URL preserved per SPRINT_1_PLAN.md §3.1
- * 
- * URL: /kdo-stavi-chaty (SEO Critical)
+ * Kdo staví chaty - Design Checklist 2030
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { getLocaleFromCookie, createT } from '@/lib/i18n';
-import { StaticPage, PlaceholderContent } from '@/components/features/static-page';
+import Link from 'next/link';
+import { getLocaleFromCookie } from '@/lib/i18n';
 
-// Force dynamic rendering (uses cookies for locale)
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata(): Promise<Metadata> {
+export const metadata: Metadata = {
+  title: 'Kdo staví | Pod Zlatým návrším',
+  description: 'Zkušený tým za projektem Pod Zlatým návrším.',
+};
+
+export default async function BuilderPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  const t = createT(locale);
 
-  return {
-    title: `${t('pages.builder.title')} | Pod Zlatým návrším`,
-    description: t('pages.builder.subtitle'),
+  const t = locale === 'cs' ? {
+    tagline: 'Za projektem',
+    title: 'Kdo staví',
+    subtitle: 'Zkušený tým s dlouholetou praxí v rezidenčním developmentu',
+    
+    intro: 'Projekt Pod Zlatým návrším vzniká pod vedením zkušeného týmu, který má za sebou desítky úspěšně realizovaných rezidenčních projektů.',
+    
+    values: [
+      { title: 'Zkušenosti', desc: 'Více než 15 let v rezidenčním developmentu' },
+      { title: 'Kvalita', desc: 'Důraz na materiály a zpracování' },
+      { title: 'Transparentnost', desc: 'Otevřená komunikace s klienty' },
+    ],
+    
+    cta: 'Kontaktovat nás',
+  } : {
+    tagline: 'Behind the project',
+    title: 'Who builds',
+    subtitle: 'Experienced team with years of practice in residential development',
+    
+    intro: 'Pod Zlatým návrším is created by an experienced team with dozens of successfully completed residential projects.',
+    
+    values: [
+      { title: 'Experience', desc: 'More than 15 years in residential development' },
+      { title: 'Quality', desc: 'Emphasis on materials and craftsmanship' },
+      { title: 'Transparency', desc: 'Open communication with clients' },
+    ],
+    
+    cta: 'Contact us',
   };
-}
-
-export default function KdoStaviPage() {
-  const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  const t = createT(locale);
 
   return (
-    <StaticPage
-      title={t('pages.builder.title')}
-      subtitle={t('pages.builder.subtitle')}
-    >
-      <PlaceholderContent pageName="Kdo staví" />
+    <>
+      {/* Hero */}
+      <section className="bg-navy pt-32 pb-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
+            {t.tagline}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
+            {t.title}
+          </h1>
+          <p className="text-xl text-white/50 max-w-xl">
+            {t.subtitle}
+          </p>
+        </div>
+      </section>
 
-      {/* Placeholder content structure */}
-      <div className="mt-8 space-y-6">
-        <h2>Zkušený developer</h2>
-        <p>
-          Za projektem Pod Zlatým návrším stojí zkušený developerský tým 
-          s dlouholetou tradicí v oblasti prémiové výstavby. Naše projekty 
-          se vyznačují důrazem na kvalitu, design a spokojenost klientů.
-        </p>
+      {/* Intro */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xl md:text-2xl text-navy/70 leading-relaxed text-center">
+            {t.intro}
+          </p>
+        </div>
+      </section>
 
-        <h3>Naše zkušenosti</h3>
-        <ul>
-          <li>Více než 20 let na trhu</li>
-          <li>Desítky úspěšně dokončených projektů</li>
-          <li>Specializace na prémiové rezidenční projekty</li>
-          <li>Silný tým architektů a projektantů</li>
-        </ul>
+      {/* Values */}
+      <section className="py-24 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid md:grid-cols-3 gap-12">
+            {t.values.map((value, i) => (
+              <div key={i} className="text-center">
+                <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
+                <h3 className="text-xl font-light text-navy mt-4 mb-4">{value.title}</h3>
+                <p className="text-navy/50">{value.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <h3>Reference</h3>
-        <p>
-          Naše portfolio zahrnuje rezidenční projekty v nejatraktivnějších 
-          lokalitách České republiky. Každý projekt je pro nás výzvou 
-          k dosažení maximální kvality a spokojenosti našich klientů.
-        </p>
-
-        <h3>Přístup ke klientům</h3>
-        <p>
-          Věříme v transparentní komunikaci a partnerský přístup. 
-          Naši klienti jsou průběžně informováni o postupu výstavby 
-          a mají možnost konzultovat individuální úpravy svých apartmánů.
-        </p>
-      </div>
-    </StaticPage>
+      {/* CTA */}
+      <section className="py-24 bg-navy">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <Link 
+            href="/kontakt"
+            className="inline-block px-12 py-5 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
+          >
+            {t.cta}
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }

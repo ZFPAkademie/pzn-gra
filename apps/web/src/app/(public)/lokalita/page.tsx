@@ -1,71 +1,122 @@
 /**
- * Lokalita (Location) Page
- * Sprint 1: Existing URL preserved per SPRINT_1_PLAN.md §3.1
- * 
- * URL: /lokalita (SEO Critical)
+ * Lokalita - Design Checklist 2030
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { getLocaleFromCookie, createT } from '@/lib/i18n';
-import { StaticPage, PlaceholderContent } from '@/components/features/static-page';
+import Link from 'next/link';
+import { getLocaleFromCookie } from '@/lib/i18n';
 
-// Force dynamic rendering (uses cookies for locale)
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata(): Promise<Metadata> {
+export const metadata: Metadata = {
+  title: 'Lokalita | Pod Zlatým návrším',
+  description: 'Špindlerův Mlýn - nejžádanější horská destinace České republiky.',
+};
+
+export default async function LocationPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  const t = createT(locale);
 
-  return {
-    title: `${t('pages.location.title')} | Pod Zlatým návrším`,
-    description: t('pages.location.subtitle'),
+  const t = locale === 'cs' ? {
+    tagline: 'Špindlerův Mlýn',
+    title: 'Lokalita',
+    subtitle: 'Nejžádanější horská destinace České republiky',
+    
+    stats: [
+      { value: '1.5h', label: 'z Prahy' },
+      { value: '2h', label: 'z Berlína' },
+      { value: '365', label: 'dní v roce' },
+    ],
+    
+    winterTitle: 'Zima',
+    winterText: 'Nejlepší lyžařské středisko v Česku. Sjezdovky pro všechny úrovně, moderní lanovky a skvělé podmínky od prosince do dubna.',
+    
+    summerTitle: 'Léto',
+    summerText: 'Ideální zázemí pro turistiku, cyklistiku a odpočinek. Stovky kilometrů značených tras v Krkonošském národním parku.',
+    
+    cta: 'Kontaktovat nás',
+  } : {
+    tagline: 'Špindlerův Mlýn',
+    title: 'Location',
+    subtitle: 'The most sought-after mountain destination in the Czech Republic',
+    
+    stats: [
+      { value: '1.5h', label: 'from Prague' },
+      { value: '2h', label: 'from Berlin' },
+      { value: '365', label: 'days a year' },
+    ],
+    
+    winterTitle: 'Winter',
+    winterText: 'The best ski resort in the Czech Republic. Slopes for all levels, modern lifts, and excellent conditions from December to April.',
+    
+    summerTitle: 'Summer',
+    summerText: 'Ideal base for hiking, cycling, and relaxation. Hundreds of kilometers of marked trails in Krkonoše National Park.',
+    
+    cta: 'Contact us',
   };
-}
-
-export default function LokalitaPage() {
-  const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  const t = createT(locale);
 
   return (
-    <StaticPage
-      title={t('pages.location.title')}
-      subtitle={t('pages.location.subtitle')}
-    >
-      <PlaceholderContent pageName="Lokalita" />
-      
-      {/* Placeholder content structure */}
-      <div className="mt-8 space-y-6">
-        <h2>Špindlerův Mlýn</h2>
-        <p>
-          Špindlerův Mlýn je nejznámější horské středisko v České republice, 
-          ležící v srdci Krkonoš. Toto místo nabízí jedinečnou kombinaci 
-          přírodních krás, sportovních aktivit a relaxace po celý rok.
-        </p>
+    <>
+      {/* Hero */}
+      <section className="bg-navy pt-32 pb-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
+            {t.tagline}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
+            {t.title}
+          </h1>
+          <p className="text-xl text-white/50 max-w-xl">
+            {t.subtitle}
+          </p>
+        </div>
+      </section>
 
-        <h3>Zimní sezóna</h3>
-        <p>
-          V zimě nabízí Špindlerův Mlýn vynikající podmínky pro lyžování 
-          a snowboarding na svazích Svatého Petra a Medvědína. Běžkaři 
-          si přijdou na své na upravených tratích v okolí.
-        </p>
+      {/* Stats */}
+      <section className="py-16 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-3 gap-8 text-center">
+            {t.stats.map((stat, i) => (
+              <div key={i}>
+                <p className="text-4xl font-light text-navy mb-2">{stat.value}</p>
+                <p className="text-sm text-navy/40 uppercase tracking-widest">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <h3>Letní sezóna</h3>
-        <p>
-          V létě je Špindl ideálním výchozím bodem pro turistiku do Krkonoš, 
-          cykloturistiku a další outdoorové aktivity. Lanovky vás vyvezou 
-          do výšin s krásnými výhledy.
-        </p>
+      {/* Seasons */}
+      <section className="bg-cream">
+        <div className="max-w-5xl mx-auto">
+          <div className="py-20 px-6 border-b border-navy/10">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <h2 className="text-2xl font-light text-navy">{t.winterTitle}</h2>
+              <p className="text-navy/60 leading-relaxed">{t.winterText}</p>
+            </div>
+          </div>
+          
+          <div className="py-20 px-6">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <h2 className="text-2xl font-light text-navy">{t.summerTitle}</h2>
+              <p className="text-navy/60 leading-relaxed">{t.summerText}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <h3>Dopravní dostupnost</h3>
-        <p>
-          Z Prahy se do Špindlerova Mlýna dostanete za přibližně 2 hodiny 
-          autem. Pravidelné autobusové spojení zajišťuje pohodlné cestování 
-          i bez vlastního vozu.
-        </p>
-      </div>
-    </StaticPage>
+      {/* CTA */}
+      <section className="py-24 bg-navy">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <Link 
+            href="/kontakt"
+            className="inline-block px-12 py-5 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
+          >
+            {t.cta}
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }

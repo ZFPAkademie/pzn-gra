@@ -35,6 +35,7 @@
     "realEstateProduct": "Nemovitostní produkt",
     "suites": "Suites",
     "rental": "Pronájem",
+    "sale": "Prodej",
     "contact": "Kontakt"
   },
   "home": {
@@ -118,6 +119,8 @@
   "footer": {
     "company": "Pod Zlatým návrším",
     "tagline": "Luxusní apartmány ve Špindlerově Mlýně",
+    "description": "Rezidenční projekt v srdci Krkonoš. Luxusní apartmány k pronájmu a prodeji ve Špindlerově Mlýně.",
+    "navigation": "Navigace",
     "quickLinks": "Rychlé odkazy",
     "contact": "Kontakt",
     "legal": "Právní informace",
