@@ -1,10 +1,11 @@
 /**
- * Apartmány na prodej - Design Checklist 2030
+ * Apartmány na prodej - Design 2030 + Video
  */
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { getSaleApartments } from '@/lib/apartments';
 
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Apartmány na prodej | Pod Zlatým návrším',
-  description: 'Luxusní apartmány na prodej v Krkonoších.',
+  description: 'Luxusní apartmány na prodej v Krkonoších, přímo u lanovky.',
 };
 
 export default async function SaleApartmentsPage() {
@@ -22,20 +23,22 @@ export default async function SaleApartmentsPage() {
 
   const t = locale === 'cs' ? {
     tagline: 'Investiční příležitost',
-    title: 'Vlastnictví',
+    title: 'Apartmány na prodej',
     subtitle: 'Prémiové apartmány v nejžádanější horské lokalitě České republiky',
     rooms: 'místností',
     view: 'Nezávazná poptávka',
     priceOnRequest: 'Cena na vyžádání',
+    videoTitle: 'Prohlídka projektu',
     contact: 'Kontaktovat nás',
     contactText: 'Máte zájem o více informací?',
   } : {
     tagline: 'Investment opportunity',
-    title: 'Ownership',
+    title: 'Apartments for sale',
     subtitle: 'Premium apartments in the most sought-after mountain location in Czech Republic',
     rooms: 'rooms',
     view: 'Inquire',
     priceOnRequest: 'Price on request',
+    videoTitle: 'Project tour',
     contact: 'Contact us',
     contactText: 'Interested in more information?',
   };
@@ -43,7 +46,7 @@ export default async function SaleApartmentsPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-navy pt-32 pb-20">
+      <section className="relative bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
             {t.tagline}
@@ -54,6 +57,25 @@ export default async function SaleApartmentsPage() {
           <p className="text-xl text-white/50 max-w-xl">
             {t.subtitle}
           </p>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="py-20 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-10">
+            {t.videoTitle}
+          </h2>
+          <div className="relative aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/gJqA9imgAsQ"
+              title="Pod Zlatým návrším"
+              className="absolute inset-0 w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </div>
       </section>
 
@@ -72,9 +94,13 @@ export default async function SaleApartmentsPage() {
                 href={`/apartmany-prodej/${apt.slug}`}
                 className="group block"
               >
-                {/* Larger image for sale */}
-                <div className="aspect-[3/2] bg-stone mb-8 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 group-hover:scale-105 transition-transform duration-700" />
+                <div className="aspect-[3/2] bg-stone mb-8 overflow-hidden relative">
+                  <Image
+                    src="/images/building-front.jpg"
+                    alt={apt.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
                 </div>
                 
                 <h3 className="text-2xl font-light text-navy group-hover:text-gold transition-colors mb-3">

@@ -62,6 +62,25 @@ export default async function NemovitostniProduktPage() {
         </div>
       </section>
 
+      {/* Video Section */}
+      <section className="py-20 bg-stone">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-10">
+            Prohlídka projektu
+          </h2>
+          <div className="relative aspect-video">
+            <iframe
+              src="https://www.youtube.com/embed/gJqA9imgAsQ"
+              title="Pod Zlatým návrším"
+              className="absolute inset-0 w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Pro koho je tento produkt */}
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
