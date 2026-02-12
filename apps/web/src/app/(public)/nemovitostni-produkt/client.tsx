@@ -27,6 +27,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
     phone: '',
     shareCount: '',
     message: '',
+    postalCode: '',
   });
   const [geoData, setGeoData] = useState<GeoData>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -42,6 +43,10 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
           region: data.region,
           postal: data.postal,
         });
+        // Prefill postal code (user can edit)
+        if (data.postal) {
+          setFormData(prev => ({ ...prev, postalCode: data.postal }));
+        }
       })
       .catch(() => {
         // Fallback - no geolocation
@@ -64,7 +69,10 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
           message: formData.message,
           share_count: formData.shareCount ? parseInt(formData.shareCount) : null,
           metadata: {
-            geo: geoData,
+            geo: {
+              ...geoData,
+              postal: formData.postalCode || geoData.postal, // User input takes priority
+            },
             source: 'nemovitostni-produkt',
             locale,
           },
@@ -76,7 +84,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
         setTimeout(() => {
           setShowModal(false);
           setStatus('idle');
-          setFormData({ name: '', email: '', phone: '', shareCount: '', message: '' });
+          setFormData({ name: '', email: '', phone: '', shareCount: '', message: '', postalCode: '' });
         }, 2000);
       } else {
         setStatus('error');
@@ -99,6 +107,8 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
     phone: 'Telefon',
     shares: 'Předpokládaný počet podílů',
     sharesPlaceholder: 'např. 5',
+    postalCode: 'PSČ',
+    postalCodePlaceholder: 'např. 664 62',
     message: 'Poznámka',
     messagePlaceholder: 'Vaše dotazy nebo požadavky...',
     submit: 'Odeslat poptávku',
@@ -106,7 +116,6 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
     success: 'Děkujeme! Ozveme se vám.',
     error: 'Něco se pokazilo. Zkuste to znovu.',
     close: 'Zavřít',
-    location: 'Vaše lokalita',
   } : {
     cta: 'Get share offer',
     title: 'Non-binding inquiry',
@@ -116,6 +125,8 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
     phone: 'Phone',
     shares: 'Expected number of shares',
     sharesPlaceholder: 'e.g. 5',
+    postalCode: 'Postal code',
+    postalCodePlaceholder: 'e.g. 664 62',
     message: 'Note',
     messagePlaceholder: 'Your questions or requirements...',
     submit: 'Send inquiry',
@@ -123,7 +134,6 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
     success: 'Thank you! We will contact you.',
     error: 'Something went wrong. Please try again.',
     close: 'Close',
-    location: 'Your location',
   };
 
   return (
@@ -209,6 +219,20 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
                     />
                   </div>
 
+                  {/* Postal Code */}
+                  <div>
+                    <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+                      {t.postalCode}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={t.postalCodePlaceholder}
+                      value={formData.postalCode}
+                      onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                      className="w-full bg-transparent border-b border-navy/20 py-3 text-navy focus:border-gold focus:outline-none transition-colors"
+                    />
+                  </div>
+
                   {/* Share count */}
                   <div>
                     <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
@@ -238,18 +262,6 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
                       className="w-full bg-transparent border-b border-navy/20 py-3 text-navy focus:border-gold focus:outline-none transition-colors resize-none"
                     />
                   </div>
-
-                  {/* Geolocation indicator */}
-                  {geoData.city && (
-                    <div className="text-xs text-navy/30 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {t.location}: {geoData.city}, {geoData.country}
-                      {geoData.postal && ` (${geoData.postal})`}
-                    </div>
-                  )}
 
                   {/* Error */}
                   {status === 'error' && (
