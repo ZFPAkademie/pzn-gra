@@ -31,7 +31,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/images/logo.png"
+            src="/images/logo-transparent.png"
             alt="Pod Zlatým návrším"
             width={50}
             height={50}

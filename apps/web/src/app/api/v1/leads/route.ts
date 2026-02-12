@@ -1,6 +1,7 @@
 /**
  * Leads API
  * POST /api/v1/leads - Create new lead
+ * Sends notifications to info@zfpreality.cz
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,6 +11,9 @@ import { createLead, LeadInput } from '@/lib/leads-service';
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 5;
 const RATE_WINDOW = 60 * 1000; // 1 minute
+
+// Notification email for investment inquiries
+const NOTIFICATION_EMAIL = 'info@zfpreality.cz';
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -26,6 +30,55 @@ function checkRateLimit(ip: string): boolean {
   
   record.count++;
   return true;
+}
+
+// Send email notification via Resend
+async function sendNotificationEmail(lead: any) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.log('RESEND_API_KEY not configured, skipping email');
+    return;
+  }
+
+  const geoInfo = lead.metadata?.geo 
+    ? `\nLokalizace: ${lead.metadata.geo.city || 'N/A'}, ${lead.metadata.geo.country || 'N/A'} (PSČ: ${lead.metadata.geo.postal || 'N/A'})`
+    : '';
+
+  const emailBody = `
+Nová poptávka investičního podílu
+
+Jméno: ${lead.name}
+E-mail: ${lead.email}
+Telefon: ${lead.phone || 'Neuvedeno'}
+Počet podílů: ${lead.share_count || 'Nespecifikováno'}
+Poznámka: ${lead.message || 'Žádná'}
+${geoInfo}
+
+Zdroj: ${lead.metadata?.source || 'web'}
+Jazyk: ${lead.metadata?.locale || 'cs'}
+  `.trim();
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Pod Zlatým návrším <noreply@podzlatymnavrsim.cz>',
+        to: NOTIFICATION_EMAIL,
+        subject: `Nová poptávka podílů: ${lead.name}`,
+        text: emailBody,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send notification email:', await response.text());
+    }
+  } catch (error) {
+    console.error('Email sending error:', error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -46,24 +99,21 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body = await request.json();
     
+    // Handle simplified form (from nemovitostni-produkt)
+    if (body.name && !body.first_name) {
+      const nameParts = body.name.trim().split(' ');
+      body.first_name = nameParts[0] || body.name;
+      body.last_name = nameParts.slice(1).join(' ') || '-';
+      body.gdpr_consent = true;
+      body.terms_accepted = true;
+    }
+    
     // Validate required fields
-    const requiredFields = ['type', 'first_name', 'last_name', 'email', 'gdpr_consent', 'terms_accepted'];
-    for (const field of requiredFields) {
-      if (body[field] === undefined || body[field] === null || body[field] === '') {
-        if (field === 'gdpr_consent' || field === 'terms_accepted') {
-          if (body[field] !== true) {
-            return NextResponse.json(
-              { error: `${field} must be accepted` },
-              { status: 400 }
-            );
-          }
-        } else {
-          return NextResponse.json(
-            { error: `${field} is required` },
-            { status: 400 }
-          );
-        }
-      }
+    if (!body.type || !body.email) {
+      return NextResponse.json(
+        { error: 'Type and email are required' },
+        { status: 400 }
+      );
     }
     
     // Validate type
@@ -91,7 +141,7 @@ export async function POST(request: NextRequest) {
       gdpr_consent: body.gdpr_consent === true,
       terms_accepted: body.terms_accepted === true,
       marketing_consent: body.marketing_consent === true,
-      language: body.language || 'cs',
+      language: body.metadata?.locale || body.language || 'cs',
       ip_address: ip,
       user_agent: request.headers.get('user-agent') || undefined,
     };
@@ -104,6 +154,18 @@ export async function POST(request: NextRequest) {
         { error: result.error },
         { status: 400 }
       );
+    }
+    
+    // Send notification email for investment share requests
+    if (body.type === 'investment_share_request') {
+      await sendNotificationEmail({
+        name: body.name || `${body.first_name} ${body.last_name}`,
+        email: body.email,
+        phone: body.phone,
+        share_count: body.share_count,
+        message: body.message,
+        metadata: body.metadata,
+      });
     }
     
     return NextResponse.json(
