@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getSaleApartments, getSalesManager } from '@/lib/apartments';
+import { getApartmentHeroImage } from '@/data/apartment-images';
 
 export const metadata: Metadata = {
   title: 'Apartmány na prodej | Pod Zlatým návrším',
@@ -28,7 +29,7 @@ export default function SaleApartmentsPage() {
             Apartmány na prodej
           </h1>
           <p className="text-xl text-white/50 max-w-xl">
-            Poslední 3 dostupné apartmány v projektu Pod Zlatým návrším, přímo u lanovky Labská.
+            Poslední {apartments.length} dostupné apartmány v projektu Pod Zlatým návrším, přímo u lanovky Labská.
           </p>
         </div>
       </section>
@@ -57,64 +58,72 @@ export default function SaleApartmentsPage() {
           </p>
 
           <div className="space-y-16">
-            {apartments.map((apt, index) => (
-              <Link 
-                key={apt.slug} 
-                href={`/apartmany-prodej/${apt.slug}`}
-                className="group block"
-              >
-                <div className="grid md:grid-cols-2 gap-8 items-center">
-                  <div className={`relative aspect-[4/3] bg-stone overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                    <Image
-                      src="/images/building-front.jpg"
-                      alt={apt.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute top-6 left-6">
-                      <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
-                        Na prodej
+            {apartments.map((apt, index) => {
+              const heroImage = getApartmentHeroImage(apt.slug);
+              return (
+                <Link 
+                  key={apt.slug} 
+                  href={`/apartmany-prodej/${apt.slug}`}
+                  className="group block"
+                >
+                  <div className="grid md:grid-cols-2 gap-8 items-center">
+                    <div className={`relative aspect-[4/3] bg-stone overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                      {heroImage ? (
+                        <Image
+                          src={heroImage}
+                          alt={apt.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-navy/10" />
+                      )}
+                      <div className="absolute top-6 left-6">
+                        <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
+                          Na prodej
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className={index % 2 === 1 ? 'md:order-1' : ''}>
+                      <h2 className="text-3xl font-light text-navy group-hover:text-gold transition-colors mb-2">
+                        {apt.title}
+                      </h2>
+                      <p className="text-navy/50 mb-6">{apt.subtitle}</p>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Plocha</p>
+                          <p className="text-navy">{apt.totalArea}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Dispozice</p>
+                          <p className="text-navy">{apt.layout}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Patro</p>
+                          <p className="text-navy">{apt.floor}. NP</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Orientace</p>
+                          <p className="text-navy">{apt.orientation}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-lg font-medium text-gold mb-6">Cena na dotaz</p>
+                      
+                      <span className="inline-flex items-center text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
+                        Zobrazit detail
+                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                        </svg>
                       </span>
                     </div>
                   </div>
-                  
-                  <div className={index % 2 === 1 ? 'md:order-1' : ''}>
-                    <h2 className="text-3xl font-light text-navy group-hover:text-gold transition-colors mb-2">
-                      {apt.title}
-                    </h2>
-                    <p className="text-navy/50 mb-6">{apt.subtitle}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Plocha</p>
-                        <p className="text-navy">{apt.totalArea}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Dispozice</p>
-                        <p className="text-navy">{apt.layout}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Patro</p>
-                        <p className="text-navy">{apt.floor}. NP</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Orientace</p>
-                        <p className="text-navy">{apt.orientation}</p>
-                      </div>
-                    </div>
-
-                    <p className="text-lg font-medium text-gold mb-6">Cena na dotaz</p>
-                    
-                    <span className="inline-flex items-center text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
-                      Zobrazit detail
-                      <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

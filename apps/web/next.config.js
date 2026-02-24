@@ -28,6 +28,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.goldenridge.cz',
       },
+      {
+        protocol: 'https',
+        hostname: 'nudiugowvzflokflcokd.supabase.co',
+      },
     ],
   },
 

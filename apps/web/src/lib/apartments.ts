@@ -37,6 +37,7 @@ export interface RentalApartment {
   maxGuests: number;
   pricePerNight: number;
   status: string;
+  alsoForSale?: boolean;
 }
 
 export interface SalesManager {
@@ -67,7 +68,7 @@ export function getSalesManager(): SalesManager {
   return apartmentsData.salesManager as SalesManager;
 }
 
-// Legacy compatibility
-export function getAllApartments() {
-  return [...apartmentsData.sale, ...apartmentsData.rental];
+// Get rental apartments that are also for sale
+export function getRentalApartmentsForSale(): RentalApartment[] {
+  return apartmentsData.rental.filter((apt) => apt.alsoForSale) as RentalApartment[];
 }

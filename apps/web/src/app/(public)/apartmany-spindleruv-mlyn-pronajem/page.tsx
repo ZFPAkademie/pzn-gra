@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getRentalApartments } from '@/lib/apartments';
+import { getApartmentHeroImage } from '@/data/apartment-images';
 
 export const metadata: Metadata = {
   title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
@@ -60,53 +61,68 @@ export default function RentalApartmentsPage() {
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {apartments.map((apt) => (
-              <Link 
-                key={apt.slug} 
-                href={`/apartmany-spindleruv-mlyn-pronajem/${apt.slug}`}
-                className="group block bg-white"
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/3] bg-stone overflow-hidden">
-                  <Image
-                    src="/images/building-lift.jpg"
-                    alt={apt.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 text-navy text-xs">
-                      {apt.layout} · {apt.totalArea}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Content */}
-                <div className="p-6">
-                  <h2 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-2">
-                    {apt.title}
-                  </h2>
-                  
-                  <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">
-                    <span>max. {apt.maxGuests} hostů</span>
-                    <span>·</span>
-                    <span>{apt.orientation}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-navy/10">
-                    <div>
-                      <p className="text-2xl font-light text-navy">
-                        {apt.pricePerNight.toLocaleString('cs-CZ')} Kč
-                      </p>
-                      <p className="text-xs text-navy/40">za noc</p>
+            {apartments.map((apt) => {
+              const heroImage = getApartmentHeroImage(apt.slug);
+              return (
+                <Link 
+                  key={apt.slug} 
+                  href={`/apartmany-spindleruv-mlyn-pronajem/${apt.slug}`}
+                  className="group block bg-white"
+                >
+                  {/* Image */}
+                  <div className="relative aspect-[4/3] bg-stone overflow-hidden">
+                    {heroImage ? (
+                      <Image
+                        src={heroImage}
+                        alt={apt.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-navy/10" />
+                    )}
+                    <div className="absolute bottom-4 left-4">
+                      <span className="px-3 py-1 bg-white/90 text-navy text-xs">
+                        {apt.layout} · {apt.totalArea}
+                      </span>
                     </div>
-                    <span className="text-sm text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
-                      Detail
-                    </span>
+                    {apt.alsoForSale && (
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 bg-gold text-navy text-xs uppercase tracking-wider">
+                          I k prodeji
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Link>
-            ))}
+                  
+                  {/* Content */}
+                  <div className="p-6">
+                    <h2 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-2">
+                      {apt.title}
+                    </h2>
+                    
+                    <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">
+                      <span>max. {apt.maxGuests} hostů</span>
+                      <span>·</span>
+                      <span>{apt.orientation}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-navy/10">
+                      <div>
+                        <p className="text-2xl font-light text-navy">
+                          {apt.pricePerNight.toLocaleString('cs-CZ')} Kč
+                        </p>
+                        <p className="text-xs text-navy/40">za noc</p>
+                      </div>
+                      <span className="text-sm text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
+                        Detail
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

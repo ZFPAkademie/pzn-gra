@@ -6,7 +6,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getRentalApartmentBySlug, getRentalApartments } from '@/lib/apartments';
+import { getRentalApartmentBySlug, getRentalApartments, getSalesManager } from '@/lib/apartments';
+import { getApartmentImages } from '@/data/apartment-images';
+import { ApartmentGallery } from '@/components/features/apartment-gallery';
 
 interface Props {
   params: { slug: string };
@@ -29,6 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function RentalApartmentDetailPage({ params }: Props) {
   const apt = getRentalApartmentBySlug(params.slug);
+  const manager = getSalesManager();
+  const images = getApartmentImages(params.slug);
   
   if (!apt) {
     notFound();
@@ -48,6 +52,14 @@ export default function RentalApartmentDetailPage({ params }: Props) {
             </svg>
             Zpět na přehled
           </Link>
+          
+          <div className="flex items-center gap-4 mb-6">
+            {apt.alsoForSale && (
+              <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
+                I k prodeji
+              </span>
+            )}
+          </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
             {apt.title}
@@ -69,14 +81,9 @@ export default function RentalApartmentDetailPage({ params }: Props) {
             
             {/* Left: Details */}
             <div className="lg:col-span-2">
-              {/* Image */}
-              <div className="relative aspect-video mb-16 overflow-hidden">
-                <Image
-                  src="/images/building-lift.jpg"
-                  alt={apt.title}
-                  fill
-                  className="object-cover"
-                />
+              {/* Gallery */}
+              <div className="mb-16">
+                <ApartmentGallery images={images} title={apt.title} />
               </div>
 
               {/* Key Stats */}
@@ -146,9 +153,10 @@ export default function RentalApartmentDetailPage({ params }: Props) {
             </div>
 
             {/* Right: Booking Card */}
-            <div className="lg:col-span-1">
-              <div className="bg-navy p-8 sticky top-28">
-                <p className="text-gold text-sm tracking-widest uppercase mb-4">Cena od</p>
+            <div className="lg:col-span-1 space-y-6">
+              {/* Rental Card */}
+              <div className="bg-navy p-8">
+                <p className="text-gold text-sm tracking-widest uppercase mb-4">Pronájem od</p>
                 <div className="flex items-baseline mb-2">
                   <p className="text-4xl font-light text-white">
                     {apt.pricePerNight.toLocaleString('cs-CZ')}
@@ -179,6 +187,50 @@ export default function RentalApartmentDetailPage({ params }: Props) {
                   </a>
                 </div>
               </div>
+
+              {/* Sale Card - only if alsoForSale */}
+              {apt.alsoForSale && (
+                <div className="bg-stone p-8 border-2 border-gold">
+                  <p className="text-gold text-sm tracking-widest uppercase mb-4">Tento apartmán je i k prodeji</p>
+                  <p className="text-navy/70 text-sm mb-6">
+                    Díky vybavení apartmánu můžete ihned bez dalších nákladů profitovat z pronájmu jednotky.
+                  </p>
+                  
+                  <div className="flex items-center mb-6">
+                    <div className="w-14 h-14 rounded-full overflow-hidden mr-4">
+                      <Image
+                        src={manager.photo}
+                        alt={manager.name}
+                        width={56}
+                        height={56}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-navy font-medium">{manager.name}</p>
+                      <p className="text-navy/50 text-xs">{manager.title}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <a 
+                      href={`tel:${manager.phone.replace(/\s/g, '')}`}
+                      className="flex items-center justify-center w-full py-3 bg-navy text-white text-sm uppercase tracking-widest hover:bg-navy/90 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                      </svg>
+                      {manager.phone}
+                    </a>
+                    <a 
+                      href={`mailto:${manager.email}?subject=Zájem o koupi ${apt.title}`}
+                      className="flex items-center justify-center w-full py-3 border border-navy text-navy text-sm uppercase tracking-widest hover:bg-navy/5 transition-colors"
+                    >
+                      Napsat e-mail
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -17,3 +17,6 @@ export { StaticPage } from './static-page';
 
 // Lead capture
 export { LeadForm } from './lead-form';
+
+// Gallery
+export { ApartmentGallery } from './apartment-gallery';

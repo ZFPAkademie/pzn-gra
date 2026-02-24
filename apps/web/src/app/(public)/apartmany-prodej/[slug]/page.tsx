@@ -7,6 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getSaleApartmentBySlug, getSaleApartments, getSalesManager } from '@/lib/apartments';
+import { getApartmentImages } from '@/data/apartment-images';
+import { ApartmentGallery } from '@/components/features/apartment-gallery';
 
 interface Props {
   params: { slug: string };
@@ -30,6 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default function SaleApartmentDetailPage({ params }: Props) {
   const apt = getSaleApartmentBySlug(params.slug);
   const manager = getSalesManager();
+  const images = getApartmentImages(params.slug);
   
   if (!apt) {
     notFound();
@@ -70,6 +73,11 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             
             {/* Left: Details */}
             <div className="lg:col-span-2">
+              {/* Gallery */}
+              <div className="mb-16">
+                <ApartmentGallery images={images} title={apt.title} />
+              </div>
+
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
