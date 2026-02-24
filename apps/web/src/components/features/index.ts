@@ -20,3 +20,6 @@ export { LeadForm } from './lead-form';
 
 // Gallery
 export { ApartmentGallery } from './apartment-gallery';
+
+// Sale info boxes
+export { SaleInfoBoxes, RealEstateProductBadge } from './sale-info-boxes';

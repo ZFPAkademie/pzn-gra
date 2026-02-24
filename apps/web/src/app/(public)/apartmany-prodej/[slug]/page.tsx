@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { getSaleApartmentBySlug, getSaleApartments, getSalesManager } from '@/lib/apartments';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
+import { SaleInfoBoxes, RealEstateProductBadge } from '@/components/features/sale-info-boxes';
 
 interface Props {
   params: { slug: string };
@@ -53,10 +54,15 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             Zpět na přehled
           </Link>
           
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex flex-wrap items-center gap-4 mb-6">
             <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
               Na prodej
             </span>
+            {apt.belongsToRealEstateProduct && (
+              <span className="px-4 py-2 bg-blue-500/20 text-blue-300 text-xs uppercase tracking-widest border border-blue-400/30">
+                Nemovitostní produkt
+              </span>
+            )}
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
@@ -65,6 +71,32 @@ export default function SaleApartmentDetailPage({ params }: Props) {
           <p className="text-xl text-white/50">{apt.subtitle}</p>
         </div>
       </section>
+
+      {/* Real Estate Product Notice */}
+      {apt.belongsToRealEstateProduct && (
+        <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-4 border-b border-blue-200">
+          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-blue-800">
+                <span className="font-medium">Tento apartmán je součástí nemovitostního produktu.</span>
+                {' '}Můžete koupit celý apartmán nebo podíl.
+              </p>
+            </div>
+            <Link 
+              href="/nemovitostni-produkt"
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+            >
+              Více o podílovém vlastnictví
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <section className="py-24 bg-cream">
@@ -77,6 +109,9 @@ export default function SaleApartmentDetailPage({ params }: Props) {
               <div className="mb-16">
                 <ApartmentGallery images={images} title={apt.title} />
               </div>
+
+              {/* Info Boxes - Standards & Investment */}
+              <SaleInfoBoxes showRealEstateProduct={apt.belongsToRealEstateProduct} />
 
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">

@@ -2,22 +2,57 @@
  * Apartment images mapping from Supabase Storage
  * Bucket: apartmany
  * 
- * Mapování:
- * - chata1_apartman-7_1kk_38m2 → chata-1-suite-7 (prodej) + golden-ridge-7 (pronájem)
- * - chata1_apartman-9_2kk_62m2 → chata-1-suite-9 (prodej) + golden-ridge-9 (pronájem)  
- * - chata2_apartman-11_1kk_35m2 → chata-2-suite-11 (prodej) + golden-ridge-11 (pronájem)
- * - golden-ridge_apartman-1 → golden-ridge-1 (pronájem)
- * - golden-ridge_apartman-2 → golden-ridge-2 (pronájem)
- * - golden-ridge_apartman-3 → golden-ridge-3 (pronájem)
- * - golden-ridge_apartman-4 → golden-ridge-4 (pronájem)
- * - golden-ridge_apartman-8 → golden-ridge-8 (pronájem)
+ * Řazení: 1) Interiér (fotky apartmánu), 2) Exteriér (budova), 3) Půdorysy (PNG)
  */
 
 const SUPABASE_STORAGE_URL = 'https://nudiugowvzflokflcokd.supabase.co/storage/v1/object/public/apartmany';
 
-// Raw images by folder
+/**
+ * Kategorizuje a řadí obrázky podle typu
+ * Priorita: interiér JPG → exteriér JPG → půdorysy PNG
+ */
+function sortImages(images: string[]): string[] {
+  const interior: string[] = [];
+  const exterior: string[] = [];
+  const floorplans: string[] = [];
+  
+  for (const img of images) {
+    const filename = img.split('/').pop() || '';
+    const isPng = filename.endsWith('.png');
+    
+    if (isPng) {
+      // PNG = půdorysy na konec
+      floorplans.push(img);
+    } else if (
+      filename.includes('27e65d_') || // hlavní fotky interiéru
+      filename.includes('postel') ||
+      filename.includes('kuchyn') ||
+      filename.includes('loznic') ||
+      filename.includes('koupeln') ||
+      filename.includes('obyvak')
+    ) {
+      // Interiér - na začátek
+      interior.push(img);
+    } else if (
+      filename.includes('13bb21839b53') || // budova zvenku (opakuje se)
+      filename.includes('a88334def7fe') || // exteriér
+      filename.includes('f64e8463e498') || // exteriér
+      filename.includes('b6f1acfdaa90')    // exteriér
+    ) {
+      // Exteriér - doprostřed
+      exterior.push(img);
+    } else {
+      // Ostatní JPG - považujeme za interiér
+      interior.push(img);
+    }
+  }
+  
+  return [...interior, ...exterior, ...floorplans];
+}
+
+// Raw images by folder (seřazené)
 export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
-  "chata1_apartman-7_1kk_38m2": [
+  "chata1_apartman-7_1kk_38m2": sortImages([
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/01_27e65d_a6cf6b9857e94.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/01_38c5f5789b86.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/02_27e65d_f0dc9c95c73c4.jpg`,
@@ -32,8 +67,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/11_b6f1acfdaa90.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/13_apartmany-krkonose-spindleruv-mlyn-prodej-labska-kuchynejpg.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-7_1kk_38m2/14_f64e8463e498.jpg`,
-  ],
-  "chata1_apartman-9_2kk_62m2": [
+  ]),
+  "chata1_apartman-9_2kk_62m2": sortImages([
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/01_27e65d_05ad62303b184.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/01_38c5f5789b86.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/02_27e65d_f0dc9c95c73c4.jpg`,
@@ -48,8 +83,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/11_b6f1acfdaa90.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/13_apartmany-krkonose-spindleruv-mlyn-prodej-labska-kuchynejpg.jpg`,
     `${SUPABASE_STORAGE_URL}/chata1_apartman-9_2kk_62m2/14_f64e8463e498.jpg`,
-  ],
-  "chata2_apartman-11_1kk_35m2": [
+  ]),
+  "chata2_apartman-11_1kk_35m2": sortImages([
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/01_27e65d_1b7edee6d1b34.jpg`,
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/01_4f62958a8992.jpg`,
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/02_27e65d_a3a7a4b293894.jpg`,
@@ -66,8 +101,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/13_a88334def7fe.jpg`,
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/15_f5233a09512b.png`,
     `${SUPABASE_STORAGE_URL}/chata2_apartman-11_1kk_35m2/16_f64e8463e498.jpg`,
-  ],
-  "golden-ridge_apartman-1": [
+  ]),
+  "golden-ridge_apartman-1": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/01_27e65d_5a9d448190b94.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/01_4f62958a8992.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/02_27e65d_6983f44f7b094.jpg`,
@@ -85,8 +120,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/14_79c3bb1bb39e.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/15_7c649e556f90.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-1/19_a88334def7fe.jpg`,
-  ],
-  "golden-ridge_apartman-2": [
+  ]),
+  "golden-ridge_apartman-2": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/01_10653d14fbdf.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/01_27e65d_9271a1e203d04.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/02_27e65d_d371261724be4.jpg`,
@@ -101,8 +136,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/11_c1397e33bcdf.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/13_d371261724be.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-2/15_f64e8463e498.jpg`,
-  ],
-  "golden-ridge_apartman-3": [
+  ]),
+  "golden-ridge_apartman-3": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/01_27e65d_05ef23bb21724.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/01_4f62958a8992.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/02_27e65d_cd8b3cb025214.jpg`,
@@ -116,8 +151,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/10_28d57600c24a.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/16_a88334def7fe.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-3/22_f64e8463e498.jpg`,
-  ],
-  "golden-ridge_apartman-4": [
+  ]),
+  "golden-ridge_apartman-4": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/01_27e65d_a6cf6b9857e94.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/01_4f62958a8992.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/02_27e65d_f0dc9c95c73c4.jpg`,
@@ -131,8 +166,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/15_a6cf6b9857e9.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/16_a88334def7fe.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-4/22_f64e8463e498.jpg`,
-  ],
-  "golden-ridge_apartman-8": [
+  ]),
+  "golden-ridge_apartman-8": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/01_27e65d_8f04ba06ef224.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/02_0faf221239a4.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/02_27e65d_a03bb4098e2e4.jpg`,
@@ -146,8 +181,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/10_4c477a6649df.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/17_8f04ba06ef22.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-8/23_a03bb4098e2e.png`,
-  ],
-  "golden-ridge_apartman-9": [
+  ]),
+  "golden-ridge_apartman-9": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/01_27e65d_1dbb2a8e09894.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/02_1360dc9afb36.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/02_27e65d_234790752eb14.jpg`,
@@ -159,8 +194,8 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/08_291f077af555.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/09_29a0607f9a87.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-9/10_3e00fb2ab31a.png`,
-  ],
-  "golden-ridge_apartman-11": [
+  ]),
+  "golden-ridge_apartman-11": sortImages([
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/01_27e65d_1f5bef0405bb4.jpg`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/02_1360dc9afb36.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/02_27e65d_58ea799fd9594.jpg`,
@@ -173,7 +208,7 @@ export const APARTMENT_IMAGES_BY_FOLDER: Record<string, string[]> = {
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/09_382f4c45ac8b.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/10_3e00fb2ab31a.png`,
     `${SUPABASE_STORAGE_URL}/golden-ridge_apartman-11/25_f09a77728a0d.jpg`,
-  ],
+  ]),
 };
 
 // Mapping slugs to image folders
@@ -195,7 +230,7 @@ const SLUG_TO_FOLDER: Record<string, string> = {
 };
 
 /**
- * Get all images for an apartment by slug
+ * Get all images for an apartment by slug (already sorted)
  */
 export function getApartmentImages(slug: string): string[] {
   const folder = SLUG_TO_FOLDER[slug];
@@ -212,7 +247,7 @@ export function getApartmentHeroImage(slug: string): string | null {
 }
 
 /**
- * Get thumbnail images (first 4) for grid display
+ * Get thumbnail images (first N) for grid display
  */
 export function getApartmentThumbnails(slug: string, count = 4): string[] {
   const images = getApartmentImages(slug);

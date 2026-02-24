@@ -23,6 +23,7 @@ export interface SaleApartment {
   floor: number;
   orientation: string;
   status: string;
+  belongsToRealEstateProduct?: boolean;
 }
 
 export interface RentalApartment {
@@ -71,4 +72,9 @@ export function getSalesManager(): SalesManager {
 // Get rental apartments that are also for sale
 export function getRentalApartmentsForSale(): RentalApartment[] {
   return apartmentsData.rental.filter((apt) => apt.alsoForSale) as RentalApartment[];
+}
+
+// Get sale apartments that belong to real estate product (nemovitostní produkt)
+export function getRealEstateProductApartments(): SaleApartment[] {
+  return apartmentsData.sale.filter((apt) => apt.belongsToRealEstateProduct) as SaleApartment[];
 }

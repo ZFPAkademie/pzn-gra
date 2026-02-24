@@ -16,7 +16,8 @@
       "features": ["Výhled na sjezdovku Labská", "Electrolux spotřebiče", "Podlahové vytápění", "Laufen a Grohe"],
       "floor": 3,
       "orientation": "východ",
-      "status": "available"
+      "status": "available",
+      "belongsToRealEstateProduct": false
     },
     {
       "slug": "chata-1-suite-9",
@@ -34,7 +35,8 @@
       "features": ["Samostatná ložnice", "Koupelna s vanou", "Výhled do lesů", "Vhodný pro rodinu"],
       "floor": 3,
       "orientation": "západ, jih",
-      "status": "available"
+      "status": "available",
+      "belongsToRealEstateProduct": true
     },
     {
       "slug": "chata-2-suite-11",
@@ -52,7 +54,8 @@
       "features": ["Koupelna s vanou", "Výhled do přírody", "Electrolux kuchyň", "Podlahové vytápění"],
       "floor": 3,
       "orientation": "západ",
-      "status": "available"
+      "status": "available",
+      "belongsToRealEstateProduct": true
     }
   ],
   "rental": [

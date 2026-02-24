@@ -6,7 +6,10 @@
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { getRealEstateProductApartments } from '@/lib/apartments';
+import { getApartmentHeroImage } from '@/data/apartment-images';
 import { ShareRequestCTA } from './client';
 
 export const dynamic = 'force-dynamic';
@@ -79,11 +82,10 @@ const icons = {
   ),
 };
 
-// Benefits data - updated content
+// Benefits data - updated content (8 items)
 const benefits = [
   { icon: 'shield', title: 'Anonymita vlastnictví', description: 'Registr vlastníků družstevních podílů není veřejný.' },
   { icon: 'scroll', title: 'Jednoduchost a rychlost', description: 'Podpis jedné smlouvy' },
-  { icon: 'growth', title: 'Zhodnocení podílu', description: 'Orientačně 5–10 % ročně' },
   { icon: 'coins', title: 'Výnos z nájmu', description: 'Orientačně 2–5 % ročně s potenciálem růstu v čase, vypláceno pololetně' },
   { icon: 'grid', title: '50 podílů na apartmán', description: 'Možnost koupě libovolného počtu' },
   { icon: 'mountain', title: 'Růst hodnoty nemovitostí', description: 'Historický růst cen nemovitostí ve Špindlerově Mlýně 8–12 % ročně' },
@@ -142,6 +144,7 @@ const steps = [
 export default async function NemovitostniProduktPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const apartments = getRealEstateProductApartments();
 
   return (
     <>
@@ -271,16 +274,90 @@ export default async function NemovitostniProduktPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Dostupné apartmány */}
       <section className="py-24 bg-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-gold text-sm tracking-[0.2em] uppercase mb-4">
+              Dostupné apartmány
+            </p>
+            <h2 className="text-3xl md:text-4xl font-light text-white mb-4">
+              Apartmány v nabídce podílového vlastnictví
+            </h2>
+            <p className="text-white/50 max-w-xl mx-auto">
+              Vyberte si apartmán, na kterém chcete získat podíl
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {apartments.map((apt) => {
+              const heroImage = getApartmentHeroImage(apt.slug);
+              return (
+                <Link 
+                  key={apt.slug}
+                  href={`/apartmany-prodej/${apt.slug}`}
+                  className="group bg-white/5 backdrop-blur border border-white/10 hover:border-gold/50 transition-all duration-300 overflow-hidden"
+                >
+                  {/* Image */}
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    {heroImage ? (
+                      <Image
+                        src={heroImage}
+                        alt={apt.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-navy/50" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" />
+                    
+                    {/* Badge */}
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-blue-500 text-white text-xs uppercase tracking-wider">
+                        Podílové vlastnictví
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h3 className="text-xl font-light text-white group-hover:text-gold transition-colors mb-2">
+                      {apt.title}
+                    </h3>
+                    <p className="text-white/50 text-sm mb-4">{apt.subtitle}</p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                      <div>
+                        <p className="text-xs text-white/40 mb-1">Cena</p>
+                        <p className="text-xl font-light text-gold">Na dotaz</p>
+                      </div>
+                      <span className="flex items-center text-sm text-white/60 group-hover:text-gold transition-colors">
+                        Detail
+                        <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-light text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-light text-navy mb-6">
             Máte zájem o podíl na apartmánu?
           </h2>
-          <p className="text-white/50 mb-10 max-w-md mx-auto">
+          <p className="text-navy/50 mb-10 max-w-md mx-auto">
             Zanechte nám kontakt a my vám připravíme nezávaznou nabídku.
           </p>
-          <ShareRequestCTA locale={locale} variant="light" />
+          <ShareRequestCTA locale={locale} />
         </div>
       </section>
 
