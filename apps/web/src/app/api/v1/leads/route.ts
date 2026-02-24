@@ -66,7 +66,7 @@ Jazyk: ${lead.metadata?.locale || 'cs'}
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Pod Zlatým návrším <noreply@podzlatymnavrsim.cz>',
+        from: process.env.RESEND_FROM_EMAIL || 'Pod Zlatým návrším <info@zfpreality.cz>',
         to: NOTIFICATION_EMAIL,
         subject: `Nová poptávka podílů: ${lead.name}`,
         text: emailBody,

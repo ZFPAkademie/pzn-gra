@@ -1,108 +1,109 @@
 /**
- * Apartmány k pronájmu - Design Checklist 2030
- * 
- * Pravidla:
- * - Hero = emoce
- * - Karty bez ikon
- * - Prostor a ticho
- * - Premium feel
+ * Apartmány k pronájmu - Design 2030
  */
 
 import { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { getLocaleFromCookie } from '@/lib/i18n';
-import { getRentApartments } from '@/lib/apartments';
-
-export const dynamic = 'force-dynamic';
+import Image from 'next/image';
+import { getRentalApartments } from '@/lib/apartments';
 
 export const metadata: Metadata = {
-  title: 'Apartmány k pronájmu | Špindlerův Mlýn | Pod Zlatým návrším',
-  description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně.',
+  title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
+  description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně, přímo u lanovky. Plně vybavené, designový nábytek KARE.',
 };
 
-export default async function RentApartmentsPage() {
-  const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  const apartments = getRentApartments();
-
-  const t = locale === 'cs' ? {
-    tagline: 'Špindlerův Mlýn · Krkonoše',
-    title: 'Pronájem',
-    subtitle: 'Vyberte si z nabídky plně vybavených apartmánů',
-    rooms: 'místností',
-    view: 'Zobrazit',
-    price: 'od',
-    perNight: '/ noc',
-    contact: 'Kontaktovat nás',
-    contactText: 'Potřebujete poradit s výběrem?',
-  } : {
-    tagline: 'Špindlerův Mlýn · Giant Mountains',
-    title: 'Rent',
-    subtitle: 'Choose from our selection of fully equipped apartments',
-    rooms: 'rooms',
-    view: 'View',
-    price: 'from',
-    perNight: '/ night',
-    contact: 'Contact us',
-    contactText: 'Need help choosing?',
-  };
+export default function RentalApartmentsPage() {
+  const apartments = getRentalApartments();
 
   return (
     <>
-      {/* Hero - minimalist */}
+      {/* Hero */}
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
-            {t.tagline}
+            Pronájem
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
-            {t.title}
+            Apartmány k pronájmu
           </h1>
           <p className="text-xl text-white/50 max-w-xl">
-            {t.subtitle}
+            Luxusní apartmány ve Špindlerově Mlýně, přímo u lanovky Labská. Plně vybavené, designový nábytek KARE.
           </p>
+        </div>
+      </section>
+
+      {/* Quick Stats */}
+      <section className="bg-gold py-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-navy">
+            <div className="text-center">
+              <p className="text-3xl font-light">{apartments.length}</p>
+              <p className="text-sm opacity-70">apartmánů</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-light">35–45</p>
+              <p className="text-sm opacity-70">m² plocha</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-light">2–4</p>
+              <p className="text-sm opacity-70">hosté</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-light">50 m</p>
+              <p className="text-sm opacity-70">od lanovky</p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Apartments Grid */}
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
-          
-          {/* Count - subtle */}
-          <p className="text-sm text-navy/40 mb-16">
-            {apartments.length} {locale === 'cs' ? 'apartmánů' : 'apartments'}
-          </p>
-
-          {/* Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apartments.map((apt) => (
               <Link 
                 key={apt.slug} 
-                href={`/golden-ridge-apartments/apartman/${apt.slug}`}
-                className="group block"
+                href={`/apartmany-spindleruv-mlyn-pronajem/${apt.slug}`}
+                className="group block bg-white"
               >
-                {/* Image placeholder */}
-                <div className="aspect-[4/3] bg-stone mb-8 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 group-hover:scale-105 transition-transform duration-700" />
+                {/* Image */}
+                <div className="relative aspect-[4/3] bg-stone overflow-hidden">
+                  <Image
+                    src="/images/building-lift.jpg"
+                    alt={apt.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute bottom-4 left-4">
+                    <span className="px-3 py-1 bg-white/90 text-navy text-xs">
+                      {apt.layout} · {apt.totalArea}
+                    </span>
+                  </div>
                 </div>
                 
                 {/* Content */}
-                <h3 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-3">
-                  {apt.title}
-                </h3>
-                
-                <p className="text-sm text-navy/40 mb-4">
-                  {apt.area} m² · {apt.rooms} {t.rooms}
-                </p>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-navy/10">
-                  <span className="text-navy/60">
-                    {t.price} <span className="text-navy font-medium">{apt.priceFrom?.toLocaleString()} Kč</span> {t.perNight}
-                  </span>
-                  <span className="text-sm text-navy/40 group-hover:text-gold transition-colors">
-                    {t.view} →
-                  </span>
+                <div className="p-6">
+                  <h2 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-2">
+                    {apt.title}
+                  </h2>
+                  
+                  <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">
+                    <span>max. {apt.maxGuests} hostů</span>
+                    <span>·</span>
+                    <span>{apt.orientation}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-navy/10">
+                    <div>
+                      <p className="text-2xl font-light text-navy">
+                        {apt.pricePerNight.toLocaleString('cs-CZ')} Kč
+                      </p>
+                      <p className="text-xs text-navy/40">za noc</p>
+                    </div>
+                    <span className="text-sm text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
+                      Detail
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -110,15 +111,42 @@ export default async function RentApartmentsPage() {
         </div>
       </section>
 
-      {/* Contact CTA */}
+      {/* Features */}
       <section className="py-24 bg-stone">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
+            Všechny apartmány nabízejí
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { title: 'Designový nábytek', desc: 'KARE Design' },
+              { title: 'Plná výbava', desc: 'Myčka, trouba, kávovar' },
+              { title: 'Komfort', desc: 'TV, Wi-Fi, trezor' },
+              { title: 'Umístění', desc: '50 m od lanovky' },
+            ].map((item, i) => (
+              <div key={i} className="text-center">
+                <h3 className="text-navy font-medium mb-2">{item.title}</h3>
+                <p className="text-sm text-navy/50">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section className="py-24 bg-navy">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="text-navy/50 mb-6">{t.contactText}</p>
+          <h2 className="text-3xl font-light text-white mb-6">
+            Chcete rezervovat?
+          </h2>
+          <p className="text-white/50 mb-8 max-w-md mx-auto">
+            Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.
+          </p>
           <Link 
             href="/kontakt"
-            className="inline-block px-10 py-4 border border-navy/20 text-navy text-sm tracking-widest uppercase hover:bg-navy hover:text-white transition-colors"
+            className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
           >
-            {t.contact}
+            Kontaktovat nás
           </Link>
         </div>
       </section>

@@ -1,398 +1,157 @@
-[
-  {
-    "slug": "golden-ridge-9",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-9",
-    "title": "Golden Ridge apartmán č. 9",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 44.16,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 5.21
-        },
-        {
-          "room": "Koupelna",
-          "m2": 4.86
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 34.09
-        }
-      ]
+{
+  "sale": [
+    {
+      "slug": "chata-1-suite-7",
+      "title": "Apartmán č. 7",
+      "subtitle": "3NP, 1+kk | 38 m²",
+      "layout": "1+kk",
+      "totalArea": "37,89 m²",
+      "rooms": {
+        "hall": "6,25 m²",
+        "bathroom": "4,34 m²",
+        "bedroom": null,
+        "livingKitchen": "27,3 m²"
+      },
+      "description": "Apartmán vedle schodiště, předsíň s prostorem pro skříň, prostorná koupelna, obývací pokoj s kuchyní orientovaný na východ s výhledem na sjezdovku Labská. Kuchyňská linka bílý design s dřevěným dekorem, Electrolux spotřebiče, podlahové vytápění v koupelně, Laufen a Grohe.",
+      "features": ["Výhled na sjezdovku Labská", "Electrolux spotřebiče", "Podlahové vytápění", "Laufen a Grohe"],
+      "floor": 3,
+      "orientation": "východ",
+      "status": "available"
     },
-    "gallery": {
-      "items": [],
-      "placeholder": true
+    {
+      "slug": "chata-1-suite-9",
+      "title": "Apartmán č. 9",
+      "subtitle": "3NP, 2+kk | 62 m²",
+      "layout": "2+kk",
+      "totalArea": "61,53 m²",
+      "rooms": {
+        "hall": "11,05 m²",
+        "bathroom": "5,33 m²",
+        "bedroom": "18,06 m²",
+        "livingKitchen": "25,01 m²"
+      },
+      "description": "Prostorná chodba 13 m² s místem pro velkou skříň a botník. Ložnice s výhledem na západ. Obývací pokoj 25 m² orientovaný na západ a jih s výhledem do lesů. Kuchyň Electrolux, koupelna s vanou, Laufen a Grohe. Vhodný i pro rodinu s dětmi.",
+      "features": ["Samostatná ložnice", "Koupelna s vanou", "Výhled do lesů", "Vhodný pro rodinu"],
+      "floor": 3,
+      "orientation": "západ, jih",
+      "status": "available"
     },
-    "notes": [
-      "price only in booking engine"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
-    },
-    "building": "Golden Ridge",
-    "unit_number": 9,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
+    {
+      "slug": "chata-2-suite-11",
+      "title": "Apartmán č. 11",
+      "subtitle": "3NP, 1+kk | 35 m²",
+      "layout": "1+kk",
+      "totalArea": "34,7 m²",
+      "rooms": {
+        "hall": "2,53 m²",
+        "bathroom": "6,03 m²",
+        "bedroom": null,
+        "livingKitchen": "26,14 m²"
+      },
+      "description": "Apartmán naproti schodišti, předsíň 2,5 m² s prostorem pro skříň, koupelna s vanou vlevo. Obývací pokoj s kuchyní 34 m² orientovaný na západ s výhledem do přírody. Kuchyň Electrolux, bílá s dekorem dřeva. Podlahové vytápění, Laufen a Grohe. Vhodný pro malou rodinu nebo pár.",
+      "features": ["Koupelna s vanou", "Výhled do přírody", "Electrolux kuchyň", "Podlahové vytápění"],
+      "floor": 3,
+      "orientation": "západ",
+      "status": "available"
     }
-  },
-  {
-    "slug": "golden-ridge-1",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-apartman-2",
-    "title": "Golden Ridge apartmán č. 1",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 44.74,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 4.69
-        },
-        {
-          "room": "Koupelna",
-          "m2": 5.62
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 34.43
-        }
-      ]
+  ],
+  "rental": [
+    {
+      "slug": "golden-ridge-2",
+      "title": "Golden Ridge apartmán č. 2",
+      "layout": "1+kk",
+      "totalArea": "44,74 m²",
+      "rooms": {
+        "hall": "4,69 m²",
+        "bathroom": "5,62 m²",
+        "bedroom": null,
+        "livingKitchen": "34,43 m²"
+      },
+      "description": "Apartmán s výhledem do lesa, vhodný pro malou rodinu nebo pár. Obývák orientovaný na západ, otevřená ložnice oddělená příčkou. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled do lesa", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "západ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available"
     },
-    "gallery": {
-      "items": [],
-      "placeholder": true
+    {
+      "slug": "golden-ridge-3",
+      "title": "Golden Ridge apartmán č. 3",
+      "layout": "1+kk",
+      "totalArea": "35,02 m²",
+      "rooms": {
+        "hall": "3,21 m²",
+        "bathroom": "5,97 m²",
+        "bedroom": null,
+        "livingKitchen": "25,84 m²"
+      },
+      "description": "Plně vybavený apartmán (35 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "hory",
+      "maxGuests": 2,
+      "pricePerNight": 2500,
+      "status": "available"
     },
-    "notes": [
-      "slug inconsistency: URL says 'apartman-2' but H1 title says 'apartmán č. 1'",
-      "page mentions rent or buy option",
-      "price only in booking engine"
-    ],
-    "legacy_slugs": [
-      "golden-ridge-apartman-2"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
+    {
+      "slug": "golden-ridge-4",
+      "title": "Golden Ridge apartmán č. 4",
+      "layout": "1+kk",
+      "totalArea": "38,21 m²",
+      "rooms": {
+        "hall": "2,93 m²",
+        "bathroom": "6,17 m²",
+        "bedroom": null,
+        "livingKitchen": "29,11 m²"
+      },
+      "description": "Plně vybavený apartmán (45 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "hory",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available"
     },
-    "building": "Golden Ridge",
-    "unit_number": 1,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
+    {
+      "slug": "golden-ridge-8",
+      "title": "Golden Ridge apartmán č. 8",
+      "layout": "1+kk",
+      "totalArea": "38,24 m²",
+      "rooms": {
+        "hall": "2,91 m²",
+        "bathroom": "6,17 m²",
+        "bedroom": null,
+        "livingKitchen": "29,16 m²"
+      },
+      "description": "Plně vybavený apartmán (38 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Obývák orientovaný na západ, otevřená ložnice oddělená příčkou. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Otevřená ložnice", "Plně vybavený"],
+      "orientation": "západ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available"
     },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
+    {
+      "slug": "golden-ridge-9",
+      "title": "Golden Ridge apartmán č. 9",
+      "layout": "1+kk",
+      "totalArea": "44,16 m²",
+      "rooms": {
+        "hall": "5,21 m²",
+        "bathroom": "4,86 m²",
+        "bedroom": null,
+        "livingKitchen": "34,09 m²"
+      },
+      "description": "Plně vybavený apartmán (44 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Obývák orientovaný na východ, otevřená ložnice. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Otevřená ložnice", "Velký obývák"],
+      "orientation": "východ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available"
     }
-  },
-  {
-    "slug": "golden-ridge-2",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-2",
-    "title": "Golden Ridge apartmán č. 2",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 44.74,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 4.69
-        },
-        {
-          "room": "Koupelna",
-          "m2": 5.62
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 34.43
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "price only in booking engine"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
-    },
-    "building": "Golden Ridge",
-    "unit_number": 2,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
-  },
-  {
-    "slug": "golden-ridge-8",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-8",
-    "title": "Golden Ridge apartmán č. 8",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 38.24,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 2.91
-        },
-        {
-          "room": "Koupelna",
-          "m2": 6.17
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 29.16
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "page contains duplicate H1 heading for 'Golden Ridge apartmán č. 4'",
-      "price only in booking engine"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
-    },
-    "building": "Golden Ridge",
-    "unit_number": 8,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
-  },
-  {
-    "slug": "golden-ridge-11",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-11",
-    "title": "Golden Ridge apartmán č. 11",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 34.7,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 2.53
-        },
-        {
-          "room": "Koupelna",
-          "m2": 6.03
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 26.14
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "page mentions rent or buy option - separate sale detail page linked",
-      "price only in booking engine"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
-    },
-    "building": "Golden Ridge",
-    "unit_number": 11,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
-  },
-  {
-    "slug": "golden-ridge-4",
-    "source_url": "https://www.podzlatymnavrsim.cz/golden-ridge-4",
-    "title": "Golden Ridge apartmán č. 4",
-    "mode": "rent",
-    "status": "available",
-    "m2": {
-      "total": 38.21,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 2.93
-        },
-        {
-          "room": "Koupelna",
-          "m2": 6.17
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 29.11
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "price only in booking engine"
-    ],
-    "pricing": {
-      "rent_from_eur_per_night": null,
-      "currency": "EUR",
-      "pricing_note": "Cena bude doplněna."
-    },
-    "building": "Golden Ridge",
-    "unit_number": 4,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "rent_inquiry",
-      "label": "Poptat termín"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
-  },
-  {
-    "slug": "chata-2-suite-7-1-kk-34m2",
-    "source_url": "https://www.podzlatymnavrsim.cz/chata-2-suite-7-1-kk-34m2",
-    "title": "Apartmán č. 7 | 2NP, 1+kk | 34 m²",
-    "mode": "sale",
-    "status": "available",
-    "m2": {
-      "total": 34.73,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 2.52
-        },
-        {
-          "room": "Koupelna",
-          "m2": 5.97
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 26.24
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "full sale price requires contacting sales manager",
-      "reservation deposit 400,000 CZK"
-    ],
-    "pricing": {
-      "sale_price": null,
-      "currency": "EUR",
-      "on_request": true,
-      "pricing_note": "Cena na dotaz."
-    },
-    "building": "Chata 2",
-    "unit_number": 7,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "sale_inquiry",
-      "label": "Mám zájem"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
-  },
-  {
-    "slug": "chata-1-suite-7-1-kk-35m2",
-    "source_url": "https://www.podzlatymnavrsim.cz/chata-1-suite-7-1-kk-35m2",
-    "title": "Apartmán č. 7 | 3NP, 1+kk | 38 m²",
-    "mode": "sale",
-    "status": "available",
-    "m2": {
-      "total": 37.89,
-      "breakdown": [
-        {
-          "room": "Vstupní hala",
-          "m2": 6.25
-        },
-        {
-          "room": "Koupelna",
-          "m2": 4.34
-        },
-        {
-          "room": "Pokoj s kuchyní",
-          "m2": 27.3
-        }
-      ]
-    },
-    "gallery": {
-      "items": [],
-      "placeholder": true
-    },
-    "notes": [
-      "slug inconsistency: URL says '35m2' but H1 title and data show '38 m²' (actual 37.89 m²)",
-      "full sale price requires contacting sales manager",
-      "reservation deposit 400,000 CZK"
-    ],
-    "pricing": {
-      "sale_price": null,
-      "currency": "EUR",
-      "on_request": true,
-      "pricing_note": "Cena na dotaz."
-    },
-    "building": "Chata 1",
-    "unit_number": 7,
-    "cta": {
-      "target": "crm",
-      "type": "lead",
-      "intent": "sale_inquiry",
-      "label": "Mám zájem"
-    },
-    "content_state": {
-      "images": "placeholder",
-      "copy": "draft"
-    }
+  ],
+  "salesManager": {
+    "name": "Michal Novotný",
+    "title": "Manažer prodeje",
+    "phone": "+420 736 242 624",
+    "email": "sales@podzlatymnavrsim.cz",
+    "photo": "/images/manager-michal.jpg"
   }
-]
+}

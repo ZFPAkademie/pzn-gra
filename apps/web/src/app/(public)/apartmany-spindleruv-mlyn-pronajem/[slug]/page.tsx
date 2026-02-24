@@ -1,35 +1,34 @@
 /**
- * Apartmán na prodej - Detail page
+ * Apartmán k pronájmu - Detail page
  */
 
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getSaleApartmentBySlug, getSaleApartments, getSalesManager } from '@/lib/apartments';
+import { getRentalApartmentBySlug, getRentalApartments } from '@/lib/apartments';
 
 interface Props {
   params: { slug: string };
 }
 
 export async function generateStaticParams() {
-  const apartments = getSaleApartments();
+  const apartments = getRentalApartments();
   return apartments.map((apt) => ({ slug: apt.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const apt = getSaleApartmentBySlug(params.slug);
+  const apt = getRentalApartmentBySlug(params.slug);
   if (!apt) return { title: 'Apartmán nenalezen' };
   
   return {
-    title: `${apt.title} | Na prodej | Pod Zlatým návrším`,
+    title: `${apt.title} | Pronájem | Pod Zlatým návrším`,
     description: apt.description,
   };
 }
 
-export default function SaleApartmentDetailPage({ params }: Props) {
-  const apt = getSaleApartmentBySlug(params.slug);
-  const manager = getSalesManager();
+export default function RentalApartmentDetailPage({ params }: Props) {
+  const apt = getRentalApartmentBySlug(params.slug);
   
   if (!apt) {
     notFound();
@@ -41,7 +40,7 @@ export default function SaleApartmentDetailPage({ params }: Props) {
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <Link 
-            href="/apartmany-prodej"
+            href="/apartmany-spindleruv-mlyn-pronajem"
             className="inline-flex items-center text-white/50 hover:text-white mb-8 transition-colors"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,16 +49,16 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             Zpět na přehled
           </Link>
           
-          <div className="flex items-center gap-4 mb-6">
-            <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
-              Na prodej
-            </span>
-          </div>
-          
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
             {apt.title}
           </h1>
-          <p className="text-xl text-white/50">{apt.subtitle}</p>
+          <div className="flex items-center gap-4 text-white/50">
+            <span>{apt.layout}</span>
+            <span>·</span>
+            <span>{apt.totalArea}</span>
+            <span>·</span>
+            <span>max. {apt.maxGuests} hostů</span>
+          </div>
         </div>
       </section>
 
@@ -70,10 +69,20 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             
             {/* Left: Details */}
             <div className="lg:col-span-2">
+              {/* Image */}
+              <div className="relative aspect-video mb-16 overflow-hidden">
+                <Image
+                  src="/images/building-lift.jpg"
+                  alt={apt.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Celková plocha</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Plocha</p>
                   <p className="text-2xl font-light text-navy">{apt.totalArea}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
@@ -81,8 +90,8 @@ export default function SaleApartmentDetailPage({ params }: Props) {
                   <p className="text-2xl font-light text-navy">{apt.layout}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Patro</p>
-                  <p className="text-2xl font-light text-navy">{apt.floor}. NP</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Max. hostů</p>
+                  <p className="text-2xl font-light text-navy">{apt.maxGuests}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Orientace</p>
@@ -136,54 +145,39 @@ export default function SaleApartmentDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Right: Contact Card */}
+            {/* Right: Booking Card */}
             <div className="lg:col-span-1">
               <div className="bg-navy p-8 sticky top-28">
-                <p className="text-gold text-sm tracking-widest uppercase mb-4">Cena</p>
-                <p className="text-3xl font-light text-white mb-8">Na dotaz</p>
-                
-                <div className="border-t border-white/10 pt-8 mb-8">
-                  <div className="flex items-center mb-6">
-                    <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
-                      <Image
-                        src={manager.photo}
-                        alt={manager.name}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{manager.name}</p>
-                      <p className="text-white/50 text-sm">{manager.title}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <a 
-                      href={`tel:${manager.phone.replace(/\s/g, '')}`}
-                      className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors"
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                      </svg>
-                      {manager.phone}
-                    </a>
-                    <a 
-                      href={`mailto:${manager.email}?subject=Zájem o ${apt.title}`}
-                      className="flex items-center justify-center w-full py-4 border border-white/20 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors"
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                      </svg>
-                      Napsat e-mail
-                    </a>
-                  </div>
+                <p className="text-gold text-sm tracking-widest uppercase mb-4">Cena od</p>
+                <div className="flex items-baseline mb-2">
+                  <p className="text-4xl font-light text-white">
+                    {apt.pricePerNight.toLocaleString('cs-CZ')}
+                  </p>
+                  <p className="text-white/50 ml-2">Kč / noc</p>
                 </div>
-                
-                <p className="text-white/30 text-xs text-center">
-                  Rádi vám zodpovíme všechny dotazy a domluvíme prohlídku.
+                <p className="text-white/30 text-sm mb-8">
+                  Ceny se mohou lišit dle sezóny
                 </p>
+                
+                <Link 
+                  href="/kontakt"
+                  className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors mb-4"
+                >
+                  Poptat rezervaci
+                </Link>
+                
+                <div className="border-t border-white/10 pt-6 mt-6">
+                  <p className="text-white/50 text-sm mb-4">Nebo nás kontaktujte přímo:</p>
+                  <a 
+                    href="mailto:rezervace@podzlatymnavrsim.cz"
+                    className="flex items-center text-white hover:text-gold transition-colors text-sm"
+                  >
+                    <svg className="w-4 h-4 mr-2 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    rezervace@podzlatymnavrsim.cz
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -197,10 +191,10 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             Prohlédněte si další dostupné apartmány
           </p>
           <Link 
-            href="/apartmany-prodej"
+            href="/apartmany-spindleruv-mlyn-pronajem"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            Všechny apartmány na prodej
+            Všechny apartmány k pronájmu
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
