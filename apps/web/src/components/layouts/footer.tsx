@@ -39,14 +39,17 @@ export function Footer() {
               <Link href="/o-projektu" className="block text-white/60 hover:text-white transition-colors text-sm">
                 {t('nav.about')}
               </Link>
+              <Link href="/suites" className="block text-white/60 hover:text-white transition-colors text-sm">
+                {t('nav.sale')}
+              </Link>
               <Link href="/apartmany-spindleruv-mlyn-pronajem" className="block text-white/60 hover:text-white transition-colors text-sm">
                 {t('nav.rental')}
               </Link>
-              <Link href="/apartmany-prodej" className="block text-white/60 hover:text-white transition-colors text-sm">
-                {t('nav.sale')}
-              </Link>
-              <Link href="/investicni-prilezitost" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/kalkulacka" className="block text-white/60 hover:text-white transition-colors text-sm">
                 {t('nav.investment')}
+              </Link>
+              <Link href="/lokalita" className="block text-white/60 hover:text-white transition-colors text-sm">
+                {t('nav.location')}
               </Link>
               <Link href="/kontakt" className="block text-white/60 hover:text-white transition-colors text-sm">
                 {t('nav.contact')}

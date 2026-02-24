@@ -17,8 +17,8 @@ export function Header() {
   const navItems = [
     { href: '/o-projektu', label: t('nav.about') },
     { href: '/lokalita', label: t('nav.location') },
-    { href: '/nemovitostni-produkt', label: t('nav.realEstateProduct') },
-    { href: '/apartmany-prodej', label: t('nav.sale') },
+    { href: '/suites', label: t('nav.sale') },
+    { href: '/kalkulacka', label: t('nav.investment') },
     { href: '/apartmany-spindleruv-mlyn-pronajem', label: t('nav.rental') },
     { href: '/kontakt', label: t('nav.contact') },
   ];

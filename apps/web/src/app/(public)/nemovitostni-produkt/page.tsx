@@ -295,7 +295,7 @@ export default async function NemovitostniProduktPage() {
               return (
                 <Link 
                   key={apt.slug}
-                  href={`/apartmany-prodej/${apt.slug}`}
+                  href={`/suites/${apt.slug}`}
                   className="group bg-white/5 backdrop-blur border border-white/10 hover:border-gold/50 transition-all duration-300 overflow-hidden"
                 >
                   {/* Image */}
