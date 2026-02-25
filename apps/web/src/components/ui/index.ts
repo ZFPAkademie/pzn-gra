@@ -16,3 +16,5 @@ export { Badge } from './badge';
 export { Container } from './container';
 
 export { Section, SectionHeader } from './section';
+
+export { JurkovicOrnament, MountainSilhouette, Stat, SectionLabel } from './ornaments';

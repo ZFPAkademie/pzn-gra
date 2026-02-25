@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Footer - Design Checklist 2030
- * Plný znak pouze: patička, investiční materiály, tisk
+ * Footer - Jurkovič Design Update
  */
 
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/language-provider';
+import { JurkovicOrnament } from '@/components/ui/ornaments';
 
 export function Footer() {
   const { t } = useLanguage();
@@ -14,6 +14,11 @@ export function Footer() {
 
   return (
     <footer className="bg-navy text-white">
+      {/* Top ornament */}
+      <div className="border-b border-white/10 py-4">
+        <JurkovicOrnament variant="horizontal" className="w-full max-w-md mx-auto h-4 text-gold/30" />
+      </div>
+      
       <div className="max-w-6xl mx-auto px-6 py-20">
         
         {/* Main footer content */}
@@ -36,22 +41,22 @@ export function Footer() {
               {t('footer.navigation')}
             </p>
             <nav className="space-y-3">
-              <Link href="/o-projektu" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/o-projektu" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.about')}
               </Link>
-              <Link href="/suites" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/suites" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.sale')}
               </Link>
-              <Link href="/apartmany-spindleruv-mlyn-pronajem" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/apartmany-spindleruv-mlyn-pronajem" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.rental')}
               </Link>
-              <Link href="/kalkulacka" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/kalkulacka" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.investment')}
               </Link>
-              <Link href="/lokalita" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/lokalita" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.location')}
               </Link>
-              <Link href="/kontakt" className="block text-white/60 hover:text-white transition-colors text-sm">
+              <Link href="/kontakt" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.contact')}
               </Link>
             </nav>
