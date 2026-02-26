@@ -1,5 +1,27 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/nemovitostni-produkt",
+      "destination": "/podil",
+      "permanent": true
+    },
+    {
+      "source": "/apartmany-prodej",
+      "destination": "/suites",
+      "permanent": true
+    },
+    {
+      "source": "/apartmany-prodej/:slug",
+      "destination": "/suites/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/investicni-prilezitost",
+      "destination": "/kalkulacka",
+      "permanent": true
+    }
+  ]
 }

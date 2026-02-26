@@ -17,7 +17,7 @@
       "floor": 3,
       "orientation": "východ",
       "status": "available",
-      "belongsToRealEstateProduct": false
+      "belongsToRealEstateProduct": true
     },
     {
       "slug": "chata-1-suite-9",
@@ -36,7 +36,7 @@
       "floor": 3,
       "orientation": "západ, jih",
       "status": "available",
-      "belongsToRealEstateProduct": true
+      "belongsToRealEstateProduct": false
     },
     {
       "slug": "chata-2-suite-11",
@@ -55,7 +55,7 @@
       "floor": 3,
       "orientation": "západ",
       "status": "available",
-      "belongsToRealEstateProduct": true
+      "belongsToRealEstateProduct": false
     }
   ],
   "rental": [
