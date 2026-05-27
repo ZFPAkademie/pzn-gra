@@ -63,7 +63,7 @@ export function BookingForm({
         return;
       }
 
-      onSuccess(json.bookingId, json.checkoutUrl);
+      onSuccess(json.bookingId, json.confirmationToken);
     } catch {
       onError('Nastala neočekávaná chyba. Zkuste to prosím znovu.');
     } finally {
@@ -179,7 +179,7 @@ export function BookingForm({
             Přesměrovávám na platbu...
           </span>
         ) : (
-          'Rezervovat a zaplatit'
+          'Odeslat rezervaci'
         )}
       </button>
     </form>

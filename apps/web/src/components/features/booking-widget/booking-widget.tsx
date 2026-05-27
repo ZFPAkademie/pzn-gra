@@ -49,8 +49,8 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
     }
   }
 
-  function handleSuccess(_bookingId: string, checkoutUrl: string) {
-    window.location.href = checkoutUrl;
+  function handleSuccess(_bookingId: string, confirmationToken: string) {
+    window.location.href = `/rezervace/${confirmationToken}`;
   }
 
   function handleError(message: string) {

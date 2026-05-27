@@ -1,26 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStripe } from '@/lib/stripe';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { checkAvailability } from '@/lib/booking-engine/availability';
 import { calculatePrice } from '@/lib/booking-engine/pricing';
-import { createBooking, updateStripeCheckoutSession } from '@/lib/booking-engine/bookings';
+import { createBooking } from '@/lib/booking-engine/bookings';
 
 const MIN_NIGHTS = 2;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      apartmentId,
-      checkIn,
-      checkOut,
-      guests,
-      firstName,
-      lastName,
-      email,
-      phone,
-      gdprConsent,
-    } = body;
+    const { apartmentId, checkIn, checkOut, guests, firstName, lastName, email, phone, gdprConsent } = body;
 
     if (!apartmentId || !checkIn || !checkOut || !firstName || !lastName || !email || !gdprConsent) {
       return NextResponse.json({ error: 'Chybí povinné pole' }, { status: 400 });
@@ -66,7 +55,6 @@ export async function POST(req: NextRequest) {
       email,
       phone: phone ?? '',
       totalAmountCents: price.totalCents,
-      currency: 'CZK',
       gdprConsent,
     });
 
@@ -74,46 +62,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: booking.error }, { status: 500 });
     }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const formatDate = (d: Date) =>
-      d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://podzlatymnavrsim.cz';
-
-    const stripe = getStripe();
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: 'czk',
-            unit_amount: price.totalCents,
-            product_data: {
-              name: `${apartment.title} — ${formatDate(checkInDate)} – ${formatDate(checkOutDate)}`,
-              description: `${price.nights} nocí · ${guests ?? 1} host${(guests ?? 1) > 1 ? 'é' : ''}`,
-            },
-          },
-        },
-      ],
-      metadata: {
-        bookingId: booking.bookingId,
-        confirmationToken: booking.confirmationToken,
-      },
-      success_url: `${baseUrl}/rezervace/uspech?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/apartmany-spindleruv-mlyn-pronajem/${apartment.slug}`,
-    });
-
-    await updateStripeCheckoutSession(booking.bookingId, session.id);
-
-    console.log('[bookings] Booking created:', booking.bookingId, '— Checkout session:', session.id);
+    console.log('[bookings] Rezervace vytvořena:', booking.bookingId, booking.confirmationToken);
 
     return NextResponse.json({
       bookingId: booking.bookingId,
-      checkoutUrl: session.url,
+      confirmationToken: booking.confirmationToken,
     });
   } catch (err) {
     console.error('[bookings] POST error:', err);

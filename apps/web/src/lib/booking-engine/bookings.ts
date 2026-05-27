@@ -11,7 +11,6 @@ export interface CreateBookingData {
   email: string;
   phone: string;
   totalAmountCents: number;
-  currency: string;
   gdprConsent: boolean;
 }
 
@@ -19,13 +18,13 @@ export async function createBooking(
   data: CreateBookingData
 ): Promise<{ ok: true; bookingId: string; confirmationToken: string } | { ok: false; error: string }> {
   const admin = createSupabaseAdminClient();
-  const confirmationToken = crypto.randomUUID();
 
   const { data: booking, error } = await admin
     .from('bookings')
     .insert({
       apartment_id: data.apartmentId,
       status: 'pending',
+      payment_method: 'bank_transfer',
       check_in: data.checkIn,
       check_out: data.checkOut,
       nights: data.nights,
@@ -35,10 +34,9 @@ export async function createBooking(
       guest_phone: data.phone,
       guests_count: data.guestsCount,
       total_amount_cents: data.totalAmountCents,
-      currency: data.currency,
-      confirmation_token: confirmationToken,
+      currency: 'CZK',
     })
-    .select('id')
+    .select('id, confirmation_token')
     .single();
 
   if (error || !booking) {
@@ -46,7 +44,7 @@ export async function createBooking(
     return { ok: false, error: error?.message ?? 'Nepodařilo se vytvořit rezervaci' };
   }
 
-  return { ok: true, bookingId: booking.id, confirmationToken };
+  return { ok: true, bookingId: booking.id, confirmationToken: booking.confirmation_token };
 }
 
 export async function getBookingByToken(token: string) {
@@ -57,6 +55,7 @@ export async function getBookingByToken(token: string) {
     .select(`
       id,
       status,
+      payment_method,
       check_in,
       check_out,
       nights,
@@ -87,7 +86,7 @@ export async function getBookingByToken(token: string) {
 
 export async function confirmBookingPayment(
   bookingId: string,
-  paymentIntentId: string
+  stripePaymentIntentId?: string
 ): Promise<{ ok: boolean; error?: string }> {
   const admin = createSupabaseAdminClient();
 
@@ -95,7 +94,8 @@ export async function confirmBookingPayment(
     .from('bookings')
     .update({
       status: 'confirmed',
-      stripe_payment_intent_id: paymentIntentId,
+      paid_at: new Date().toISOString(),
+      ...(stripePaymentIntentId ? { stripe_payment_intent_id: stripePaymentIntentId } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('id', bookingId);
@@ -106,34 +106,4 @@ export async function confirmBookingPayment(
   }
 
   return { ok: true };
-}
-
-export async function getBookingByCheckoutSession(
-  sessionId: string
-) {
-  const admin = createSupabaseAdminClient();
-
-  const { data, error } = await admin
-    .from('bookings')
-    .select('id, apartment_id, check_in, check_out, stripe_payment_intent_id')
-    .eq('stripe_checkout_session_id', sessionId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('[bookings] getBookingByCheckoutSession error:', error);
-    return null;
-  }
-
-  return data;
-}
-
-export async function updateStripeCheckoutSession(
-  bookingId: string,
-  sessionId: string
-): Promise<void> {
-  const admin = createSupabaseAdminClient();
-  await admin
-    .from('bookings')
-    .update({ stripe_checkout_session_id: sessionId })
-    .eq('id', bookingId);
 }

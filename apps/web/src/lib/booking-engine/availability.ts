@@ -1,9 +1,9 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 
-function eachDayInRange(checkIn: string, checkOut: string): string[] {
+function eachDayInRange(startStr: string, endStr: string): string[] {
   const days: string[] = [];
-  const current = new Date(checkIn);
-  const end = new Date(checkOut);
+  const current = new Date(startStr);
+  const end = new Date(endStr);
   while (current < end) {
     days.push(current.toISOString().slice(0, 10));
     current.setDate(current.getDate() + 1);
@@ -15,24 +15,37 @@ export async function checkAvailability(
   apartmentId: string,
   checkIn: string,
   checkOut: string
-): Promise<{ available: boolean; blockedDates: string[] }> {
+): Promise<{ available: boolean }> {
   const admin = createSupabaseAdminClient();
-  const days = eachDayInRange(checkIn, checkOut);
-  if (days.length === 0) return { available: false, blockedDates: [] };
 
-  const { data, error } = await admin
-    .from('blocked_dates')
-    .select('date')
+  // Zkontroluj překrývající se rezervace (pending + confirmed)
+  const { data: overlappingBookings, error } = await admin
+    .from('bookings')
+    .select('id')
     .eq('apartment_id', apartmentId)
-    .in('date', days);
+    .neq('status', 'cancelled')
+    .lt('check_in', checkOut)
+    .gt('check_out', checkIn)
+    .limit(1);
 
   if (error) {
     console.error('[availability] checkAvailability error:', error);
-    return { available: false, blockedDates: [] };
+    return { available: false };
   }
 
-  const blockedDates = (data || []).map((r) => r.date as string);
-  return { available: blockedDates.length === 0, blockedDates };
+  // Zkontroluj owner bloky (date-range z portálu)
+  const { data: ownerBlocks } = await admin
+    .from('blocked_dates')
+    .select('id')
+    .eq('apartment_id', apartmentId)
+    .lt('start_date', checkOut)
+    .gte('end_date', checkIn)
+    .limit(1);
+
+  const blocked =
+    (overlappingBookings?.length ?? 0) > 0 || (ownerBlocks?.length ?? 0) > 0;
+
+  return { available: !blocked };
 }
 
 export async function getMonthAvailability(
@@ -41,50 +54,42 @@ export async function getMonthAvailability(
   month: number
 ): Promise<string[]> {
   const admin = createSupabaseAdminClient();
-  const firstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-  const lastDayDate = new Date(year, month, 0);
-  const lastDay = `${year}-${String(month).padStart(2, '0')}-${String(lastDayDate.getDate()).padStart(2, '0')}`;
 
-  const { data, error } = await admin
-    .from('blocked_dates')
-    .select('date')
+  const firstDay = new Date(Date.UTC(year, month - 1, 1));
+  const lastDay = new Date(Date.UTC(year, month, 0));
+  const firstStr = firstDay.toISOString().slice(0, 10);
+  const lastStr = lastDay.toISOString().slice(0, 10);
+
+  const blockedSet = new Set<string>();
+
+  // Rezervace překrývající se s tímto měsícem
+  const { data: bookings } = await admin
+    .from('bookings')
+    .select('check_in, check_out')
     .eq('apartment_id', apartmentId)
-    .gte('date', firstDay)
-    .lte('date', lastDay);
+    .neq('status', 'cancelled')
+    .lt('check_in', lastStr)
+    .gt('check_out', firstStr);
 
-  if (error) {
-    console.error('[availability] getMonthAvailability error:', error);
-    return [];
+  for (const b of bookings ?? []) {
+    const start = b.check_in > firstStr ? b.check_in : firstStr;
+    const end = b.check_out < lastStr ? b.check_out : lastStr;
+    eachDayInRange(start, end).forEach((d) => blockedSet.add(d));
   }
 
-  return (data || []).map((r) => r.date as string);
-}
-
-export async function blockDatesForBooking(
-  bookingId: string,
-  apartmentId: string,
-  checkIn: string,
-  checkOut: string
-): Promise<{ ok: boolean; error?: string }> {
-  const admin = createSupabaseAdminClient();
-  const days = eachDayInRange(checkIn, checkOut);
-  if (days.length === 0) return { ok: true };
-
-  const rows = days.map((date) => ({
-    apartment_id: apartmentId,
-    date,
-    reason: 'BOOKED' as const,
-    booking_id: bookingId,
-  }));
-
-  const { error } = await admin
+  // Owner bloky překrývající se s tímto měsícem
+  const { data: ownerBlocks } = await admin
     .from('blocked_dates')
-    .upsert(rows, { onConflict: 'apartment_id,date', ignoreDuplicates: true });
+    .select('start_date, end_date')
+    .eq('apartment_id', apartmentId)
+    .lte('start_date', lastStr)
+    .gte('end_date', firstStr);
 
-  if (error) {
-    console.error('[availability] blockDatesForBooking error:', error);
-    return { ok: false, error: error.message };
+  for (const b of ownerBlocks ?? []) {
+    const start = b.start_date > firstStr ? b.start_date : firstStr;
+    const end = b.end_date < lastStr ? b.end_date : lastStr;
+    eachDayInRange(start, end).forEach((d) => blockedSet.add(d));
   }
 
-  return { ok: true };
+  return Array.from(blockedSet).sort();
 }
