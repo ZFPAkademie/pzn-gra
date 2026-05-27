@@ -16,12 +16,15 @@ interface Apartment {
   id: string;
   slug: string;
   title: string | null;
+  subtitle: string | null;
   unit: string | null;
   building: string | null;
   layout: string | null;
   area_m2: number | null;
   floor: number | null;
   max_guests: number | null;
+  orientation: string | null;
+  description: string | null;
   status: string;
   for_sale: boolean;
   for_rent: boolean;
@@ -152,6 +155,14 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
               <label className="block text-xs text-slate-500 mb-1">Max. hostů</label>
               <input name="max_guests" type="number" min="1" defaultValue={apt.max_guests ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
             </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Orientace</label>
+              <input name="orientation" defaultValue={apt.orientation ?? ''} placeholder="jih, západ" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+            </div>
+            <div className="col-span-2 sm:col-span-3">
+              <label className="block text-xs text-slate-500 mb-1">Popis</label>
+              <textarea name="description" rows={3} defaultValue={apt.description ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold resize-none" />
+            </div>
           </div>
           {error && <p className="text-red-600 text-xs">{error}</p>}
           <div className="flex gap-3">
@@ -162,36 +173,48 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
           </div>
         </form>
       ) : (
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4 text-sm">
-          <div>
-            <dt className="text-xs text-slate-400">Název</dt>
-            <dd className="text-navy mt-0.5">{apt.title ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Budova</dt>
-            <dd className="text-navy mt-0.5">{apt.building ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Jednotka</dt>
-            <dd className="text-navy mt-0.5">{apt.unit ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Dispozice</dt>
-            <dd className="text-navy mt-0.5">{apt.layout ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Plocha</dt>
-            <dd className="text-navy mt-0.5">{apt.area_m2 != null ? `${apt.area_m2} m²` : '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Patro</dt>
-            <dd className="text-navy mt-0.5">{apt.floor != null ? apt.floor : '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-slate-400">Max. hostů</dt>
-            <dd className="text-navy mt-0.5">{apt.max_guests != null ? apt.max_guests : '—'}</dd>
-          </div>
-        </dl>
+        <div className="space-y-4">
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4 text-sm">
+            <div>
+              <dt className="text-xs text-slate-400">Název</dt>
+              <dd className="text-navy mt-0.5">{apt.title ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Budova</dt>
+              <dd className="text-navy mt-0.5">{apt.building ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Jednotka</dt>
+              <dd className="text-navy mt-0.5">{apt.unit ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Dispozice</dt>
+              <dd className="text-navy mt-0.5">{apt.layout ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Plocha</dt>
+              <dd className="text-navy mt-0.5">{apt.area_m2 != null ? `${apt.area_m2} m²` : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Patro</dt>
+              <dd className="text-navy mt-0.5">{apt.floor != null ? apt.floor : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Max. hostů</dt>
+              <dd className="text-navy mt-0.5">{apt.max_guests != null ? apt.max_guests : '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Orientace</dt>
+              <dd className="text-navy mt-0.5">{apt.orientation ?? '—'}</dd>
+            </div>
+          </dl>
+          {apt.description && (
+            <div className="pt-3 border-t border-stone">
+              <dt className="text-xs text-slate-400 mb-1">Popis</dt>
+              <dd className="text-sm text-slate-600 leading-relaxed">{apt.description}</dd>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

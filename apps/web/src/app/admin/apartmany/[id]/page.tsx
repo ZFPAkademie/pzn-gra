@@ -49,7 +49,7 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
   ] = await Promise.all([
     supabase
       .from('apartments')
-      .select('id, slug, title, unit, building, layout, area_m2, floor, max_guests, status, for_sale, for_rent, in_rental_program, base_price_cents, features')
+      .select('id, slug, title, subtitle, unit, building, layout, area_m2, floor, max_guests, orientation, description, rooms, status, for_sale, for_rent, in_rental_program, base_price_cents, features')
       .eq('id', id)
       .maybeSingle(),
     supabase

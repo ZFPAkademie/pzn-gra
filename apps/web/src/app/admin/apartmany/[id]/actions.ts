@@ -18,6 +18,8 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   const area_m2Str = formData.get('area_m2') as string;
   const floorStr = formData.get('floor') as string;
   const maxGuestsStr = formData.get('max_guests') as string;
+  const orientation = formData.get('orientation') as string;
+  const description = formData.get('description') as string;
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from('apartments').update({
@@ -28,6 +30,8 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
     area_m2: area_m2Str ? parseFloat(area_m2Str) : null,
     floor: floorStr ? parseInt(floorStr, 10) : null,
     max_guests: maxGuestsStr ? parseInt(maxGuestsStr, 10) : null,
+    orientation: orientation || null,
+    description: description || null,
   }).eq('id', id);
 
   if (error) return { ok: false, error: error.message };
