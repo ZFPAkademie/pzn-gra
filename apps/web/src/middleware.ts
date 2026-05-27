@@ -1,9 +1,10 @@
 /**
  * Route Middleware v2
  *
- * - Refresh Supabase session cookies na každém requestu (nutné pro SSR auth)
- * - /portal/* → chráněno, redirect na /portal/login pokud nepřihlášen
- * - Vše ostatní → volně průchozí (veřejný web, admin, API)
+ * - /admin/* → pass-through (vlastní cookie auth, Supabase session nepotřebuje)
+ * - /portal/login → pass-through (veřejná stránka)
+ * - /portal/* → chráněno Supabase auth, redirect na /portal/login
+ * - Vše ostatní → pass-through (veřejný web, API)
  */
 
 import { createServerClient } from '@supabase/ssr';
@@ -12,6 +13,11 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Admin používá vlastní cookie auth — Supabase session refresh zde nepotřebujeme
+  if (pathname.startsWith('/admin') || pathname.startsWith('/auth/callback')) {
+    return NextResponse.next({ request });
+  }
 
   let response = NextResponse.next({
     request,
