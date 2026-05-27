@@ -201,15 +201,66 @@ Důsledky: co z toho vyplývá
 
 ---
 
+### [2026-05] DEC-018 — Bankovní převod místo Stripe pro booking
+**Status:** LOCKED
+
+**Kontext:** Booking engine implementován, ale Stripe vyžaduje schválení managera.
+
+**Rozhodnutí:** Platba přes bankovní převod + SPD QR kód jako primární platební metoda. Stripe přidán až po schválení.
+
+**Důvod:**
+- Unblock booking engine bez čekání na Stripe onboarding
+- SPD QR kód je standard pro české platby
+- Soft-fail design — Stripe lze přidat bez přepisování flow
+
+**Důsledky:** Admin musí ručně potvrdit platbu (updateBookingStatus → confirmed). Email se odešle automaticky.
+
+---
+
+### [2026-05] DEC-019 — Token-based rezervační karta (bez auth)
+**Status:** LOCKED
+
+**Kontext:** Host potřebuje přistoupit k rezervaci bez nutnosti registrace.
+
+**Rozhodnutí:** UUID `confirmation_token` v URL jako jediný autorizační mechanismus pro hosta. Znalost URL = přístup k rezervaci.
+
+**Důvod:**
+- Zero friction pro hosta
+- Žádná registrace, žádný email verification
+- URL lze sdílet (host → rodina)
+- Platné pro messaging i check-in info
+
+**Důsledky:** Token musí být dostatečně entropický (UUID v4). URL nesmí být indexovatelné (noindex).
+
+---
+
+### [2026-05] DEC-020 — iCal sync přes blocked_dates (ne separátní tabulka)
+**Status:** LOCKED
+
+**Kontext:** Kde ukládat blokace importované z Booking.com/Airbnb.
+
+**Rozhodnutí:** Importované blokace jdou do existující tabulky `blocked_dates` se sloupci `source`, `external_uid`, `channel_connection_id`. Žádná separátní tabulka.
+
+**Důvod:**
+- Disponibilita (`checkAvailability`) dotazuje jeden zdroj
+- Jednodušší dotazy
+- Source tracking (`source IN ('owner', 'booking_com', 'airbnb')`) dostatečný
+
+**Důsledky:** Při smazání `channel_connection` se kaskádově smažou i bloky (ON DELETE CASCADE).
+
+---
+
 ## Open Decisions (k řešení)
 
-### [TBD] DEC-011 — Channel Manager implementace
+### [TBD] DEC-011 — Channel Manager — živé napojení
 **Status:** OPEN
 
 **Otázky:**
-- Booking.com Connectivity API vs agregátor (Rentlio, Cloudbeds)?
-- Priorita: Booking.com first, pak Airbnb?
-- Sync interval (real-time vs batch)?
+- Booking.com Connectivity API (real-time) vs iCal (batch, každou hodinu)?
+- iCal je hotový. Connectivity API = budoucí upgrade?
+- Airbnb Open API vyžaduje schválení partnera.
+
+**Aktuální stav:** iCal sync implementován a funkční.
 
 ---
 

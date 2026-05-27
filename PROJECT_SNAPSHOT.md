@@ -1,0 +1,286 @@
+# PROJECT_SNAPSHOT.md
+## Pod Zlatým návrším — Stav projektu
+
+**Datum:** 27. května 2026  
+**Verze:** v21-podil  
+**Status:** Production (fáze 1)
+
+---
+
+## 1. Celkový záměr systému
+
+### Vize
+**Pod Zlatým návrším** je prémiový apartmánový resort ve Špindlerově Mlýně (~18 apartmánů ve 2 chatách) s:
+- Integrovaným property management systémem
+- Klientským portálem pro všechny majitele
+- SVJ modulem pro komunikaci vlastníků
+- Booking engine s channel managerem
+
+### Typy apartmánů a jejich zobrazení
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    VŠECHNY APARTMÁNY (~18)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │ K PRODEJI   │  │ PRODÁNO     │  │ PRODÁNO     │             │
+│  │ + PRONÁJEM  │  │ PRONAJÍMÁ   │  │ NEPRONAJÍMÁ │             │
+│  │   (3)       │  │   (~7)      │  │   (~8)      │             │
+│  ├─────────────┤  ├─────────────┤  ├─────────────┤             │
+│  │ Web: PRODEJ │  │ Web: PRONA. │  │ Web: ❌     │             │
+│  │ Web: PRONA. │  │ Portál: ✅  │  │ Portál: ✅  │             │
+│  │ Portál: ❌  │  │ SVJ: ✅     │  │ SVJ: ✅     │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                 │
+│  Majitel se může kdykoliv rozhodnout:                          │
+│  • Přidat apartmán do rental programu (opt-in)                 │
+│  • Odebrat z rental programu (opt-out)                         │
+│  • Admin nastavuje visibility flags                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Business modely
+
+#### A) Prodej apartmánů (aktuálně 3)
+- Lead capture → kontakt obchodníka → offline prodej
+- Po prodeji: majitel získá přístup do portálu
+- Může se rozhodnout pronajímat (opt-in)
+
+#### B) Pronájem apartmánů (~10 v programu)
+- Online booking s platbou kartou
+- Channel manager (Booking.com, Airbnb)
+- Majitelé dostávají výnosy mínus provize
+
+#### C) Družstevní podíly (50 podílů)
+- Pouze apartmán 7 (nezmiňovat číslo)
+- Lead capture → osobní schůzka
+
+#### D) SVJ komunikace (všichni majitelé)
+- Nástěnka, diskuze, hlasování
+- Dokumenty (stanovy, zápisy)
+- Kontakty na správce
+
+---
+
+## 2. Systémové komponenty
+
+### 2.1 Veřejný web (✅ HOTOVO)
+- Homepage, info stránky
+- Sekce PRODEJ (apartmány s `for_sale=true`)
+- Sekce PRONÁJEM (apartmány s `for_rent=true`)
+- Lead capture formuláře
+- Investiční kalkulačka
+
+### 2.2 Booking Engine (🚧 TODO)
+- Kalendář dostupnosti
+- Dynamický ceník (sezóny)
+- Rezervační flow
+- Stripe platby
+- Potvrzovací emaily
+
+### 2.3 Channel Manager (🚧 TODO)
+- Booking.com sync
+- Airbnb sync
+- Kalendář, ceny, rezervace
+- Automatický import
+
+### 2.4 Admin Dashboard (🚧 TODO)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ADMIN DASHBOARD                                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  APARTMÁNY           MAJITELÉ            REZERVACE              │
+│  • Seznam všech      • Seznam všech      • Všechny rezervace    │
+│  • Nastavit flags    • Pozvat do portálu • Check-in/out         │
+│  • Visibility        • Nastavit provizi  • Kalendář             │
+│                      • Bank účty         • Hosté                │
+│                                                                 │
+│  FINANCE             SVJ                 NASTAVENÍ              │
+│  • Výplaty           • Spravovat posty   • Ceníky               │
+│  • Revenue report    • Dokumenty         • Sezóny               │
+│  • Provize přehled   • Polls             • Channel manager      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2.5 Klientský Portál (🚧 TODO)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  KLIENTSKÝ PORTÁL (pro všechny majitele)                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  MŮJ APARTMÁN (všichni)     PRONÁJEM (opt-in)    SVJ (všichni) │
+│  ─────────────────────      ─────────────────    ───────────── │
+│  • Profil apartmánu         • Dashboard          • Nástěnka    │
+│  • Fotogalerie              • Kalendář           • Diskuze     │
+│  • Dokumenty                • Rezervace          • Hlasování   │
+│  • Údržba                   • Výnosy/provize     • Dokumenty   │
+│                             • Blokace            • Kontakty    │
+│                             • Statistiky         •             │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  "Chci pronajímat"                                      │   │
+│  │  → Požádat admina o zařazení do rental programu        │   │
+│  │  → Admin nastaví provizi a aktivuje                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Aktuální stav (v23 — 27.5.2026)
+
+### ✅ Hotovo
+| Komponenta | Status | Poznámky |
+|------------|--------|----------|
+| Homepage | ✅ | Alpine Quiet Luxury design |
+| Stránky prodej | ✅ | 3 apartmány |
+| Stránky pronájem | ✅ | 8 apartmánů |
+| Stránka podíl | ✅ | Dynamické URL /podil/[available] |
+| Lead capture | ✅ | 4 typy leadů |
+| Admin inbox (leady) | ✅ | Status, detail, odpověď |
+| Supabase Storage | ✅ | Fotky apartmánů |
+| **Booking engine** | ✅ | Kalendář, ceník, rezervační flow |
+| **Rezervační karta** | ✅ | /rezervace/[token], QR platba |
+| **Messaging** | ✅ | Host ↔ admin real-time (30s polling) |
+| **Admin rezervace** | ✅ | Seznam, detail, potvrzení, check-in info |
+| **Transakcní emaily** | ✅ | Resend — 3 šablony (přijetí, potvrzení, admin) |
+| **iCal channel manager** | ✅ | Import z Booking.com/Airbnb, export feed, cron |
+
+### 🚧 K implementaci
+| Komponenta | Priorita | Závislosti |
+|------------|----------|------------|
+| Sezónní ceníky (admin UI) | HIGH | — |
+| Blokace termínů majitelem | HIGH | Owner portal nebo admin UI |
+| Klientský portál | MEDIUM | Supabase Auth magic links |
+| SVJ modul | MEDIUM | Klientský portál |
+| Admin dashboard v2 | MEDIUM | — |
+| Stripe platby | LOW | Manager approval |
+| Stripe Connect (výplaty) | LOW | Portál + Stripe |
+
+---
+
+## 4. Apartmány - visibility flags
+
+### Datový model
+```typescript
+interface Apartment {
+  // Základní
+  id: string;
+  slug: string;
+  building: string;  // "Chata 1" | "Chata 2"
+  unit: string;      // "Suite 7"
+  
+  // Vlastnictví
+  owner_id: string | null;  // null = neprodáno
+  status: 'available' | 'reserved' | 'sold';
+  
+  // Visibility (admin nastavuje)
+  for_sale: boolean;         // Zobrazit v sekci PRODEJ
+  for_rent: boolean;         // Zobrazit v sekci PRONÁJEM
+  in_rental_program: boolean; // Aktivní v booking engine
+}
+```
+
+### Příklady
+| Apartmán | owner_id | for_sale | for_rent | in_rental_program | Kde se zobrazí |
+|----------|----------|----------|----------|-------------------|----------------|
+| Suite 7 | null | true | true | true | PRODEJ + PRONÁJEM |
+| Suite 9 | owner_1 | false | true | true | PRONÁJEM + Portál |
+| Suite 2 | owner_2 | false | false | false | Pouze Portál |
+
+---
+
+## 5. Reference projekty
+
+### FABR
+- Podobný klientský portál
+- Claude zná tento projekt
+- Lze použít jako vzor pro auth flow a dashboard
+
+---
+
+## 6. Roadmap
+
+### Fáze 1 — Lead Capture (✅ HOTOVO)
+- [x] Veřejný web
+- [x] Lead formuláře
+- [x] Admin inbox
+
+### Fáze 2 — Booking Engine ✅ HOTOVO
+- [x] Kalendář dostupnosti (single-month widget, range selection)
+- [x] Ceníky — flat rate (sezóny TODO)
+- [x] Rezervační flow — bankovní převod + SPD QR kód
+- [x] Rezervační karta /rezervace/[token]
+- [x] Messaging host ↔ admin
+- [x] Admin panel rezervací + check-in info
+- [x] Transakcní emaily (Resend)
+- [ ] Sezónní ceníky (pricing_rules tabulka existuje, admin UI chybí)
+- [ ] Stripe Checkout (čeká na schválení managera)
+
+### Fáze 3 — Channel Manager ✅ HOTOVO (infrastruktura)
+- [x] iCal import z Booking.com/Airbnb → blocked_dates
+- [x] iCal export /api/v1/ical/[token] pro externí kanály
+- [x] Admin UI /admin/channel-manager
+- [x] Vercel Cron každou hodinu
+- [ ] Připojit URL adresy s manažerem (přístupy do Booking.com/Airbnb)
+
+### Fáze 4 — Klientský Portál
+- [ ] Owner auth (magic links)
+- [ ] Můj apartmán
+- [ ] SVJ modul
+- [ ] Dokumenty
+
+### Fáze 5 — Rental Program
+- [ ] Opt-in flow
+- [ ] Výnosy & provize
+- [ ] Blokace
+- [ ] Stripe Connect (výplaty)
+
+### Fáze 6 — Admin Dashboard v2
+- [ ] Správa visibility
+- [ ] Nastavení provizí
+- [ ] Revenue analytika
+- [ ] SVJ správa
+
+---
+
+## 7. Technický stack
+
+- **Frontend:** Next.js 14, TypeScript, Tailwind
+- **Backend:** Supabase (PostgreSQL + Auth + Storage)
+- **Payments:** Stripe (Checkout + Connect)
+- **Email:** Resend
+- **Hosting:** Vercel
+
+---
+
+## 8. Environment variables
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Resend
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=info@zfpreality.cz
+
+# Stripe (TODO)
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+
+# Admin
+ADMIN_PASSWORD=
+JWT_SECRET=
+```
+
+---
+
+*Aktualizace: 27.5.2026*
