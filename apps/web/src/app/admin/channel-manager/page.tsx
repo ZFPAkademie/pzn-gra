@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { ChannelManagerClient } from './channel-manager-client';
+import { SyncAllButton, AddConnectionButton, ConnectionActions } from './channel-manager-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,7 +66,7 @@ export default async function AdminChannelManagerPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-light text-navy">Channel Manager</h1>
-          <ChannelManagerClient.SyncAllButton />
+          <SyncAllButton />
         </div>
 
         <div className="space-y-6">
@@ -83,7 +83,7 @@ export default async function AdminChannelManagerPage() {
                     <p className="text-xs text-slate-400 mt-0.5">Export URL (pro Booking.com/Airbnb):</p>
                     <p className="text-xs font-mono text-slate-500 mt-0.5 break-all">{exportUrl}</p>
                   </div>
-                  <ChannelManagerClient.AddConnectionButton apartmentId={apt.id} apartmentTitle={apt.title ?? apt.slug} />
+                  <AddConnectionButton apartmentId={apt.id} apartmentTitle={apt.title ?? apt.slug} />
                 </div>
 
                 {/* Connections list */}
@@ -135,7 +135,7 @@ export default async function AdminChannelManagerPage() {
                             )}
                           </td>
                           <td className="px-5 py-3 text-right whitespace-nowrap">
-                            <ChannelManagerClient.ConnectionActions connectionId={conn.id} syncEnabled={conn.sync_enabled} />
+                            <ConnectionActions connectionId={conn.id} syncEnabled={conn.sync_enabled} />
                           </td>
                         </tr>
                       ))}

@@ -199,8 +199,4 @@ function ConnectionActions({ connectionId, syncEnabled }: { connectionId: string
   );
 }
 
-export const ChannelManagerClient = {
-  SyncAllButton,
-  AddConnectionButton,
-  ConnectionActions,
-};
+export { SyncAllButton, AddConnectionButton, ConnectionActions };
