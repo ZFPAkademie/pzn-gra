@@ -107,3 +107,44 @@ export async function toggleOwnerActive(ownerId: string, isActive: boolean) {
   revalidatePath('/admin/majitele');
   return { ok: true };
 }
+
+export async function updateOwner(ownerId: string, formData: FormData) {
+  if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
+
+  const name = formData.get('name') as string;
+  const email = formData.get('email') as string;
+  const phone = formData.get('phone') as string;
+
+  if (!name || !email) return { ok: false, error: 'Jméno a email jsou povinné' };
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from('owners')
+    .update({ name, email, phone: phone || null })
+    .eq('id', ownerId);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/admin/majitele');
+  return { ok: true };
+}
+
+export async function deleteOwner(ownerId: string) {
+  if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
+
+  const supabase = createSupabaseAdminClient();
+
+  // Odpojit apartmány od majitele
+  await supabase
+    .from('apartments')
+    .update({ owner_id: null })
+    .eq('owner_id', ownerId);
+
+  const { error } = await supabase
+    .from('owners')
+    .update({ is_active: false })
+    .eq('id', ownerId);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/admin/majitele');
+  return { ok: true };
+}

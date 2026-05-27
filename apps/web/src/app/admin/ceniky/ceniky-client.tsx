@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createPricingRule, deletePricingRule } from './actions';
+import { createPricingRule, deletePricingRule, updatePricingRule } from './actions';
 
 interface Apartment {
   id: string;
@@ -122,6 +122,81 @@ export function DeleteRuleButton({ id }: { id: string }) {
   );
 }
 
+function EditRuleForm({ rule, onClose }: { rule: PricingRule; onClose: () => void }) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState('');
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError('');
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await updatePricingRule(rule.id, fd);
+      if (!result.ok) { setError(result.error ?? 'Chyba'); return; }
+      onClose();
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="px-4 py-3 bg-stone border-t border-stone space-y-3">
+      <div className="grid grid-cols-5 gap-3">
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Název</label>
+          <input name="name" required defaultValue={rule.name} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Od</label>
+          <input type="date" name="start_date" required defaultValue={rule.start_date} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Do</label>
+          <input type="date" name="end_date" required defaultValue={rule.end_date} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Cena / noc (Kč)</label>
+          <input type="number" name="price_per_night_kc" required min="1" defaultValue={rule.price_per_night_cents / 100} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Min. nocí</label>
+          <input type="number" name="min_nights" min="1" defaultValue={rule.min_nights} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+      </div>
+      {error && <p className="text-red-600 text-xs">{error}</p>}
+      <div className="flex gap-2">
+        <button type="submit" disabled={isPending} className="px-3 py-1.5 bg-navy text-white text-xs hover:bg-navy/90 disabled:opacity-50">
+          {isPending ? 'Ukládám…' : 'Uložit'}
+        </button>
+        <button type="button" onClick={onClose} className="px-3 py-1.5 text-xs text-slate-500 hover:text-navy">Zrušit</button>
+      </div>
+    </form>
+  );
+}
+
+function RuleRow({ rule, aptName }: { rule: PricingRule; aptName: string }) {
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <div className="bg-white border border-stone">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <span className="text-xs text-slate-400 w-40 truncate">{aptName}</span>
+          <span className="text-sm text-navy font-medium w-48">{rule.name}</span>
+          <span className="text-xs text-slate-500">{formatDate(rule.start_date)} – {formatDate(rule.end_date)}</span>
+          <span className="text-sm text-gold font-medium">{formatKc(rule.price_per_night_cents)} / noc</span>
+          <span className="text-xs text-slate-400">min. {rule.min_nights} noci</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setEditing(!editing)} className="text-xs text-slate-400 hover:text-navy transition-colors">
+            {editing ? 'Zavřít' : 'Upravit'}
+          </button>
+          <DeleteRuleButton id={rule.id} />
+        </div>
+      </div>
+      {editing && <EditRuleForm rule={rule} onClose={() => setEditing(false)} />}
+    </div>
+  );
+}
+
 export function RulesList({ rules, apartments }: { rules: PricingRule[]; apartments: Apartment[] }) {
   const aptMap = Object.fromEntries(apartments.map(a => [a.id, a.title ?? a.slug]));
 
@@ -132,16 +207,7 @@ export function RulesList({ rules, apartments }: { rules: PricingRule[]; apartme
   return (
     <div className="space-y-2">
       {rules.map(rule => (
-        <div key={rule.id} className="bg-white border border-stone px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <span className="text-xs text-slate-400 w-40 truncate">{aptMap[rule.apartment_id]}</span>
-            <span className="text-sm text-navy font-medium w-48">{rule.name}</span>
-            <span className="text-xs text-slate-500">{formatDate(rule.start_date)} – {formatDate(rule.end_date)}</span>
-            <span className="text-sm text-gold font-medium">{formatKc(rule.price_per_night_cents)} / noc</span>
-            <span className="text-xs text-slate-400">min. {rule.min_nights} noci</span>
-          </div>
-          <DeleteRuleButton id={rule.id} />
-        </div>
+        <RuleRow key={rule.id} rule={rule} aptName={aptMap[rule.apartment_id] ?? rule.apartment_id} />
       ))}
     </div>
   );

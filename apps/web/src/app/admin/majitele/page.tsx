@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { AdminNav } from '../_components/admin-nav';
-import { AddOwnerForm, InviteButton, CommissionEditor, ToggleActiveButton } from './majitele-client';
+import { AddOwnerForm, InviteButton, CommissionEditor, ToggleActiveButton, EditOwnerForm, DeleteOwnerButton } from './majitele-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,9 +99,11 @@ export default async function AdminMajitelePage() {
 
                     {/* Akce */}
                     <div className="ml-4 flex flex-col gap-2 items-end">
-                      {!owner.user_id && (
-                        <InviteButton ownerId={owner.id} email={owner.email} />
-                      )}
+                      <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
+                      <div className="flex gap-3">
+                        <EditOwnerForm owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }} />
+                        <DeleteOwnerButton ownerId={owner.id} name={owner.name} />
+                      </div>
                     </div>
                   </div>
                 </div>
