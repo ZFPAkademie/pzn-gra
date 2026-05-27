@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 const navItems = [
   { href: '/admin/leads', label: 'Leady' },
   { href: '/admin/rezervace', label: 'Rezervace' },
+  { href: '/admin/apartmany', label: 'Apartmány' },
+  { href: '/admin/majitele', label: 'Majitelé' },
   { href: '/admin/ceniky', label: 'Ceníky' },
   { href: '/admin/blokace', label: 'Blokace' },
-  { href: '/admin/majitele', label: 'Majitelé' },
-  { href: '/admin/channel-manager', label: 'Channel Manager' },
+  { href: '/admin/svj', label: 'SVJ' },
+  { href: '/admin/channel-manager', label: 'Channels' },
 ];
 
 export function AdminNav() {
