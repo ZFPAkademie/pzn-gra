@@ -5,7 +5,7 @@ import { BookingCalendar } from './booking-calendar';
 import { BookingPriceSummary } from './booking-price-summary';
 import { BookingForm } from './booking-form';
 
-type WidgetState = 'idle' | 'dates_selected' | 'form' | 'error';
+type Step = 'calendar' | 'form';
 
 const MIN_NIGHTS = 2;
 
@@ -16,149 +16,139 @@ interface Props {
   basePricePerNight: number;
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'long',
-  });
+function fmtDate(d: string) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+}
+function nights(a: string, b: string) {
+  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
 
 export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePricePerNight }: Props) {
-  const [state, setState] = useState<WidgetState>('idle');
-  const [checkIn, setCheckIn] = useState<string | null>(null);
+  const [step, setStep]         = useState<Step>('calendar');
+  const [checkIn, setCheckIn]   = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [error, setError]       = useState<string | null>(null);
 
-  function handleSelectDates(newCheckIn: string, newCheckOut: string | null) {
-    setCheckIn(newCheckIn);
-    setCheckOut(newCheckOut);
-
-    if (newCheckIn && newCheckOut) {
-      const nights = Math.round(
-        (new Date(newCheckOut).getTime() - new Date(newCheckIn).getTime()) / 86400000
-      );
-      if (nights < MIN_NIGHTS) {
-        setErrorMessage(`Minimální délka pobytu jsou ${MIN_NIGHTS} noci.`);
-        setState('error');
-      } else {
-        setErrorMessage(null);
-        setState('dates_selected');
-      }
-    } else {
-      setState('idle');
+  function handleDates(ci: string, co: string | null) {
+    setCheckIn(ci); setCheckOut(co); setError(null);
+    if (ci && co) {
+      const n = nights(ci, co);
+      if (n < MIN_NIGHTS) setError(`Minimální pobyt jsou ${MIN_NIGHTS} noci.`);
     }
   }
 
-  function handleSuccess(_bookingId: string, confirmationToken: string) {
-    window.location.href = `/rezervace/${confirmationToken}`;
+  function handleSuccess(_id: string, token: string) {
+    window.location.href = `/rezervace/${token}`;
   }
 
-  function handleError(message: string) {
-    setErrorMessage(message);
-    setState('error');
-  }
+  function reset() { setCheckIn(null); setCheckOut(null); setError(null); setStep('calendar'); }
 
-  function resetDates() {
-    setCheckIn(null);
-    setCheckOut(null);
-    setState('idle');
-    setErrorMessage(null);
-  }
+  const hasRange  = checkIn && checkOut;
+  const validRange = hasRange && nights(checkIn!, checkOut!) >= MIN_NIGHTS;
 
   return (
-    <div className="space-y-4">
-      <div className="bg-navy p-6 mb-2">
-        <p className="text-gold text-xs tracking-widest uppercase mb-3">Pronájem od</p>
+    /* sticky container */
+    <div className="sticky top-24 space-y-0">
+
+      {/* ── Price strip ── */}
+      <div className="bg-[#0B1626] px-6 py-5">
+        <p className="text-[#C9A24D] text-[10px] tracking-[0.18em] uppercase mb-2">Pronájem od</p>
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-light text-white">
+          <span className="text-[2.2rem] font-light text-white leading-none">
             {basePricePerNight.toLocaleString('cs-CZ')}
           </span>
-          <span className="text-white/50 text-sm">Kč / noc</span>
+          <span className="text-white/40 text-sm">Kč / noc</span>
         </div>
-        <p className="text-white/30 text-xs mt-1">Ceny se mohou lišit dle sezóny</p>
+        <p className="text-white/25 text-[11px] mt-1.5">Ceny se mohou lišit dle sezóny</p>
       </div>
 
-      <BookingCalendar
-        apartmentSlug={apartmentSlug}
-        selectedCheckIn={checkIn}
-        selectedCheckOut={checkOut}
-        onSelectDates={handleSelectDates}
-      />
+      {/* ── Calendar / Form ── */}
+      <div className="bg-white border border-[#0B1626]/8 border-t-0">
 
-      {state === 'idle' && (
-        <p className="text-xs text-navy/40 text-center py-2">
-          Vyberte datum příjezdu a odjezdu
-        </p>
-      )}
+        {step === 'calendar' && (
+          <div className="p-5">
+            <BookingCalendar
+              apartmentSlug={apartmentSlug}
+              selectedCheckIn={checkIn}
+              selectedCheckOut={checkOut}
+              onSelectDates={handleDates}
+            />
 
-      {checkIn && !checkOut && (
-        <p className="text-xs text-navy/50 text-center py-2">
-          Příjezd: {formatDate(checkIn)} — Vyberte datum odjezdu
-        </p>
-      )}
+            {/* Status line */}
+            <div className="mt-4 min-h-[20px]">
+              {!checkIn && (
+                <p className="text-[11px] text-[#0B1626]/35 text-center tracking-wide">
+                  Vyberte datum příjezdu
+                </p>
+              )}
+              {checkIn && !checkOut && (
+                <p className="text-[11px] text-[#0B1626]/50 text-center">
+                  Příjezd <span className="text-[#0B1626] font-medium">{fmtDate(checkIn)}</span> — vyberte odjezd
+                </p>
+              )}
+              {error && (
+                <p className="text-[11px] text-red-500 text-center">{error}</p>
+              )}
+            </div>
 
-      {state === 'error' && errorMessage && (
-        <div className="bg-red-50 border border-red-200 p-4 rounded-sm">
-          <p className="text-sm text-red-700">{errorMessage}</p>
-          <button
-            onClick={resetDates}
-            className="mt-2 text-xs text-red-600 underline hover:no-underline"
-          >
-            Vybrat jiný termín
-          </button>
-        </div>
-      )}
-
-      {state === 'dates_selected' && checkIn && checkOut && (
-        <>
-          <BookingPriceSummary
-            apartmentSlug={apartmentSlug}
-            checkIn={checkIn}
-            checkOut={checkOut}
-          />
-
-          <div className="flex gap-2">
-            <button
-              onClick={resetDates}
-              className="flex-1 py-3 border border-navy/20 text-navy text-xs uppercase tracking-widest hover:bg-navy/5 transition-colors"
-            >
-              Změnit termín
-            </button>
-            <button
-              onClick={() => setState('form')}
-              className="flex-1 py-3 bg-[#C9A24D] text-[#0B1626] text-xs uppercase tracking-widest hover:bg-[#b8913c] transition-colors"
-            >
-              Pokračovat
-            </button>
+            {/* CTA */}
+            {validRange && !error && (
+              <div className="mt-4 space-y-3">
+                <BookingPriceSummary
+                  apartmentSlug={apartmentSlug}
+                  checkIn={checkIn!}
+                  checkOut={checkOut!}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={reset}
+                    className="flex-none px-4 py-3 text-[11px] uppercase tracking-widest text-[#0B1626]/50 border border-[#0B1626]/15 hover:border-[#0B1626]/30 transition-colors"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    onClick={() => setStep('form')}
+                    className="flex-1 py-3 bg-[#C9A24D] text-[#0B1626] text-[11px] uppercase tracking-widest font-medium hover:bg-[#b8913c] transition-colors"
+                  >
+                    Rezervovat
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </>
-      )}
+        )}
 
-      {state === 'form' && checkIn && checkOut && (
-        <>
-          <div className="bg-stone border border-navy/10 px-4 py-3 flex justify-between items-center rounded-sm">
-            <span className="text-xs text-navy/60">
-              {formatDate(checkIn)} — {formatDate(checkOut)}
-            </span>
-            <button
-              onClick={() => setState('dates_selected')}
-              className="text-xs text-navy/40 underline hover:no-underline"
-            >
-              Změnit
-            </button>
+        {step === 'form' && checkIn && checkOut && (
+          <div className="p-5">
+            {/* Selected dates bar */}
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#0B1626]/8">
+              <div>
+                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Termín</p>
+                <p className="text-sm text-[#0B1626] font-medium">
+                  {fmtDate(checkIn)} → {fmtDate(checkOut)}
+                  <span className="text-[#0B1626]/40 font-normal ml-2">
+                    {nights(checkIn, checkOut)} nocí
+                  </span>
+                </p>
+              </div>
+              <button onClick={() => setStep('calendar')}
+                className="text-[11px] text-[#0B1626]/40 hover:text-[#0B1626] underline underline-offset-2 transition-colors">
+                Změnit
+              </button>
+            </div>
+
+            <BookingForm
+              apartmentId={apartmentId}
+              apartmentSlug={apartmentSlug}
+              maxGuests={maxGuests}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onSuccess={handleSuccess}
+              onError={(msg) => { setError(msg); setStep('calendar'); }}
+            />
           </div>
-
-          <BookingForm
-            apartmentId={apartmentId}
-            apartmentSlug={apartmentSlug}
-            maxGuests={maxGuests}
-            checkIn={checkIn}
-            checkOut={checkOut}
-            onSuccess={handleSuccess}
-            onError={handleError}
-          />
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
