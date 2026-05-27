@@ -136,15 +136,12 @@ export default async function AdminRezervacePage({
           <div className="flex items-center gap-8">
             <span className="text-lg font-light text-navy tracking-wide">Pod Zlatým návrším</span>
             <nav className="flex items-center gap-6">
-              <Link href="/admin/leads" className="text-sm text-slate-500 hover:text-navy transition-colors">
-                Leady
-              </Link>
-              <Link href="/admin/rezervace" className="text-sm font-medium text-navy border-b border-navy pb-0.5">
-                Rezervace
-              </Link>
-              <Link href="/admin/channel-manager" className="text-sm text-slate-500 hover:text-navy transition-colors">
-                Channels
-              </Link>
+              <Link href="/admin/leads" className="text-sm text-slate-500 hover:text-navy transition-colors">Leady</Link>
+              <Link href="/admin/rezervace" className="text-sm font-medium text-navy border-b border-navy pb-0.5">Rezervace</Link>
+              <Link href="/admin/ceniky" className="text-sm text-slate-500 hover:text-navy transition-colors">Ceníky</Link>
+              <Link href="/admin/blokace" className="text-sm text-slate-500 hover:text-navy transition-colors">Blokace</Link>
+              <Link href="/admin/majitele" className="text-sm text-slate-500 hover:text-navy transition-colors">Majitelé</Link>
+              <Link href="/admin/channel-manager" className="text-sm text-slate-500 hover:text-navy transition-colors">Channels</Link>
             </nav>
           </div>
           <form action="/api/admin/logout" method="POST">
