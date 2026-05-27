@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { getLeads, getLeadCounts } from '@/lib/leads-service';
+import { AdminNav } from '../_components/admin-nav';
 
 // Force dynamic rendering
 
@@ -60,28 +61,8 @@ export default async function AdminLeadsPage({
   const counts = await getLeadCounts();
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-navy">Admin</h1>
-            <nav className="flex gap-4">
-              <Link href="/admin/leads" className="text-sm font-medium text-navy border-b-2 border-navy pb-0.5">Leady</Link>
-              <Link href="/admin/rezervace" className="text-sm text-stone-500 hover:text-navy transition-colors">Rezervace</Link>
-              <Link href="/admin/ceniky" className="text-sm text-stone-500 hover:text-navy transition-colors">Ceníky</Link>
-              <Link href="/admin/blokace" className="text-sm text-stone-500 hover:text-navy transition-colors">Blokace</Link>
-              <Link href="/admin/majitele" className="text-sm text-stone-500 hover:text-navy transition-colors">Majitelé</Link>
-              <Link href="/admin/channel-manager" className="text-sm text-stone-500 hover:text-navy transition-colors">Channels</Link>
-            </nav>
-          </div>
-          <form action="/api/admin/logout" method="POST">
-            <button type="submit" className="text-sm text-stone-500 hover:text-navy">
-              Odhlásit se
-            </button>
-          </form>
-        </div>
-      </header>
+    <div className="min-h-screen bg-stone">
+      <AdminNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}

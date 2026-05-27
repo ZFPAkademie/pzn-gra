@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { AdminNav } from '../_components/admin-nav';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,27 +131,7 @@ export default async function AdminRezervacePage({
 
   return (
     <div className="min-h-screen bg-stone">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-8">
-            <span className="text-lg font-light text-navy tracking-wide">Pod Zlatým návrším</span>
-            <nav className="flex items-center gap-6">
-              <Link href="/admin/leads" className="text-sm text-slate-500 hover:text-navy transition-colors">Leady</Link>
-              <Link href="/admin/rezervace" className="text-sm font-medium text-navy border-b border-navy pb-0.5">Rezervace</Link>
-              <Link href="/admin/ceniky" className="text-sm text-slate-500 hover:text-navy transition-colors">Ceníky</Link>
-              <Link href="/admin/blokace" className="text-sm text-slate-500 hover:text-navy transition-colors">Blokace</Link>
-              <Link href="/admin/majitele" className="text-sm text-slate-500 hover:text-navy transition-colors">Majitelé</Link>
-              <Link href="/admin/channel-manager" className="text-sm text-slate-500 hover:text-navy transition-colors">Channels</Link>
-            </nav>
-          </div>
-          <form action="/api/admin/logout" method="POST">
-            <button type="submit" className="text-sm text-slate-500 hover:text-navy transition-colors">
-              Odhlásit
-            </button>
-          </form>
-        </div>
-      </header>
+      <AdminNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-light text-navy mb-6">Rezervace</h1>
