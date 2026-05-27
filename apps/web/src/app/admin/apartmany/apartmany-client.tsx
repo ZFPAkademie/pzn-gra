@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useTransition, useState } from 'react';
 import {
   updateApartmentFlags,
@@ -188,6 +189,7 @@ export function ApartmanyTable({
             <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Pronájem</th>
             <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Rental prog.</th>
             <th className="px-4 py-3 text-xs text-slate-500 font-normal">Základ. cena</th>
+            <th className="px-4 py-3 text-xs text-slate-500 font-normal"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-stone">
@@ -220,6 +222,11 @@ export function ApartmanyTable({
               </td>
               <td className="px-4 py-3">
                 <BasePriceEditor aptId={apt.id} currentCents={apt.base_price_cents} />
+              </td>
+              <td className="px-4 py-3">
+                <Link href={`/admin/apartmany/${apt.id}`} className="text-xs text-slate-400 hover:text-navy transition-colors whitespace-nowrap">
+                  Detail →
+                </Link>
               </td>
             </tr>
           ))}

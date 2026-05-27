@@ -8,8 +8,6 @@ import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email'
 const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
 
-const MIN_NIGHTS = 2;
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -36,9 +34,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nelze vypočítat cenu' }, { status: 500 });
     }
 
-    if (price.nights < MIN_NIGHTS) {
+    if (price.nights < price.minNights) {
       return NextResponse.json(
-        { error: `Minimální délka pobytu jsou ${MIN_NIGHTS} noci` },
+        { error: `Minimální délka pobytu jsou ${price.minNights} ${price.minNights === 1 ? 'noc' : price.minNights < 5 ? 'noci' : 'nocí'}` },
         { status: 400 }
       );
     }

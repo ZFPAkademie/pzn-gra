@@ -53,6 +53,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       available: avail.available,
       nights: price?.nights ?? 0,
+      minNights: price?.minNights ?? 2,
       totalCents: price?.totalCents ?? 0,
       pricePerNightCents: price?.pricePerNightCents ?? apartment.base_price_cents,
       currency: 'CZK',

@@ -10,6 +10,7 @@ export interface PriceResult {
   totalCents: number;
   pricePerNightCents: number;
   nights: number;
+  minNights: number;
   breakdown: PriceBreakdown[];
   currency: 'CZK';
 }
@@ -36,7 +37,7 @@ export async function calculatePrice(
 
   const { data: rules } = await admin
     .from('pricing_rules')
-    .select('name, start_date, end_date, price_per_night_cents')
+    .select('name, start_date, end_date, price_per_night_cents, min_nights')
     .eq('apartment_id', apartmentId)
     .lte('start_date', checkOut)
     .gte('end_date', checkIn)
@@ -71,10 +72,19 @@ export async function calculatePrice(
   const nights = breakdown.length;
   const avgPricePerNight = nights > 0 ? Math.round(totalCents / nights) : basePriceCents;
 
+  const overlappingRules = (rules || []).filter((rule) => {
+    return rule.start_date <= checkOut && rule.end_date >= checkIn;
+  });
+  const minNights = overlappingRules.reduce((max, rule) => {
+    const ruleMin = rule.min_nights ?? 2;
+    return ruleMin > max ? ruleMin : max;
+  }, 2);
+
   return {
     totalCents,
     pricePerNightCents: avgPricePerNight,
     nights,
+    minNights,
     breakdown,
     currency: 'CZK',
   };
