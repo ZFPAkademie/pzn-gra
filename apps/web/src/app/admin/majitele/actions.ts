@@ -77,7 +77,6 @@ export async function sendMagicLink(ownerId: string, email: string) {
     email,
   });
 
-  revalidatePath('/admin/majitele');
   return { ok: true, magicLink };
 }
 
