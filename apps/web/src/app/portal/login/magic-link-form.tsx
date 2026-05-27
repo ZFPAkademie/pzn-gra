@@ -26,7 +26,7 @@ export function MagicLinkForm() {
     });
 
     if (authError) {
-      setError('Nepodařilo se odeslat odkaz. Zkuste to znovu.');
+      setError(authError.message);
       setState('error');
       return;
     }
