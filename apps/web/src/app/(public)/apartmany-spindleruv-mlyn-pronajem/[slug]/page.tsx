@@ -6,11 +6,10 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getRentalApartmentBySlug, getRentalApartments, getSalesManager } from '@/lib/apartments';
+import { getApartmentBySlugDB, getSalesManager } from '@/lib/apartments';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { BookingWidget } from '@/components/features/booking-widget';
-import { createSupabaseAdminClient } from '@/lib/supabase-server';
 
 interface Props {
   params: { slug: string };
@@ -18,45 +17,35 @@ interface Props {
 
 export const dynamic = 'force-dynamic';
 
-export async function generateStaticParams() {
-  const apartments = getRentalApartments();
-  return apartments.map((apt) => ({ slug: apt.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const apt = getRentalApartmentBySlug(params.slug);
+  const apt = await getApartmentBySlugDB(params.slug);
   if (!apt) return { title: 'Apartmán nenalezen' };
-  
+
   return {
     title: `${apt.title} | Pronájem | Pod Zlatým návrším`,
-    description: apt.description,
+    description: apt.description ?? undefined,
   };
 }
 
 export default async function RentalApartmentDetailPage({ params }: Props) {
-  const apt = getRentalApartmentBySlug(params.slug);
+  const apt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
   const images = getApartmentImages(params.slug);
 
-  if (!apt) {
+  if (!apt || !apt.for_rent) {
     notFound();
   }
 
-  const admin = createSupabaseAdminClient();
-  const { data: dbApartment } = await admin
-    .from('apartments')
-    .select('id, base_price_cents, max_guests')
-    .eq('slug', params.slug)
-    .maybeSingle();
-
-  const hasBookingEngine = !!dbApartment?.id;
+  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+  const hasBookingEngine = !!apt.id && !!apt.base_price_cents;
+  const alsoForSale = apt.for_sale;
 
   return (
     <>
       {/* Hero */}
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
-          <Link 
+          <Link
             href="/apartmany-spindleruv-mlyn-pronajem"
             className="inline-flex items-center text-white/50 hover:text-white mb-8 transition-colors"
           >
@@ -65,24 +54,24 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
             </svg>
             Zpět na přehled
           </Link>
-          
+
           <div className="flex items-center gap-4 mb-6">
-            {apt.alsoForSale && (
+            {alsoForSale && (
               <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
                 I k prodeji
               </span>
             )}
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
             {apt.title}
           </h1>
           <div className="flex items-center gap-4 text-white/50">
             <span>{apt.layout}</span>
             <span>·</span>
-            <span>{apt.totalArea}</span>
+            <span>{totalArea}</span>
             <span>·</span>
-            <span>max. {apt.maxGuests} hostů</span>
+            <span>max. {apt.max_guests} hostů</span>
           </div>
         </div>
       </section>
@@ -91,31 +80,31 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-16">
-            
+
             {/* Left: Details */}
             <div className="lg:col-span-2">
               {/* Gallery */}
               <div className="mb-16">
-                <ApartmentGallery images={images} title={apt.title} />
+                <ApartmentGallery images={images} title={apt.title ?? ''} />
               </div>
 
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Plocha</p>
-                  <p className="text-2xl font-light text-navy">{apt.totalArea}</p>
+                  <p className="text-2xl font-light text-navy">{totalArea}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Dispozice</p>
-                  <p className="text-2xl font-light text-navy">{apt.layout}</p>
+                  <p className="text-2xl font-light text-navy">{apt.layout ?? '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Max. hostů</p>
-                  <p className="text-2xl font-light text-navy">{apt.maxGuests}</p>
+                  <p className="text-2xl font-light text-navy">{apt.max_guests ?? '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Orientace</p>
-                  <p className="text-2xl font-light text-navy">{apt.orientation}</p>
+                  <p className="text-2xl font-light text-navy">{apt.orientation ?? '—'}</p>
                 </div>
               </div>
 
@@ -128,61 +117,59 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
               </div>
 
               {/* Room breakdown */}
-              <div className="mb-16">
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
-                    <p className="text-xl text-navy">{apt.rooms.hall}</p>
-                  </div>
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
-                    <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
-                  </div>
-                  {apt.rooms.bedroom && (
+              {apt.rooms && (
+                <div className="mb-16">
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
-                      <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
+                      <p className="text-xl text-navy">{apt.rooms.hall}</p>
                     </div>
-                  )}
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
-                    <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
+                      <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
+                    </div>
+                    {apt.rooms.bedroom && (
+                      <div className="bg-stone p-6">
+                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
+                        <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                      </div>
+                    )}
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
+                      <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Features */}
-              <div>
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
-                <div className="flex flex-wrap gap-3">
-                  {apt.features.map((feature, i) => (
-                    <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
-                      {feature}
-                    </span>
-                  ))}
+              {apt.features && apt.features.length > 0 && (
+                <div>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {apt.features.map((feature, i) => (
+                      <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Right: Booking Widget */}
             <div className="lg:col-span-1 space-y-6">
               {hasBookingEngine ? (
                 <BookingWidget
-                  apartmentId={dbApartment!.id}
+                  apartmentId={apt.id}
                   apartmentSlug={params.slug}
-                  maxGuests={dbApartment!.max_guests ?? apt.maxGuests}
-                  basePricePerNight={Math.round((dbApartment!.base_price_cents ?? 0) / 100)}
+                  maxGuests={apt.max_guests ?? 4}
+                  basePricePerNight={Math.round((apt.base_price_cents ?? 0) / 100)}
                 />
               ) : (
                 <div className="bg-navy p-8">
                   <p className="text-gold text-sm tracking-widest uppercase mb-4">Pronájem od</p>
-                  <div className="flex items-baseline mb-2">
-                    <p className="text-4xl font-light text-white">
-                      {apt.pricePerNight.toLocaleString('cs-CZ')}
-                    </p>
-                    <p className="text-white/50 ml-2">Kč / noc</p>
-                  </div>
                   <p className="text-white/30 text-sm mb-8">
                     Ceny se mohou lišit dle sezóny
                   </p>
@@ -207,14 +194,14 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                 </div>
               )}
 
-              {/* Sale Card - only if alsoForSale */}
-              {apt.alsoForSale && (
+              {/* Sale Card - only if also for sale */}
+              {alsoForSale && (
                 <div className="bg-stone p-8 border-2 border-gold">
                   <p className="text-gold text-sm tracking-widest uppercase mb-4">Tento apartmán je i k prodeji</p>
                   <p className="text-navy/70 text-sm mb-6">
                     Díky vybavení apartmánu můžete ihned bez dalších nákladů profitovat z pronájmu jednotky.
                   </p>
-                  
+
                   <div className="flex items-center mb-6">
                     <div className="w-14 h-14 rounded-full overflow-hidden mr-4">
                       <Image
@@ -230,9 +217,9 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                       <p className="text-navy/50 text-xs">{manager.title}</p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
-                    <a 
+                    <a
                       href={`tel:${manager.phone.replace(/\s/g, '')}`}
                       className="flex items-center justify-center w-full py-3 bg-navy text-white text-sm uppercase tracking-widest hover:bg-navy/90 transition-colors"
                     >
@@ -241,7 +228,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                       </svg>
                       {manager.phone}
                     </a>
-                    <a 
+                    <a
                       href={`mailto:${manager.email}?subject=Zájem o koupi ${apt.title}`}
                       className="flex items-center justify-center w-full py-3 border border-navy text-navy text-sm uppercase tracking-widest hover:bg-navy/5 transition-colors"
                     >
@@ -261,7 +248,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
           <p className="text-navy/50 mb-6">
             Prohlédněte si další dostupné apartmány
           </p>
-          <Link 
+          <Link
             href="/apartmany-spindleruv-mlyn-pronajem"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >

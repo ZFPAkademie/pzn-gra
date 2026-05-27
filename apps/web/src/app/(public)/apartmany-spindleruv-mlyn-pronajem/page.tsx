@@ -5,16 +5,18 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getRentalApartments } from '@/lib/apartments';
+import { getRentalApartmentsDB } from '@/lib/apartments';
 import { getApartmentHeroImage } from '@/data/apartment-images';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
   description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně, přímo u lanovky. Plně vybavené, designový nábytek KARE.',
 };
 
-export default function RentalApartmentsPage() {
-  const apartments = getRentalApartments();
+export default async function RentalApartmentsPage() {
+  const apartments = await getRentalApartmentsDB();
 
   return (
     <>
@@ -63,9 +65,11 @@ export default function RentalApartmentsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apartments.map((apt) => {
               const heroImage = getApartmentHeroImage(apt.slug);
+              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+              const alsoForSale = apt.for_sale;
               return (
-                <Link 
-                  key={apt.slug} 
+                <Link
+                  key={apt.slug}
                   href={`/apartmany-spindleruv-mlyn-pronajem/${apt.slug}`}
                   className="group block bg-white"
                 >
@@ -74,7 +78,7 @@ export default function RentalApartmentsPage() {
                     {heroImage ? (
                       <Image
                         src={heroImage}
-                        alt={apt.title}
+                        alt={apt.title ?? ''}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-700"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -84,10 +88,10 @@ export default function RentalApartmentsPage() {
                     )}
                     <div className="absolute bottom-4 left-4">
                       <span className="px-3 py-1 bg-white/90 text-navy text-xs">
-                        {apt.layout} · {apt.totalArea}
+                        {apt.layout} · {totalArea}
                       </span>
                     </div>
-                    {apt.alsoForSale && (
+                    {alsoForSale && (
                       <div className="absolute top-4 right-4">
                         <span className="px-3 py-1 bg-gold text-navy text-xs uppercase tracking-wider">
                           I k prodeji
@@ -95,25 +99,31 @@ export default function RentalApartmentsPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Content */}
                   <div className="p-6">
                     <h2 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-2">
                       {apt.title}
                     </h2>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">
-                      <span>max. {apt.maxGuests} hostů</span>
+                      <span>max. {apt.max_guests} hostů</span>
                       <span>·</span>
                       <span>{apt.orientation}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between pt-4 border-t border-navy/10">
                       <div>
-                        <p className="text-2xl font-light text-navy">
-                          {apt.pricePerNight.toLocaleString('cs-CZ')} Kč
-                        </p>
-                        <p className="text-xs text-navy/40">za noc</p>
+                        {apt.base_price_cents ? (
+                          <>
+                            <p className="text-2xl font-light text-navy">
+                              {Math.round(apt.base_price_cents / 100).toLocaleString('cs-CZ')} Kč
+                            </p>
+                            <p className="text-xs text-navy/40">za noc</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-navy/50">Cena na dotaz</p>
+                        )}
                       </div>
                       <span className="text-sm text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
                         Detail
@@ -158,7 +168,7 @@ export default function RentalApartmentsPage() {
           <p className="text-white/50 mb-8 max-w-md mx-auto">
             Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.
           </p>
-          <Link 
+          <Link
             href="/kontakt"
             className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
           >

@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getSaleApartmentBySlug, getSaleApartments, getSalesManager } from '@/lib/apartments';
+import { getApartmentBySlugDB, getSalesManager } from '@/lib/apartments';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { SaleInfoBoxes, RealEstateProductBadge } from '@/components/features/sale-info-boxes';
@@ -15,36 +15,35 @@ interface Props {
   params: { slug: string };
 }
 
-export async function generateStaticParams() {
-  const apartments = getSaleApartments();
-  return apartments.map((apt) => ({ slug: apt.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const apt = getSaleApartmentBySlug(params.slug);
+  const apt = await getApartmentBySlugDB(params.slug);
   if (!apt) return { title: 'Apartmán nenalezen' };
-  
+
   return {
     title: `${apt.title} | Na prodej | Pod Zlatým návrším`,
-    description: apt.description,
+    description: apt.description ?? undefined,
   };
 }
 
-export default function SaleApartmentDetailPage({ params }: Props) {
-  const apt = getSaleApartmentBySlug(params.slug);
+export default async function SaleApartmentDetailPage({ params }: Props) {
+  const apt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
   const images = getApartmentImages(params.slug);
-  
-  if (!apt) {
+
+  if (!apt || !apt.for_sale) {
     notFound();
   }
+
+  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
 
   return (
     <>
       {/* Hero */}
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
-          <Link 
+          <Link
             href="/suites"
             className="inline-flex items-center text-white/50 hover:text-white mb-8 transition-colors"
           >
@@ -53,18 +52,13 @@ export default function SaleApartmentDetailPage({ params }: Props) {
             </svg>
             Zpět na přehled
           </Link>
-          
+
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
               Na prodej
             </span>
-            {apt.belongsToRealEstateProduct && (
-              <span className="px-4 py-2 bg-blue-500/20 text-blue-300 text-xs uppercase tracking-widest border border-blue-400/30">
-                Nemovitostní produkt
-              </span>
-            )}
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
             {apt.title}
           </h1>
@@ -72,64 +66,38 @@ export default function SaleApartmentDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Real Estate Product Notice */}
-      {apt.belongsToRealEstateProduct && (
-        <section className="bg-gradient-to-r from-blue-50 to-blue-100 py-4 border-b border-blue-200">
-          <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-blue-800">
-                <span className="font-medium">Tento apartmán je součástí nemovitostního produktu.</span>
-                {' '}Můžete koupit celý apartmán nebo podíl.
-              </p>
-            </div>
-            <Link 
-              href="/nemovitostni-produkt"
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-            >
-              Více o podílovém vlastnictví
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </section>
-      )}
-
       {/* Main Content */}
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-16">
-            
+
             {/* Left: Details */}
             <div className="lg:col-span-2">
               {/* Gallery */}
               <div className="mb-16">
-                <ApartmentGallery images={images} title={apt.title} />
+                <ApartmentGallery images={images} title={apt.title ?? ''} />
               </div>
 
               {/* Info Boxes - Standards & Investment */}
-              <SaleInfoBoxes showRealEstateProduct={apt.belongsToRealEstateProduct} />
+              <SaleInfoBoxes showRealEstateProduct={false} />
 
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Celková plocha</p>
-                  <p className="text-2xl font-light text-navy">{apt.totalArea}</p>
+                  <p className="text-2xl font-light text-navy">{totalArea}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Dispozice</p>
-                  <p className="text-2xl font-light text-navy">{apt.layout}</p>
+                  <p className="text-2xl font-light text-navy">{apt.layout ?? '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Patro</p>
-                  <p className="text-2xl font-light text-navy">{apt.floor}. NP</p>
+                  <p className="text-2xl font-light text-navy">{apt.floor != null ? `${apt.floor}. NP` : '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Orientace</p>
-                  <p className="text-2xl font-light text-navy">{apt.orientation}</p>
+                  <p className="text-2xl font-light text-navy">{apt.orientation ?? '—'}</p>
                 </div>
               </div>
 
@@ -142,41 +110,45 @@ export default function SaleApartmentDetailPage({ params }: Props) {
               </div>
 
               {/* Room breakdown */}
-              <div className="mb-16">
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
-                    <p className="text-xl text-navy">{apt.rooms.hall}</p>
-                  </div>
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
-                    <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
-                  </div>
-                  {apt.rooms.bedroom && (
+              {apt.rooms && (
+                <div className="mb-16">
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
-                      <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
+                      <p className="text-xl text-navy">{apt.rooms.hall}</p>
                     </div>
-                  )}
-                  <div className="bg-stone p-6">
-                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
-                    <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
+                      <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
+                    </div>
+                    {apt.rooms.bedroom && (
+                      <div className="bg-stone p-6">
+                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
+                        <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                      </div>
+                    )}
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
+                      <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Features */}
-              <div>
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
-                <div className="flex flex-wrap gap-3">
-                  {apt.features.map((feature, i) => (
-                    <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
-                      {feature}
-                    </span>
-                  ))}
+              {apt.features && apt.features.length > 0 && (
+                <div>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {apt.features.map((feature, i) => (
+                      <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Right: Contact Card */}
@@ -184,7 +156,7 @@ export default function SaleApartmentDetailPage({ params }: Props) {
               <div className="bg-navy p-8 sticky top-28">
                 <p className="text-gold text-sm tracking-widest uppercase mb-4">Cena</p>
                 <p className="text-3xl font-light text-white mb-8">Na dotaz</p>
-                
+
                 <div className="border-t border-white/10 pt-8 mb-8">
                   <div className="flex items-center mb-6">
                     <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
@@ -201,9 +173,9 @@ export default function SaleApartmentDetailPage({ params }: Props) {
                       <p className="text-white/50 text-sm">{manager.title}</p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
-                    <a 
+                    <a
                       href={`tel:${manager.phone.replace(/\s/g, '')}`}
                       className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors"
                     >
@@ -212,7 +184,7 @@ export default function SaleApartmentDetailPage({ params }: Props) {
                       </svg>
                       {manager.phone}
                     </a>
-                    <a 
+                    <a
                       href={`mailto:${manager.email}?subject=Zájem o ${apt.title}`}
                       className="flex items-center justify-center w-full py-4 border border-white/20 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors"
                     >
@@ -223,7 +195,7 @@ export default function SaleApartmentDetailPage({ params }: Props) {
                     </a>
                   </div>
                 </div>
-                
+
                 <p className="text-white/30 text-xs text-center">
                   Rádi vám zodpovíme všechny dotazy a domluvíme prohlídku.
                 </p>
@@ -239,7 +211,7 @@ export default function SaleApartmentDetailPage({ params }: Props) {
           <p className="text-navy/50 mb-6">
             Prohlédněte si další dostupné apartmány
           </p>
-          <Link 
+          <Link
             href="/suites"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >

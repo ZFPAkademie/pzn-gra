@@ -1,6 +1,6 @@
 /**
  * Apartment Detail (Rent) - Design Checklist 2030
- * 
+ *
  * - Fotografie fullscreen
  * - Cena sekundární
  * - CTA klidné
@@ -13,7 +13,7 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
-import { getApartmentBySlug } from '@/lib/apartments';
+import { getApartmentBySlugDB } from '@/lib/apartments';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,20 +22,20 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const apartment = getApartmentBySlug(params.slug);
+  const apartment = await getApartmentBySlugDB(params.slug);
   if (!apartment) return { title: 'Apartmán nenalezen' };
   return {
     title: `${apartment.title} | Pronájem | Pod Zlatým návrším`,
-    description: apartment.description,
+    description: apartment.description ?? undefined,
   };
 }
 
 export default async function RentApartmentDetailPage({ params }: PageProps) {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  
-  const apartment = getApartmentBySlug(params.slug);
-  if (!apartment || apartment.mode !== 'rent') notFound();
+
+  const apartment = await getApartmentBySlugDB(params.slug);
+  if (!apartment || !apartment.for_rent) notFound();
 
   const t = locale === 'cs' ? {
     back: 'Zpět na přehled',
@@ -61,16 +61,19 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
     ctaSubtext: 'We respond within 24 hours',
   };
 
+  const totalArea = apartment.area_m2 ? apartment.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+  const priceFrom = apartment.base_price_cents ? Math.round(apartment.base_price_cents / 100) : null;
+
   return (
     <>
       {/* Hero Image - Fullscreen */}
       <section className="relative h-[70vh] bg-navy">
         <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-400" />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" />
-        
+
         {/* Back link */}
         <div className="absolute top-32 left-6 z-10">
-          <Link 
+          <Link
             href="/apartmany-spindleruv-mlyn-pronajem"
             className="text-white/60 text-sm hover:text-white transition-colors flex items-center"
           >
@@ -80,7 +83,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
             {t.back}
           </Link>
         </div>
-        
+
         {/* Title overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
           <div className="max-w-6xl mx-auto">
@@ -88,7 +91,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
               {apartment.title}
             </h1>
             <p className="text-white/60 text-lg">
-              {apartment.area} m² · {apartment.rooms} {t.rooms.toLowerCase()}
+              {totalArea} · {apartment.layout}
             </p>
           </div>
         </div>
@@ -98,14 +101,14 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
       <section className="py-20 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-16">
-            
+
             {/* Main content */}
             <div className="lg:col-span-2 space-y-16">
-              
+
               {/* Description */}
               <div>
                 <p className="text-lg text-navy/70 leading-relaxed">
-                  {apartment.description || 'Luxusní apartmán s výhledem na hory. Plně vybavený pro komfortní pobyt v Krkonoších.'}
+                  {apartment.description ?? 'Luxusní apartmán s výhledem na hory. Plně vybavený pro komfortní pobyt v Krkonoších.'}
                 </p>
               </div>
 
@@ -113,24 +116,24 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-3 gap-8 py-8 border-t border-b border-navy/10">
                 <div>
                   <p className="text-sm text-navy/40 mb-2">{t.area}</p>
-                  <p className="text-2xl font-light text-navy">{apartment.area} m²</p>
+                  <p className="text-2xl font-light text-navy">{totalArea}</p>
                 </div>
                 <div>
                   <p className="text-sm text-navy/40 mb-2">{t.rooms}</p>
-                  <p className="text-2xl font-light text-navy">{apartment.rooms}</p>
+                  <p className="text-2xl font-light text-navy">{apartment.layout ?? '—'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-navy/40 mb-2">{t.capacity}</p>
-                  <p className="text-2xl font-light text-navy">{apartment.capacity || 4} {t.persons}</p>
+                  <p className="text-2xl font-light text-navy">{apartment.max_guests ?? 4} {t.persons}</p>
                 </div>
               </div>
 
               {/* Amenities - simple list */}
-              {apartment.amenities && apartment.amenities.length > 0 && (
+              {apartment.features && apartment.features.length > 0 && (
                 <div>
                   <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.amenities}</h2>
                   <div className="flex flex-wrap gap-3">
-                    {apartment.amenities.map((amenity, i) => (
+                    {apartment.features.map((amenity, i) => (
                       <span key={i} className="px-4 py-2 bg-stone text-navy/70 text-sm">
                         {amenity}
                       </span>
@@ -143,21 +146,23 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
             {/* Sidebar - CTA */}
             <div className="lg:col-span-1">
               <div className="sticky top-32 bg-white p-8 border border-navy/10">
-                <div className="mb-8">
-                  <p className="text-sm text-navy/40 mb-2">{t.priceFrom}</p>
-                  <p className="text-3xl font-light text-navy">
-                    {apartment.priceFrom?.toLocaleString()} Kč
-                    <span className="text-lg text-navy/50 ml-2">{t.perNight}</span>
-                  </p>
-                </div>
-                
-                <Link 
+                {priceFrom && (
+                  <div className="mb-8">
+                    <p className="text-sm text-navy/40 mb-2">{t.priceFrom}</p>
+                    <p className="text-3xl font-light text-navy">
+                      {priceFrom.toLocaleString('cs-CZ')} Kč
+                      <span className="text-lg text-navy/50 ml-2">{t.perNight}</span>
+                    </p>
+                  </div>
+                )}
+
+                <Link
                   href={`/kontakt?apartment=${apartment.slug}`}
                   className="block w-full py-4 bg-gold text-navy text-center text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors mb-4"
                 >
                   {t.cta}
                 </Link>
-                
+
                 <p className="text-sm text-navy/40 text-center">
                   {t.ctaSubtext}
                 </p>

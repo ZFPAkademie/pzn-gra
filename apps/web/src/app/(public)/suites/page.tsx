@@ -1,21 +1,23 @@
 /**
  * Suites - Apartmány na prodej - Design 2030
- * Content from XLSX: "Suites - prodej"
+ * Content from DB (migration 007)
  */
 
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getSaleApartments, getSalesManager } from '@/lib/apartments';
+import { getSaleApartmentsDB, getSalesManager } from '@/lib/apartments';
 import { getApartmentHeroImage } from '@/data/apartment-images';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Zkolaudované apartmány v Krkonoších prodej | Pod Zlatým návrším',
   description: 'Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené nábytkem KARE Design a připravené k okamžitému využití i pronájmu.',
 };
 
-export default function SuitesPage() {
-  const apartments = getSaleApartments();
+export default async function SuitesPage() {
+  const apartments = await getSaleApartmentsDB();
   const manager = getSalesManager();
 
   return (
@@ -30,9 +32,9 @@ export default function SuitesPage() {
             Zkolaudované apartmány Pod Zlatým návrším
           </h1>
           <p className="text-xl text-white/60 max-w-3xl leading-relaxed">
-            Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené 
-            nábytkem KARE Design a připravené k okamžitému využití i pronájmu. Vybavené jsou všechny tři 
-            dostupné apartmány. Všechny apartmány mají výhled na hory, soukromí a polohu jen pár desítek 
+            Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené
+            nábytkem KARE Design a připravené k okamžitému využití i pronájmu. Vybavené jsou všechny tři
+            dostupné apartmány. Všechny apartmány mají výhled na hory, soukromí a polohu jen pár desítek
             metrů od sjezdovky Labská.
           </p>
         </div>
@@ -58,9 +60,9 @@ export default function SuitesPage() {
       <section className="py-16 bg-gold">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-navy/80 max-w-4xl leading-relaxed">
-            V nabídce jsou poslední apartmány (1+kk a 2+kk) ve dvou rezidenčních domech. 
-            Každý dům má vlastní lyžárnu a kolárnu. K apartmánům je možné dokoupit garážové 
-            nebo venkovní stání. Standard zahrnuje dřevěné podlahy, podlahové vytápění a 
+            V nabídce jsou poslední apartmány (1+kk a 2+kk) ve dvou rezidenčních domech.
+            Každý dům má vlastní lyžárnu a kolárnu. K apartmánům je možné dokoupit garážové
+            nebo venkovní stání. Standard zahrnuje dřevěné podlahy, podlahové vytápění a
             kvalitní kuchyňskou linku.
           </p>
         </div>
@@ -76,9 +78,10 @@ export default function SuitesPage() {
           <div className="space-y-16">
             {apartments.map((apt, index) => {
               const heroImage = getApartmentHeroImage(apt.slug);
+              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
               return (
-                <Link 
-                  key={apt.slug} 
+                <Link
+                  key={apt.slug}
                   href={`/suites/${apt.slug}`}
                   className="group block"
                 >
@@ -87,7 +90,7 @@ export default function SuitesPage() {
                       {heroImage ? (
                         <Image
                           src={heroImage}
-                          alt={apt.title}
+                          alt={apt.title ?? ''}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                           sizes="(max-width: 768px) 100vw, 50vw"
@@ -101,17 +104,17 @@ export default function SuitesPage() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className={index % 2 === 1 ? 'md:order-1' : ''}>
                       <h2 className="text-3xl font-light text-navy group-hover:text-gold transition-colors mb-2">
                         {apt.title}
                       </h2>
                       <p className="text-navy/50 mb-6">{apt.subtitle}</p>
-                      
+
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                           <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Plocha</p>
-                          <p className="text-navy">{apt.totalArea}</p>
+                          <p className="text-navy">{totalArea}</p>
                         </div>
                         <div>
                           <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Dispozice</p>
@@ -119,7 +122,7 @@ export default function SuitesPage() {
                         </div>
                         <div>
                           <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Patro</p>
-                          <p className="text-navy">{apt.floor}. NP</p>
+                          <p className="text-navy">{apt.floor != null ? `${apt.floor}. NP` : '—'}</p>
                         </div>
                         <div>
                           <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Orientace</p>
@@ -128,7 +131,7 @@ export default function SuitesPage() {
                       </div>
 
                       <p className="text-lg font-medium text-gold mb-6">Cena na dotaz</p>
-                      
+
                       <span className="inline-flex items-center text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
                         Zobrazit detail
                         <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,10 +154,10 @@ export default function SuitesPage() {
             Okolí apartmánů Pod Zlatým návrším
           </h2>
           <p className="text-navy/60 max-w-2xl mx-auto mb-12">
-            Skiareál Špindlerův Mlýn se řadí k nejznámějším a nejnavštěvovanějším střediskům zimních sportů v ČR. 
+            Skiareál Špindlerův Mlýn se řadí k nejznámějším a nejnavštěvovanějším střediskům zimních sportů v ČR.
             Apartmánové domy se nacházejí 50 metrů od sedačkové lanovky a červené sjezdovky Labská.
           </p>
-          <Link 
+          <Link
             href="/lokalita"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
@@ -176,12 +179,12 @@ export default function SuitesPage() {
                 Máte zájem o koupi?
               </h2>
               <p className="text-white/50 mb-8">
-                Kontaktujte našeho manažera prodeje pro nezávaznou konzultaci a prohlídku apartmánů. 
+                Kontaktujte našeho manažera prodeje pro nezávaznou konzultaci a prohlídku apartmánů.
                 Vybraný apartmán si můžete nejdřív pronajmout na zkoušku.
               </p>
-              
+
               <div className="space-y-4">
-                <a 
+                <a
                   href={`tel:${manager.phone.replace(/\s/g, '')}`}
                   className="flex items-center justify-center md:justify-start text-white hover:text-gold transition-colors"
                 >
@@ -190,7 +193,7 @@ export default function SuitesPage() {
                   </svg>
                   <span className="text-lg">{manager.phone}</span>
                 </a>
-                <a 
+                <a
                   href={`mailto:${manager.email}`}
                   className="flex items-center justify-center md:justify-start text-white hover:text-gold transition-colors"
                 >
@@ -201,7 +204,7 @@ export default function SuitesPage() {
                 </a>
               </div>
             </div>
-            
+
             <div className="flex justify-center">
               <div className="relative">
                 <div className="w-64 h-64 rounded-full overflow-hidden border-4 border-gold/20">
@@ -229,7 +232,7 @@ export default function SuitesPage() {
           <div className="grid md:grid-cols-2 gap-8 text-center">
             <div>
               <p className="text-navy/50 mb-4">Spočítejte si výnos z investice</p>
-              <Link 
+              <Link
                 href="/kalkulacka"
                 className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
               >
@@ -241,7 +244,7 @@ export default function SuitesPage() {
             </div>
             <div>
               <p className="text-navy/50 mb-4">Preferujete podílové vlastnictví?</p>
-              <Link 
+              <Link
                 href="/nemovitostni-produkt"
                 className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
               >
