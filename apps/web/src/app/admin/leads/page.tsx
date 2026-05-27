@@ -69,6 +69,7 @@ export default async function AdminLeadsPage({
             <nav className="flex gap-4">
               <Link href="/admin/leads" className="text-sm font-medium text-navy border-b-2 border-navy pb-0.5">Leady</Link>
               <Link href="/admin/rezervace" className="text-sm text-stone-500 hover:text-navy transition-colors">Rezervace</Link>
+              <Link href="/admin/channel-manager" className="text-sm text-stone-500 hover:text-navy transition-colors">Channels</Link>
             </nav>
           </div>
           <form action="/api/admin/logout" method="POST">

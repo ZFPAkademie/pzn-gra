@@ -142,6 +142,9 @@ export default async function AdminRezervacePage({
               <Link href="/admin/rezervace" className="text-sm font-medium text-navy border-b border-navy pb-0.5">
                 Rezervace
               </Link>
+              <Link href="/admin/channel-manager" className="text-sm text-slate-500 hover:text-navy transition-colors">
+                Channels
+              </Link>
             </nav>
           </div>
           <form action="/api/admin/logout" method="POST">
