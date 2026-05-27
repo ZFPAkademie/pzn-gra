@@ -23,7 +23,7 @@ export async function calculatePrice(
 
   const { data: apartment, error: aptError } = await admin
     .from('apartments')
-    .select('base_price_cents, currency')
+    .select('base_price_cents')
     .eq('id', apartmentId)
     .maybeSingle();
 
