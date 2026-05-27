@@ -12,7 +12,7 @@ import { notFound } from 'next/navigation';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { getSaleApartmentBySlug } from '@/lib/apartments';
 import { getApartmentImages, getApartmentHeroImage } from '@/data/apartment-images';
-import { JurkovicOrnament } from '@/components/ui/ornaments';
+import { AlpineOrnament } from '@/components/ui/ornaments';
 import { ShareRequestForm } from '../client';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 const TOTAL_SHARES = 50;
 
-// Jurkovič-inspired SVG icons
+// Alpine decorative SVG icons
 const icons = {
   shield: (
     <svg viewBox="0 0 40 40" className="w-10 h-10 text-gold" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -433,7 +433,7 @@ export default async function PodilDynamicPage({ params }: PageProps) {
       <section className="py-24 bg-cream">
         <div className="max-w-2xl mx-auto px-6">
           <div className="text-center mb-12">
-            <JurkovicOrnament variant="diamond" className="w-6 h-6 text-gold/40 mx-auto mb-6" />
+            <AlpineOrnament variant="diamond" className="w-6 h-6 text-gold/40 mx-auto mb-6" />
             <h2 className="text-3xl font-light text-navy mb-4">
               Máte zájem o družstevní podíl?
             </h2>

@@ -1,0 +1,122 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getStripe } from '@/lib/stripe';
+import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { checkAvailability } from '@/lib/booking-engine/availability';
+import { calculatePrice } from '@/lib/booking-engine/pricing';
+import { createBooking, updateStripeCheckoutSession } from '@/lib/booking-engine/bookings';
+
+const MIN_NIGHTS = 2;
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const {
+      apartmentId,
+      checkIn,
+      checkOut,
+      guests,
+      firstName,
+      lastName,
+      email,
+      phone,
+      gdprConsent,
+    } = body;
+
+    if (!apartmentId || !checkIn || !checkOut || !firstName || !lastName || !email || !gdprConsent) {
+      return NextResponse.json({ error: 'Chybí povinné pole' }, { status: 400 });
+    }
+
+    const admin = createSupabaseAdminClient();
+    const { data: apartment } = await admin
+      .from('apartments')
+      .select('id, title, slug, max_guests, base_price_cents')
+      .eq('id', apartmentId)
+      .eq('for_rent', true)
+      .maybeSingle();
+
+    if (!apartment) {
+      return NextResponse.json({ error: 'Apartmán nenalezen' }, { status: 404 });
+    }
+
+    const price = await calculatePrice(apartmentId, checkIn, checkOut);
+    if (!price) {
+      return NextResponse.json({ error: 'Nelze vypočítat cenu' }, { status: 500 });
+    }
+
+    if (price.nights < MIN_NIGHTS) {
+      return NextResponse.json(
+        { error: `Minimální délka pobytu jsou ${MIN_NIGHTS} noci` },
+        { status: 400 }
+      );
+    }
+
+    const avail = await checkAvailability(apartmentId, checkIn, checkOut);
+    if (!avail.available) {
+      return NextResponse.json({ error: 'Vybrané termíny nejsou volné' }, { status: 409 });
+    }
+
+    const booking = await createBooking({
+      apartmentId,
+      checkIn,
+      checkOut,
+      nights: price.nights,
+      guestsCount: guests ?? 1,
+      firstName,
+      lastName,
+      email,
+      phone: phone ?? '',
+      totalAmountCents: price.totalCents,
+      currency: 'CZK',
+      gdprConsent,
+    });
+
+    if (!booking.ok) {
+      return NextResponse.json({ error: booking.error }, { status: 500 });
+    }
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const formatDate = (d: Date) =>
+      d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://podzlatymnavrsim.cz';
+
+    const stripe = getStripe();
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: email,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'czk',
+            unit_amount: price.totalCents,
+            product_data: {
+              name: `${apartment.title} — ${formatDate(checkInDate)} – ${formatDate(checkOutDate)}`,
+              description: `${price.nights} nocí · ${guests ?? 1} host${(guests ?? 1) > 1 ? 'é' : ''}`,
+            },
+          },
+        },
+      ],
+      metadata: {
+        bookingId: booking.bookingId,
+        confirmationToken: booking.confirmationToken,
+      },
+      success_url: `${baseUrl}/rezervace/uspech?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/apartmany-spindleruv-mlyn-pronajem/${apartment.slug}`,
+    });
+
+    await updateStripeCheckoutSession(booking.bookingId, session.id);
+
+    console.log('[bookings] Booking created:', booking.bookingId, '— Checkout session:', session.id);
+
+    return NextResponse.json({
+      bookingId: booking.bookingId,
+      checkoutUrl: session.url,
+    });
+  } catch (err) {
+    console.error('[bookings] POST error:', err);
+    return NextResponse.json({ error: 'Interní chyba serveru' }, { status: 500 });
+  }
+}

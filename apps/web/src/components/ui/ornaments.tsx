@@ -1,10 +1,10 @@
 /**
- * Jurkovič-inspired decorative components
- * Functionalist elegance, geometric refinement
+ * Alpine Quiet Luxury decorative components
+ * Geometric refinement, mountain elegance
  */
 
 // Horizontal ornament bar
-export function JurkovicOrnament({ 
+export function AlpineOrnament({
   className = '', 
   variant = 'horizontal' 
 }: { 

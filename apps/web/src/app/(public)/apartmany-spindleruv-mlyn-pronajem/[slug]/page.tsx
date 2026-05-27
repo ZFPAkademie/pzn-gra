@@ -9,10 +9,14 @@ import { notFound } from 'next/navigation';
 import { getRentalApartmentBySlug, getRentalApartments, getSalesManager } from '@/lib/apartments';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
+import { BookingWidget } from '@/components/features/booking-widget';
+import { createSupabaseAdminClient } from '@/lib/supabase-server';
 
 interface Props {
   params: { slug: string };
 }
+
+export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
   const apartments = getRentalApartments();
@@ -29,14 +33,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function RentalApartmentDetailPage({ params }: Props) {
+export default async function RentalApartmentDetailPage({ params }: Props) {
   const apt = getRentalApartmentBySlug(params.slug);
   const manager = getSalesManager();
   const images = getApartmentImages(params.slug);
-  
+
   if (!apt) {
     notFound();
   }
+
+  const admin = createSupabaseAdminClient();
+  const { data: dbApartment } = await admin
+    .from('apartments')
+    .select('id, base_price_cents, max_guests')
+    .eq('slug', params.slug)
+    .maybeSingle();
+
+  const hasBookingEngine = !!dbApartment?.id;
 
   return (
     <>
@@ -152,41 +165,47 @@ export default function RentalApartmentDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Right: Booking Card */}
+            {/* Right: Booking Widget */}
             <div className="lg:col-span-1 space-y-6">
-              {/* Rental Card */}
-              <div className="bg-navy p-8">
-                <p className="text-gold text-sm tracking-widest uppercase mb-4">Pronájem od</p>
-                <div className="flex items-baseline mb-2">
-                  <p className="text-4xl font-light text-white">
-                    {apt.pricePerNight.toLocaleString('cs-CZ')}
+              {hasBookingEngine ? (
+                <BookingWidget
+                  apartmentId={dbApartment!.id}
+                  apartmentSlug={params.slug}
+                  maxGuests={dbApartment!.max_guests ?? apt.maxGuests}
+                  basePricePerNight={Math.round((dbApartment!.base_price_cents ?? 0) / 100)}
+                />
+              ) : (
+                <div className="bg-navy p-8">
+                  <p className="text-gold text-sm tracking-widest uppercase mb-4">Pronájem od</p>
+                  <div className="flex items-baseline mb-2">
+                    <p className="text-4xl font-light text-white">
+                      {apt.pricePerNight.toLocaleString('cs-CZ')}
+                    </p>
+                    <p className="text-white/50 ml-2">Kč / noc</p>
+                  </div>
+                  <p className="text-white/30 text-sm mb-8">
+                    Ceny se mohou lišit dle sezóny
                   </p>
-                  <p className="text-white/50 ml-2">Kč / noc</p>
-                </div>
-                <p className="text-white/30 text-sm mb-8">
-                  Ceny se mohou lišit dle sezóny
-                </p>
-                
-                <Link 
-                  href="/kontakt"
-                  className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors mb-4"
-                >
-                  Poptat rezervaci
-                </Link>
-                
-                <div className="border-t border-white/10 pt-6 mt-6">
-                  <p className="text-white/50 text-sm mb-4">Nebo nás kontaktujte přímo:</p>
-                  <a 
-                    href="mailto:rezervace@podzlatymnavrsim.cz"
-                    className="flex items-center text-white hover:text-gold transition-colors text-sm"
+                  <Link
+                    href="/kontakt"
+                    className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-[#b8913c] transition-colors mb-4"
                   >
-                    <svg className="w-4 h-4 mr-2 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                    </svg>
-                    rezervace@podzlatymnavrsim.cz
-                  </a>
+                    Poptat rezervaci
+                  </Link>
+                  <div className="border-t border-white/10 pt-6 mt-6">
+                    <p className="text-white/50 text-sm mb-4">Nebo nás kontaktujte přímo:</p>
+                    <a
+                      href="mailto:rezervace@podzlatymnavrsim.cz"
+                      className="flex items-center text-white hover:text-gold transition-colors text-sm"
+                    >
+                      <svg className="w-4 h-4 mr-2 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                      </svg>
+                      rezervace@podzlatymnavrsim.cz
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Sale Card - only if alsoForSale */}
               {apt.alsoForSale && (

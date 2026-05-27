@@ -17,4 +17,4 @@ export { Container } from './container';
 
 export { Section, SectionHeader } from './section';
 
-export { JurkovicOrnament, MountainSilhouette, Stat, SectionLabel } from './ornaments';
+export { AlpineOrnament, MountainSilhouette, Stat, SectionLabel } from './ornaments';

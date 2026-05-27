@@ -1,5 +1,5 @@
 /**
- * Homepage - Jurkovič-inspired Luxury Design
+ * Homepage - Alpine Quiet Luxury Design
  * Content from XLSX: "Homepage" - preserved exactly
  */
 
@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getLocaleFromCookie } from '@/lib/i18n';
-import { JurkovicOrnament, MountainSilhouette, Stat, SectionLabel } from '@/components/ui/ornaments';
+import { AlpineOrnament, MountainSilhouette, Stat, SectionLabel } from '@/components/ui/ornaments';
 
 export const dynamic = 'force-dynamic';
 
@@ -137,7 +137,7 @@ export default async function HomePage() {
         </div>
         
         <div className="relative z-10 py-4 border-b border-white/10">
-          <JurkovicOrnament variant="horizontal" className="w-full max-w-md mx-auto h-5 text-gold/40" />
+          <AlpineOrnament variant="horizontal" className="w-full max-w-md mx-auto h-5 text-gold/40" />
         </div>
         
         <div className="relative z-10 flex-1 flex items-center justify-center px-6">
@@ -157,7 +157,7 @@ export default async function HomePage() {
             
             <div className="flex items-center justify-center gap-6 my-10">
               <div className="w-20 h-px bg-gradient-to-r from-transparent to-gold/40" />
-              <JurkovicOrnament variant="diamond" className="w-5 h-5 text-gold/60" />
+              <AlpineOrnament variant="diamond" className="w-5 h-5 text-gold/60" />
               <div className="w-20 h-px bg-gradient-to-l from-transparent to-gold/40" />
             </div>
             
@@ -192,10 +192,10 @@ export default async function HomePage() {
         </div>
         
         <div className="absolute top-20 left-6 w-16 h-16 text-gold/20 hidden md:block">
-          <JurkovicOrnament variant="corner" className="w-full h-full" />
+          <AlpineOrnament variant="corner" className="w-full h-full" />
         </div>
         <div className="absolute top-20 right-6 w-16 h-16 text-gold/20 rotate-90 hidden md:block">
-          <JurkovicOrnament variant="corner" className="w-full h-full" />
+          <AlpineOrnament variant="corner" className="w-full h-full" />
         </div>
       </section>
 
@@ -217,10 +217,10 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="relative">
               <div className="absolute -top-4 -left-4 w-12 h-12 text-gold/30">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="absolute -bottom-4 -right-4 w-12 h-12 text-gold/30 rotate-180">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
@@ -279,10 +279,10 @@ export default async function HomePage() {
             
             <div className="relative order-1 md:order-2">
               <div className="absolute -top-4 -right-4 w-12 h-12 text-gold/30 rotate-90">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="absolute -bottom-4 -left-4 w-12 h-12 text-gold/30 -rotate-90">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
@@ -302,10 +302,10 @@ export default async function HomePage() {
         <MountainSilhouette className="absolute bottom-0 left-0 right-0 h-48 text-white/5" />
         
         <div className="absolute top-8 left-8 w-16 h-16 text-gold/20 hidden md:block">
-          <JurkovicOrnament variant="corner" className="w-full h-full" />
+          <AlpineOrnament variant="corner" className="w-full h-full" />
         </div>
         <div className="absolute bottom-8 right-8 w-16 h-16 text-gold/20 rotate-180 hidden md:block">
-          <JurkovicOrnament variant="corner" className="w-full h-full" />
+          <AlpineOrnament variant="corner" className="w-full h-full" />
         </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
@@ -319,7 +319,7 @@ export default async function HomePage() {
           
           <div className="flex items-center justify-center gap-6 mb-10">
             <div className="w-16 h-px bg-gradient-to-r from-transparent to-gold/30" />
-            <JurkovicOrnament variant="diamond" className="w-4 h-4 text-gold/50" />
+            <AlpineOrnament variant="diamond" className="w-4 h-4 text-gold/50" />
             <div className="w-16 h-px bg-gradient-to-l from-transparent to-gold/30" />
           </div>
           
@@ -339,7 +339,7 @@ export default async function HomePage() {
       <section className="py-32 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-20">
-            <JurkovicOrnament variant="simple" className="w-32 h-3 text-gold/40 mx-auto mb-8" />
+            <AlpineOrnament variant="simple" className="w-32 h-3 text-gold/40 mx-auto mb-8" />
             <h2 className="text-3xl md:text-4xl font-light text-navy mb-6 tracking-wide">
               {t.section4Title}
             </h2>
@@ -352,10 +352,10 @@ export default async function HomePage() {
             {/* Investice */}
             <div className="group relative bg-navy p-10 md:p-12 overflow-hidden">
               <div className="absolute top-0 left-0 w-12 h-12 text-gold/20">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="absolute bottom-0 right-0 w-12 h-12 text-gold/20 rotate-180">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               
               <div className="relative">
@@ -385,10 +385,10 @@ export default async function HomePage() {
             {/* Rekreace */}
             <div className="group relative bg-white border border-navy/10 p-10 md:p-12 overflow-hidden">
               <div className="absolute top-0 left-0 w-12 h-12 text-navy/10 group-hover:text-gold/30 transition-colors">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               <div className="absolute bottom-0 right-0 w-12 h-12 text-navy/10 group-hover:text-gold/30 rotate-180 transition-colors">
-                <JurkovicOrnament variant="corner" className="w-full h-full" />
+                <AlpineOrnament variant="corner" className="w-full h-full" />
               </div>
               
               <div className="relative">

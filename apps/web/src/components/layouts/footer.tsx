@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Footer - Jurkovič Design Update
+ * Footer - Alpine Quiet Luxury Design
  */
 
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/language-provider';
-import { JurkovicOrnament } from '@/components/ui/ornaments';
+import { AlpineOrnament } from '@/components/ui/ornaments';
 
 export function Footer() {
   const { t } = useLanguage();
@@ -16,7 +16,7 @@ export function Footer() {
     <footer className="bg-navy text-white">
       {/* Top ornament */}
       <div className="border-b border-white/10 py-4">
-        <JurkovicOrnament variant="horizontal" className="w-full max-w-md mx-auto h-4 text-gold/30" />
+        <AlpineOrnament variant="horizontal" className="w-full max-w-md mx-auto h-4 text-gold/30" />
       </div>
       
       <div className="max-w-6xl mx-auto px-6 py-20">
