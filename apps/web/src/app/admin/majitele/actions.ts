@@ -47,7 +47,7 @@ export async function sendMagicLink(ownerId: string, email: string) {
 
   const supabase = createSupabaseAdminClient();
 
-  // AUTH-03: createUser místo inviteUserByEmail (kvůli rate limit bypass)
+  // AUTH-03: generateLink vytvoří auth user (nebo použije existující) a vrátí user.id
   const { data, error } = await supabase.auth.admin.generateLink({
     type: 'magiclink',
     email,
@@ -60,7 +60,16 @@ export async function sendMagicLink(ownerId: string, email: string) {
   if (error) return { ok: false, error: error.message };
 
   const magicLink = data?.properties?.action_link;
+  const authUserId = data?.user?.id;
   if (!magicLink) return { ok: false, error: 'Nepodařilo se vygenerovat odkaz' };
+
+  // Propojit auth user s owner záznamem — bez toho portál nenajde majitele
+  if (authUserId) {
+    await supabase
+      .from('owners')
+      .update({ user_id: authUserId })
+      .eq('id', ownerId);
+  }
 
   // Zaznamenat pozvánku
   await supabase.from('owner_invitations').insert({
