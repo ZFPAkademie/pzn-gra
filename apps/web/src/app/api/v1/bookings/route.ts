@@ -3,6 +3,10 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { checkAvailability } from '@/lib/booking-engine/availability';
 import { calculatePrice } from '@/lib/booking-engine/pricing';
 import { createBooking } from '@/lib/booking-engine/bookings';
+import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email';
+
+const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
+const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
 
 const MIN_NIGHTS = 2;
 
@@ -63,6 +67,37 @@ export async function POST(req: NextRequest) {
     }
 
     console.log('[bookings] Rezervace vytvořena:', booking.bookingId, booking.confirmationToken);
+
+    const reference = `REZ-${booking.confirmationToken.slice(0, 8).toUpperCase()}`;
+
+    // Emails — soft-fail via sendSafe wrapper
+    sendBookingReceivedEmail({
+      guestEmail: email,
+      guestName: `${firstName} ${lastName}`,
+      apartmentTitle: apartment.title ?? apartment.slug,
+      checkIn,
+      checkOut,
+      nights: price.nights,
+      guestsCount: guests ?? 1,
+      totalAmountCents: price.totalCents,
+      confirmationToken: booking.confirmationToken,
+      bankIban: BANK_IBAN,
+      bankName: BANK_NAME,
+      reference,
+    });
+
+    sendAdminNewBookingEmail({
+      bookingId: booking.bookingId,
+      guestName: `${firstName} ${lastName}`,
+      guestEmail: email,
+      guestPhone: phone ?? null,
+      apartmentTitle: apartment.title ?? apartment.slug,
+      checkIn,
+      checkOut,
+      nights: price.nights,
+      totalAmountCents: price.totalCents,
+      reference,
+    });
 
     return NextResponse.json({
       bookingId: booking.bookingId,

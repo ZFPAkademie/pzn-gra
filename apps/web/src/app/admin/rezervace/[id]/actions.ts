@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { sendBookingConfirmedEmail } from '@/lib/email';
 
 export async function updateBookingStatus(
   id: string,
@@ -29,6 +30,28 @@ export async function updateBookingStatus(
     .eq('id', id);
 
   if (error) return { ok: false, error: error.message };
+
+  if (status === 'confirmed') {
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('guest_email, guest_first_name, guest_last_name, check_in, check_out, nights, confirmation_token, apartments(title, slug)')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (booking) {
+      const apt = booking.apartments as { title?: string; slug?: string } | null;
+      sendBookingConfirmedEmail({
+        guestEmail: booking.guest_email,
+        guestName: `${booking.guest_first_name} ${booking.guest_last_name}`,
+        apartmentTitle: apt?.title ?? apt?.slug ?? '',
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        nights: booking.nights,
+        confirmationToken: booking.confirmation_token,
+        reference: `REZ-${booking.confirmation_token.slice(0, 8).toUpperCase()}`,
+      });
+    }
+  }
 
   revalidatePath('/admin/rezervace');
   revalidatePath(`/admin/rezervace/${id}`);
