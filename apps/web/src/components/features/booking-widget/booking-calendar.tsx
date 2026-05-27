@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Props {
   apartmentSlug: string;
@@ -9,12 +9,7 @@ interface Props {
   onSelectDates: (checkIn: string, checkOut: string | null) => void;
 }
 
-function formatMonthYear(year: number, month: number): string {
-  return new Date(year, month - 1, 1).toLocaleDateString('cs-CZ', {
-    month: 'long',
-    year: 'numeric',
-  });
-}
+const DAY_LABELS = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -24,7 +19,8 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
-function firstDayOfMonth(year: number, month: number): number {
+// Monday = 0
+function firstDayOfWeek(year: number, month: number): number {
   const d = new Date(year, month - 1, 1).getDay();
   return d === 0 ? 6 : d - 1;
 }
@@ -37,227 +33,261 @@ function addMonths(year: number, month: number, delta: number) {
   return { year: y, month: m };
 }
 
-export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckOut, onSelectDates }: Props) {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+function monthLabel(year: number, month: number): string {
+  return new Date(year, month - 1, 1)
+    .toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' })
+    .replace(/^\w/, (c) => c.toUpperCase());
+}
 
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
+export function BookingCalendar({
+  apartmentSlug,
+  selectedCheckIn,
+  selectedCheckOut,
+  onSelectDates,
+}: Props) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = isoDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
+
+  const [leftYear, setLeftYear] = useState(today.getFullYear());
+  const [leftMonth, setLeftMonth] = useState(today.getMonth() + 1);
   const [blockedCache, setBlockedCache] = useState<Record<string, Set<string>>>({});
-  const [loadingMonths, setLoadingMonths] = useState<Set<string>>(new Set());
   const [hoverDate, setHoverDate] = useState<string | null>(null);
 
-  const second = addMonths(currentYear, currentMonth, 1);
+  const right = addMonths(leftYear, leftMonth, 1);
 
-  async function fetchMonth(year: number, month: number) {
+  const fetchMonth = useCallback(async (year: number, month: number) => {
     const key = `${year}-${month}`;
-    if (blockedCache[key] || loadingMonths.has(key)) return;
-
-    setLoadingMonths((prev) => new Set(prev).add(key));
+    if (blockedCache[key]) return;
     try {
       const res = await fetch(
         `/api/v1/apartments/${apartmentSlug}/availability?year=${year}&month=${month}`
       );
       if (!res.ok) return;
       const json = await res.json();
-      const blocked: string[] = json.blockedDates ?? [];
       setBlockedCache((prev) => ({
         ...prev,
-        [key]: new Set(blocked),
+        [key]: new Set<string>(json.blockedDates ?? []),
       }));
-    } catch {
-      // soft fail
-    } finally {
-      setLoadingMonths((prev) => {
-        const next = new Set(prev);
-        next.delete(key);
-        return next;
-      });
-    }
-  }
+    } catch { /* soft fail */ }
+  }, [apartmentSlug, blockedCache]);
 
   useEffect(() => {
-    fetchMonth(currentYear, currentMonth);
-    fetchMonth(second.year, second.month);
-  }, [currentYear, currentMonth]);
+    fetchMonth(leftYear, leftMonth);
+    fetchMonth(right.year, right.month);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leftYear, leftMonth]);
 
-  function isBlocked(dateStr: string): boolean {
-    const [y, m] = dateStr.split('-').map(Number);
-    const key = `${y}-${m}`;
-    return blockedCache[key]?.has(dateStr) ?? false;
+  function isBlocked(d: string) {
+    const [y, m] = d.split('-').map(Number);
+    return blockedCache[`${y}-${m}`]?.has(d) ?? false;
   }
 
-  function isPast(dateStr: string): boolean {
-    return dateStr < todayStr;
+  function isDisabled(d: string) {
+    return d < todayStr || isBlocked(d);
   }
 
-  function isDisabled(dateStr: string): boolean {
-    return isPast(dateStr) || isBlocked(dateStr);
+  function effectiveEnd() {
+    return selectedCheckOut ?? hoverDate;
   }
 
-  function isInRange(dateStr: string): boolean {
-    if (!selectedCheckIn) return false;
-    const end = selectedCheckOut ?? hoverDate;
-    if (!end) return false;
-    return dateStr > selectedCheckIn && dateStr < end;
+  function isStart(d: string) { return d === selectedCheckIn; }
+  function isEnd(d: string) { return !!selectedCheckOut && d === selectedCheckOut; }
+  function isInRange(d: string) {
+    const end = effectiveEnd();
+    if (!selectedCheckIn || !end) return false;
+    const [a, b] = selectedCheckIn < end
+      ? [selectedCheckIn, end]
+      : [end, selectedCheckIn];
+    return d > a && d < b;
   }
+  function isToday(d: string) { return d === todayStr; }
 
-  function isStart(dateStr: string): boolean {
-    return dateStr === selectedCheckIn;
-  }
-
-  function isEnd(dateStr: string): boolean {
-    return !!selectedCheckOut && dateStr === selectedCheckOut;
-  }
-
-  function handleDayClick(dateStr: string) {
-    if (isDisabled(dateStr)) return;
-
+  function handleClick(d: string) {
+    if (isDisabled(d)) return;
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
-      onSelectDates(dateStr, null);
-      return;
+      onSelectDates(d, null);
+    } else if (d === selectedCheckIn) {
+      onSelectDates(d, null);
+    } else if (d < selectedCheckIn) {
+      onSelectDates(d, null);
+    } else {
+      onSelectDates(selectedCheckIn, d);
     }
-
-    if (dateStr <= selectedCheckIn) {
-      onSelectDates(dateStr, null);
-      return;
-    }
-
-    onSelectDates(selectedCheckIn, dateStr);
   }
 
-  function prevMonth() {
-    const prev = addMonths(currentYear, currentMonth, -1);
+  function goBack() {
+    const prev = addMonths(leftYear, leftMonth, -1);
     if (prev.year < today.getFullYear() || (prev.year === today.getFullYear() && prev.month < today.getMonth() + 1)) return;
-    setCurrentYear(prev.year);
-    setCurrentMonth(prev.month);
+    setLeftYear(prev.year);
+    setLeftMonth(prev.month);
   }
 
-  function nextMonth() {
-    const next = addMonths(currentYear, currentMonth, 1);
-    setCurrentYear(next.year);
-    setCurrentMonth(next.month);
+  function goForward() {
+    const next = addMonths(leftYear, leftMonth, 1);
+    setLeftYear(next.year);
+    setLeftMonth(next.month);
   }
 
-  const canGoPrev = !(currentYear === today.getFullYear() && currentMonth <= today.getMonth() + 1);
+  const canGoBack = !(leftYear === today.getFullYear() && leftMonth <= today.getMonth() + 1);
 
-  function renderMonth(year: number, month: number) {
-    const totalDays = daysInMonth(year, month);
-    const startOffset = firstDayOfMonth(year, month);
+  function renderMonth(year: number, month: number, side: 'left' | 'right') {
+    const total = daysInMonth(year, month);
+    const offset = firstDayOfWeek(year, month);
 
     const cells: (string | null)[] = [
-      ...Array(startOffset).fill(null),
-      ...Array.from({ length: totalDays }, (_, i) => isoDate(year, month, i + 1)),
+      ...Array(offset).fill(null),
+      ...Array.from({ length: total }, (_, i) => isoDate(year, month, i + 1)),
     ];
-
     while (cells.length % 7 !== 0) cells.push(null);
 
+    const rows: (string | null)[][] = [];
+    for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+
     return (
-      <div className="flex-1 min-w-0">
-        <div className="grid grid-cols-7 gap-px text-center mb-3">
-          {['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'].map((d) => (
-            <div key={d} className="text-xs text-navy/30 uppercase tracking-wider py-2">
+      <div className={side === 'right' ? 'hidden md:block flex-1' : 'flex-1'}>
+        {/* Month header */}
+        <p className="text-center text-xs font-medium text-[#0B1626] uppercase tracking-[0.15em] mb-4">
+          {monthLabel(year, month)}
+        </p>
+
+        {/* Day labels */}
+        <div className="grid grid-cols-7 mb-1">
+          {DAY_LABELS.map((d) => (
+            <div key={d} className="text-center text-[10px] font-medium text-[#0B1626]/30 uppercase tracking-wider py-1">
               {d}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-px">
-          {cells.map((dateStr, idx) => {
-            if (!dateStr) {
-              return <div key={`empty-${idx}`} />;
-            }
 
-            const disabled = isDisabled(dateStr);
-            const start = isStart(dateStr);
-            const end = isEnd(dateStr);
-            const inRange = isInRange(dateStr);
-            const day = parseInt(dateStr.slice(8), 10);
+        {/* Days */}
+        <div className="space-y-0.5">
+          {rows.map((row, ri) => (
+            <div key={ri} className="grid grid-cols-7">
+              {row.map((dateStr, ci) => {
+                if (!dateStr) return <div key={`e-${ci}`} />;
 
-            let cellClass =
-              'relative h-10 flex items-center justify-center text-sm select-none transition-colors ';
+                const disabled = isDisabled(dateStr);
+                const start = isStart(dateStr);
+                const end = isEnd(dateStr);
+                const inRange = isInRange(dateStr);
+                const isHoverEnd = dateStr === hoverDate && !!selectedCheckIn && !selectedCheckOut;
+                const today_ = isToday(dateStr);
 
-            if (disabled) {
-              cellClass += 'text-navy/20 cursor-not-allowed line-through';
-            } else if (start || end) {
-              cellClass += 'bg-[#0B1626] text-white cursor-pointer';
-            } else if (inRange) {
-              cellClass += 'bg-[#C9A24D]/20 text-navy cursor-pointer hover:bg-[#C9A24D]/30';
-            } else {
-              cellClass += 'text-navy cursor-pointer hover:bg-[#0B1626]/5';
-            }
+                // Range background logic
+                const isRangeDay = inRange || (isHoverEnd && !disabled);
+                const isFirstInRow = ci === 0;
+                const isLastInRow = ci === 6;
 
-            return (
-              <div
-                key={dateStr}
-                className={cellClass}
-                onClick={() => handleDayClick(dateStr)}
-                onMouseEnter={() => {
-                  if (selectedCheckIn && !selectedCheckOut) setHoverDate(dateStr);
-                }}
-                onMouseLeave={() => setHoverDate(null)}
-              >
-                {day}
-              </div>
-            );
-          })}
+                return (
+                  <div
+                    key={dateStr}
+                    className="relative h-9 flex items-center justify-center"
+                    onClick={() => handleClick(dateStr)}
+                    onMouseEnter={() => { if (selectedCheckIn && !selectedCheckOut) setHoverDate(dateStr); }}
+                    onMouseLeave={() => setHoverDate(null)}
+                  >
+                    {/* Range background strip */}
+                    {isRangeDay && (
+                      <div className={`absolute inset-y-0.5 bg-[#C9A24D]/12 ${
+                        isFirstInRow ? 'left-0 rounded-l-full' : 'left-0'
+                      } ${
+                        isLastInRow ? 'right-0 rounded-r-full' : 'right-0'
+                      }`} />
+                    )}
+
+                    {/* Start: right half range bg */}
+                    {start && effectiveEnd() && effectiveEnd()! > dateStr && (
+                      <div className="absolute inset-y-0.5 left-1/2 right-0 bg-[#C9A24D]/12" />
+                    )}
+
+                    {/* End: left half range bg */}
+                    {end && selectedCheckIn! < dateStr && (
+                      <div className="absolute inset-y-0.5 left-0 right-1/2 bg-[#C9A24D]/12" />
+                    )}
+
+                    {/* Day circle */}
+                    <div
+                      className={`
+                        relative z-10 w-8 h-8 flex items-center justify-center rounded-full text-sm transition-all
+                        ${disabled
+                          ? 'text-[#0B1626]/20 cursor-not-allowed'
+                          : start || end
+                          ? 'bg-[#0B1626] text-white cursor-pointer font-medium shadow-sm'
+                          : isHoverEnd && !disabled
+                          ? 'bg-[#0B1626]/80 text-white cursor-pointer'
+                          : 'text-[#0B1626] cursor-pointer hover:bg-[#0B1626]/8'
+                        }
+                      `}
+                    >
+                      {parseInt(dateStr.slice(8), 10)}
+                      {today_ && !start && !end && (
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#C9A24D]" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-[#0B1626]/10 rounded-sm p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white border border-[#0B1626]/10 select-none">
+      {/* Navigation */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-[#0B1626]/6">
         <button
-          onClick={prevMonth}
-          disabled={!canGoPrev}
-          className="p-2 hover:bg-stone rounded-sm disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+          onClick={goBack}
+          disabled={!canGoBack}
           aria-label="Předchozí měsíc"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#0B1626]/5 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
         >
-          <svg className="w-4 h-4 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5L8.25 12l7.5-7.5" />
+          <svg className="w-4 h-4 text-[#0B1626]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
-        <div className="flex gap-12 flex-1 justify-center">
-          <span className="text-sm font-light text-navy uppercase tracking-widest">
-            {formatMonthYear(currentYear, currentMonth)}
+        {/* Month titles — desktop shows both, mobile shows left only */}
+        <div className="flex flex-1 justify-around px-2">
+          <span className="text-xs font-medium text-[#0B1626] uppercase tracking-[0.15em] md:hidden">
+            {monthLabel(leftYear, leftMonth)}
           </span>
-          <span className="hidden md:block text-sm font-light text-navy uppercase tracking-widest">
-            {formatMonthYear(second.year, second.month)}
-          </span>
+          {/* Desktop titles are inside each column */}
         </div>
 
         <button
-          onClick={nextMonth}
-          className="p-2 hover:bg-stone rounded-sm transition-colors"
+          onClick={goForward}
           aria-label="Další měsíc"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#0B1626]/5 transition-colors"
         >
-          <svg className="w-4 h-4 text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          <svg className="w-4 h-4 text-[#0B1626]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
 
-      <div className="flex gap-8">
-        {renderMonth(currentYear, currentMonth)}
-        <div className="hidden md:block w-px bg-navy/10 self-stretch" />
-        <div className="hidden md:flex flex-1 min-w-0">
-          {renderMonth(second.year, second.month)}
-        </div>
+      {/* Months */}
+      <div className="flex gap-6 px-4 pt-4 pb-4">
+        {renderMonth(leftYear, leftMonth, 'left')}
+        <div className="hidden md:block w-px bg-[#0B1626]/6 self-stretch mx-2" />
+        {renderMonth(right.year, right.month, 'right')}
       </div>
 
-      <div className="mt-4 flex items-center gap-4 text-xs text-navy/40">
-        <span className="flex items-center gap-1.5">
-          <span className="w-4 h-4 bg-[#0B1626] inline-block" />
-          Váš termín
+      {/* Legend */}
+      <div className="flex items-center gap-5 px-4 pb-4 border-t border-[#0B1626]/6 pt-3">
+        <span className="flex items-center gap-2 text-[10px] text-[#0B1626]/40 uppercase tracking-wider">
+          <span className="w-5 h-5 rounded-full bg-[#0B1626] inline-block" />
+          Příjezd / Odjezd
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-4 h-4 bg-[#C9A24D]/20 inline-block" />
-          Rozsah
+        <span className="flex items-center gap-2 text-[10px] text-[#0B1626]/40 uppercase tracking-wider">
+          <span className="w-5 h-2 rounded-sm bg-[#C9A24D]/25 inline-block" />
+          Pobyt
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-4 h-4 bg-navy/5 inline-block line-through text-center" />
+        <span className="flex items-center gap-2 text-[10px] text-[#0B1626]/40 uppercase tracking-wider">
+          <span className="w-5 h-5 rounded-full bg-[#0B1626]/8 inline-block" />
           Obsazeno
         </span>
       </div>
