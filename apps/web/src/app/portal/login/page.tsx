@@ -1,10 +1,9 @@
-import { MagicLinkForm } from './magic-link-form';
+import { LoginForm } from './magic-link-form';
 
 export default function PortalLoginPage() {
   return (
     <main className="min-h-screen bg-[#0B1626] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo / název */}
         <div className="text-center mb-12">
           <p className="text-[#C9A24D] text-xs tracking-[0.3em] uppercase mb-3">
             Pod Zlatým návrším
@@ -15,12 +14,8 @@ export default function PortalLoginPage() {
           <div className="mt-4 mx-auto w-16 h-px bg-[#C9A24D] opacity-60" />
         </div>
 
-        {/* Formulář */}
         <div className="bg-white/5 border border-white/10 rounded-sm p-8">
-          <p className="text-white/60 text-sm mb-6 text-center">
-            Zadejte váš email a zašleme vám přihlašovací odkaz.
-          </p>
-          <MagicLinkForm />
+          <LoginForm />
         </div>
 
         <p className="text-white/30 text-xs text-center mt-8">
