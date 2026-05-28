@@ -32,6 +32,30 @@ export async function createBlock(formData: FormData) {
   return { ok: true };
 }
 
+export async function updateBlock(id: string, formData: FormData) {
+  if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
+
+  const startDate = formData.get('start_date') as string;
+  const endDate = formData.get('end_date') as string;
+  const reason = formData.get('reason') as string;
+  const note = formData.get('note') as string;
+
+  if (!startDate || !endDate) return { ok: false, error: 'Chybí povinná pole' };
+  if (endDate < startDate) return { ok: false, error: 'Konec musí být po začátku' };
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from('blocked_dates').update({
+    start_date: startDate,
+    end_date: endDate,
+    reason: reason || 'maintenance',
+    note: note || null,
+  }).eq('id', id);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath('/admin/blokace');
+  return { ok: true };
+}
+
 export async function deleteBlock(id: string) {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
 

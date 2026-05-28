@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createBlock, deleteBlock } from './actions';
+import { createBlock, deleteBlock, updateBlock } from './actions';
 
 interface Apartment {
   id: string;
@@ -100,6 +100,74 @@ export function AddBlockForm({ apartments }: { apartments: Apartment[] }) {
   );
 }
 
+export function EditBlockForm({ block }: {
+  block: {
+    id: string;
+    start_date: string;
+    end_date: string;
+    reason: string;
+    note: string | null;
+  };
+}) {
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState('');
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError('');
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const result = await updateBlock(block.id, fd);
+      if (!result.ok) { setError(result.error ?? 'Chyba'); return; }
+      setOpen(false);
+    });
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="text-xs text-slate-400 hover:text-navy transition-colors">
+        Upravit
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 p-3 bg-stone border border-stone space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Důvod</label>
+          <select name="reason" defaultValue={block.reason} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white">
+            <option value="maintenance">Údržba</option>
+            <option value="owner_use">Vlastní pobyt</option>
+            <option value="other">Jiné</option>
+          </select>
+        </div>
+        <div />
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Od</label>
+          <input type="date" name="start_date" required defaultValue={block.start_date} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Do</label>
+          <input type="date" name="end_date" required defaultValue={block.end_date} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-xs text-slate-500 mb-1">Poznámka</label>
+          <input name="note" defaultValue={block.note ?? ''} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+      </div>
+      {error && <p className="text-red-600 text-xs">{error}</p>}
+      <div className="flex gap-2">
+        <button type="submit" disabled={isPending} className="px-3 py-1.5 bg-navy text-white text-xs hover:bg-navy/90 disabled:opacity-50">
+          {isPending ? 'Ukládám…' : 'Uložit'}
+        </button>
+        <button type="button" onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs text-slate-500 hover:text-navy">Zrušit</button>
+      </div>
+    </form>
+  );
+}
+
 export function DeleteBlockButton({ id }: { id: string }) {
   const [isPending, startTransition] = useTransition();
 
@@ -143,7 +211,7 @@ export function BlocksList({
       {blocks.map(block => (
         <div key={block.id} className="bg-white border border-stone px-4 py-3">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${reasonColors[block.reason] ?? 'bg-gray-100 text-gray-600'}`}>
                   {reasonLabels[block.reason] ?? block.reason}
@@ -153,6 +221,7 @@ export function BlocksList({
               <div className="text-xs text-slate-400 truncate">{aptMap[block.apartment_id]}</div>
               <div className="text-sm text-navy mt-0.5">{formatDate(block.start_date)} – {formatDate(block.end_date)}</div>
               {block.note && <div className="text-xs text-slate-400 mt-0.5">{block.note}</div>}
+              <EditBlockForm block={block} />
             </div>
             <DeleteBlockButton id={block.id} />
           </div>
