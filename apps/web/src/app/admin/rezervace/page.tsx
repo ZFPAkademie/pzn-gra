@@ -164,43 +164,57 @@ export default async function AdminRezervacePage({
           })}
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Mobile card list */}
+        <div className="md:hidden space-y-2">
+          {!bookings || bookings.length === 0 ? (
+            <div className="bg-white rounded-lg p-6 text-center text-slate-400 text-sm shadow">Žádné rezervace</div>
+          ) : (
+            bookings.map((booking) => {
+              const apt = booking.apartments as { title?: string; slug?: string } | null;
+              const unread = unreadMap[booking.id] || 0;
+              return (
+                <Link key={booking.id} href={`/admin/rezervace/${booking.id}`} className="block bg-white rounded-lg shadow px-4 py-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-navy">{apt?.title || apt?.slug || '—'}</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${statusColors[booking.status] || 'bg-slate-100 text-slate-600'}`}>
+                      {statusLabels[booking.status] || booking.status}
+                    </span>
+                  </div>
+                  <div className="text-sm text-slate-700">{booking.guest_first_name} {booking.guest_last_name}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {formatDate(booking.check_in)} → {formatDate(booking.check_out)} · {booking.nights} nocí
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-sm font-medium text-navy">{formatAmount(booking.total_amount_cents)}</span>
+                    {unread > 0 && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 text-xs rounded-full bg-amber-500 text-white font-medium">{unread}</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-stone">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Apartmán
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Host
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Termín
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Noci / Hosté
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Částka
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Vytvořeno
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Akce
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Apartmán</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Host</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Termín</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Noci / Hosté</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Částka</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vytvořeno</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {!bookings || bookings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 text-sm">
-                    Žádné rezervace
-                  </td>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400 text-sm">Žádné rezervace</td>
                 </tr>
               ) : (
                 bookings.map((booking) => {
@@ -208,13 +222,9 @@ export default async function AdminRezervacePage({
                   const unread = unreadMap[booking.id] || 0;
                   return (
                     <tr key={booking.id} className="hover:bg-stone/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-navy">
-                        {apt?.title || apt?.slug || '—'}
-                      </td>
+                      <td className="px-4 py-3 text-sm text-navy">{apt?.title || apt?.slug || '—'}</td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-navy">
-                          {booking.guest_first_name} {booking.guest_last_name}
-                        </div>
+                        <div className="text-sm text-navy">{booking.guest_first_name} {booking.guest_last_name}</div>
                         <div className="text-xs text-slate-500">{booking.guest_email}</div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">
@@ -227,27 +237,16 @@ export default async function AdminRezervacePage({
                         {formatAmount(booking.total_amount_cents)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${
-                            statusColors[booking.status] || 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${statusColors[booking.status] || 'bg-slate-100 text-slate-600'}`}>
                           {statusLabels[booking.status] || booking.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
-                        {formatCreatedAt(booking.created_at)}
-                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{formatCreatedAt(booking.created_at)}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <Link
-                          href={`/admin/rezervace/${booking.id}`}
-                          className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-800 text-sm font-medium"
-                        >
+                        <Link href={`/admin/rezervace/${booking.id}`} className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-800 text-sm font-medium">
                           Detail
                           {unread > 0 && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs rounded-full bg-amber-500 text-white font-medium">
-                              {unread}
-                            </span>
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs rounded-full bg-amber-500 text-white font-medium">{unread}</span>
                           )}
                           {' →'}
                         </Link>

@@ -139,7 +139,7 @@ function EditRuleForm({ rule, onClose }: { rule: PricingRule; onClose: () => voi
 
   return (
     <form onSubmit={handleSubmit} className="px-4 py-3 bg-stone border-t border-stone space-y-3">
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div>
           <label className="block text-xs text-slate-500 mb-1">Název</label>
           <input name="name" required defaultValue={rule.name} className="w-full border border-stone px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
@@ -177,7 +177,26 @@ function RuleRow({ rule, aptName }: { rule: PricingRule; aptName: string }) {
 
   return (
     <div className="bg-white border border-stone">
-      <div className="px-4 py-3 flex items-center justify-between">
+      {/* Mobile layout */}
+      <div className="md:hidden px-4 py-3">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div>
+            <div className="text-sm text-navy font-medium">{rule.name}</div>
+            <div className="text-xs text-slate-400">{aptName}</div>
+          </div>
+          <span className="text-sm text-gold font-medium whitespace-nowrap">{formatKc(rule.price_per_night_cents)}</span>
+        </div>
+        <div className="text-xs text-slate-500">{formatDate(rule.start_date)} – {formatDate(rule.end_date)} · min. {rule.min_nights} noci</div>
+        <div className="flex gap-3 mt-2">
+          <button onClick={() => setEditing(!editing)} className="text-xs text-slate-400 hover:text-navy">
+            {editing ? 'Zavřít' : 'Upravit'}
+          </button>
+          <DeleteRuleButton id={rule.id} />
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden md:flex px-4 py-3 items-center justify-between">
         <div className="flex items-center gap-6">
           <span className="text-xs text-slate-400 w-40 truncate">{aptName}</span>
           <span className="text-sm text-navy font-medium w-48">{rule.name}</span>
@@ -192,6 +211,7 @@ function RuleRow({ rule, aptName }: { rule: PricingRule; aptName: string }) {
           <DeleteRuleButton id={rule.id} />
         </div>
       </div>
+
       {editing && <EditRuleForm rule={rule} onClose={() => setEditing(false)} />}
     </div>
   );

@@ -105,59 +105,63 @@ export default async function AdminLeadsPage({
           </Link>
         </div>
 
-        {/* Leads Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Mobile card list */}
+        <div className="md:hidden space-y-2">
+          {leads.length === 0 ? (
+            <div className="bg-white rounded-lg p-6 text-center text-slate-400 text-sm shadow">Žádné záznamy</div>
+          ) : (
+            leads.map((lead) => (
+              <Link key={lead.id} href={`/admin/leads/${lead.id}`} className="block bg-white rounded-lg shadow px-4 py-3 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded bg-stone text-slate-700">
+                    {typeLabels[lead.type] || lead.type}
+                  </span>
+                  <span className={`px-2 py-0.5 text-xs font-medium rounded ${statusColors[lead.status] || ''}`}>
+                    {lead.status === 'new' && 'Nový'}
+                    {lead.status === 'in_progress' && 'V řešení'}
+                    {lead.status === 'closed' && 'Uzavřeno'}
+                    {lead.status === 'spam' && 'Spam'}
+                  </span>
+                </div>
+                <div className="text-sm font-medium text-navy">{lead.first_name} {lead.last_name}</div>
+                <div className="text-xs text-slate-500">{lead.email}</div>
+                <div className="text-xs text-slate-400 mt-1">{formatDate(lead.created_at)}</div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-stone">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Datum
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Typ
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Apartmán
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Kontakt
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  Akce
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Datum</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Typ</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Apartmán</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kontakt</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                    Žádné záznamy
-                  </td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-slate-500">Žádné záznamy</td>
                 </tr>
               ) : (
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-stone">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-stone-700">
-                      {formatDate(lead.created_at)}
-                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-stone-700">{formatDate(lead.created_at)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm">
                       <span className="px-2 py-1 text-xs font-medium rounded bg-stone text-slate-700">
                         {typeLabels[lead.type] || lead.type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-navy">
-                      {lead.apartment_title || lead.apartment_slug || '—'}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-navy">{lead.apartment_title || lead.apartment_slug || '—'}</td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-navy">
-                        {lead.first_name} {lead.last_name}
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        {lead.email}
-                      </div>
+                      <div className="text-sm font-medium text-navy">{lead.first_name} {lead.last_name}</div>
+                      <div className="text-sm text-slate-500">{lead.email}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded ${statusColors[lead.status] || ''}`}>
@@ -168,10 +172,7 @@ export default async function AdminLeadsPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right">
-                      <Link
-                        href={`/admin/leads/${lead.id}`}
-                        className="text-sky-600 hover:text-sky-800 text-sm font-medium"
-                      >
+                      <Link href={`/admin/leads/${lead.id}`} className="text-sky-600 hover:text-sky-800 text-sm font-medium">
                         Detail →
                       </Link>
                     </td>

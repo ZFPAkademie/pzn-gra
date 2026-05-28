@@ -178,61 +178,101 @@ export function ApartmanyTable({
   };
 
   return (
-    <div className="bg-white border border-stone overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-stone text-left">
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal">Apartmán</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal">Status</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal">Majitel</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Prodej</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Pronájem</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Rental prog.</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal">Základ. cena</th>
-            <th className="px-4 py-3 text-xs text-slate-500 font-normal"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-stone">
-          {apartments.map(apt => (
-            <tr key={apt.id} className="hover:bg-stone/30">
-              <td className="px-4 py-3">
-                <div>
-                  <span className="text-navy font-light">{apt.title ?? apt.slug}</span>
-                  {apt.layout && <span className="text-slate-400 text-xs ml-2">{apt.layout}</span>}
-                  {apt.area_m2 && <span className="text-slate-400 text-xs ml-1">· {apt.area_m2} m²</span>}
-                </div>
-                <div className="text-slate-400 text-xs">{apt.slug}</div>
-              </td>
-              <td className="px-4 py-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[apt.status] ?? ''}`}>
-                  {statusLabels[apt.status] ?? apt.status}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <OwnerSelect aptId={apt.id} currentOwnerId={apt.owner_id} owners={owners} />
-              </td>
-              <td className="px-4 py-3 text-center">
-                <FlagToggle aptId={apt.id} field="for_sale" value={apt.for_sale} label="Zobrazit v sekci Prodej" />
-              </td>
-              <td className="px-4 py-3 text-center">
-                <FlagToggle aptId={apt.id} field="for_rent" value={apt.for_rent} label="Zobrazit v sekci Pronájem" />
-              </td>
-              <td className="px-4 py-3 text-center">
-                <FlagToggle aptId={apt.id} field="in_rental_program" value={apt.in_rental_program} label="Aktivní v booking engine" />
-              </td>
-              <td className="px-4 py-3">
-                <BasePriceEditor aptId={apt.id} currentCents={apt.base_price_cents} />
-              </td>
-              <td className="px-4 py-3">
-                <Link href={`/admin/apartmany/${apt.id}`} className="text-xs text-slate-400 hover:text-navy transition-colors whitespace-nowrap">
-                  Detail →
-                </Link>
-              </td>
+    <>
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {apartments.map(apt => (
+          <div key={apt.id} className="bg-white border border-stone px-4 py-3">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <div className="text-sm text-navy font-light">{apt.title ?? apt.slug}</div>
+                <div className="text-xs text-slate-400">{apt.slug}{apt.layout ? ` · ${apt.layout}` : ''}{apt.area_m2 ? ` · ${apt.area_m2} m²` : ''}</div>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${statusColors[apt.status] ?? ''}`}>
+                {statusLabels[apt.status] ?? apt.status}
+              </span>
+            </div>
+            <div className="mb-2">
+              <OwnerSelect aptId={apt.id} currentOwnerId={apt.owner_id} owners={owners} />
+            </div>
+            <div className="flex items-center gap-4 mb-2">
+              <label className="flex items-center gap-1.5 text-xs text-slate-500">
+                <FlagToggle aptId={apt.id} field="for_sale" value={apt.for_sale} label="Prodej" /> Prodej
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-slate-500">
+                <FlagToggle aptId={apt.id} field="for_rent" value={apt.for_rent} label="Pronájem" /> Pronájem
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-slate-500">
+                <FlagToggle aptId={apt.id} field="in_rental_program" value={apt.in_rental_program} label="Rental" /> Rental
+              </label>
+            </div>
+            <div className="flex items-center justify-between">
+              <BasePriceEditor aptId={apt.id} currentCents={apt.base_price_cents} />
+              <Link href={`/admin/apartmany/${apt.id}`} className="text-xs text-slate-400 hover:text-navy transition-colors">
+                Detail →
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white border border-stone overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-stone text-left">
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Apartmán</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Status</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Majitel</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Prodej</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Pronájem</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Rental prog.</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Základ. cena</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal"></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-stone">
+            {apartments.map(apt => (
+              <tr key={apt.id} className="hover:bg-stone/30">
+                <td className="px-4 py-3">
+                  <div>
+                    <span className="text-navy font-light">{apt.title ?? apt.slug}</span>
+                    {apt.layout && <span className="text-slate-400 text-xs ml-2">{apt.layout}</span>}
+                    {apt.area_m2 && <span className="text-slate-400 text-xs ml-1">· {apt.area_m2} m²</span>}
+                  </div>
+                  <div className="text-slate-400 text-xs">{apt.slug}</div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[apt.status] ?? ''}`}>
+                    {statusLabels[apt.status] ?? apt.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <OwnerSelect aptId={apt.id} currentOwnerId={apt.owner_id} owners={owners} />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <FlagToggle aptId={apt.id} field="for_sale" value={apt.for_sale} label="Zobrazit v sekci Prodej" />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <FlagToggle aptId={apt.id} field="for_rent" value={apt.for_rent} label="Zobrazit v sekci Pronájem" />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <FlagToggle aptId={apt.id} field="in_rental_program" value={apt.in_rental_program} label="Aktivní v booking engine" />
+                </td>
+                <td className="px-4 py-3">
+                  <BasePriceEditor aptId={apt.id} currentCents={apt.base_price_cents} />
+                </td>
+                <td className="px-4 py-3">
+                  <Link href={`/admin/apartmany/${apt.id}`} className="text-xs text-slate-400 hover:text-navy transition-colors whitespace-nowrap">
+                    Detail →
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
