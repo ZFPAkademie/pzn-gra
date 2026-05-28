@@ -141,19 +141,21 @@ export function BlocksList({
   return (
     <div className="space-y-2">
       {blocks.map(block => (
-        <div key={block.id} className="bg-white border border-stone px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <span className="text-xs text-slate-400 w-44 truncate">{aptMap[block.apartment_id]}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${reasonColors[block.reason] ?? 'bg-gray-100 text-gray-600'}`}>
-              {reasonLabels[block.reason] ?? block.reason}
-            </span>
-            <span className="text-sm text-navy">{formatDate(block.start_date)} – {formatDate(block.end_date)}</span>
-            {block.note && <span className="text-xs text-slate-400">{block.note}</span>}
-            {!block.owner_id && (
-              <span className="text-xs text-slate-300">admin</span>
-            )}
+        <div key={block.id} className="bg-white border border-stone px-4 py-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${reasonColors[block.reason] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {reasonLabels[block.reason] ?? block.reason}
+                </span>
+                {!block.owner_id && <span className="text-xs text-slate-300">admin</span>}
+              </div>
+              <div className="text-xs text-slate-400 truncate">{aptMap[block.apartment_id]}</div>
+              <div className="text-sm text-navy mt-0.5">{formatDate(block.start_date)} – {formatDate(block.end_date)}</div>
+              {block.note && <div className="text-xs text-slate-400 mt-0.5">{block.note}</div>}
+            </div>
+            <DeleteBlockButton id={block.id} />
           </div>
-          <DeleteBlockButton id={block.id} />
         </div>
       ))}
     </div>

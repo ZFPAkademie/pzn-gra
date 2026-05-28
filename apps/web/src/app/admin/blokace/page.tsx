@@ -35,7 +35,7 @@ export default async function AdminBlokacePage() {
       <AdminNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-light text-navy tracking-wide">Blokace termínů</h1>
             <p className="text-sm text-slate-500 mt-1">
@@ -43,7 +43,9 @@ export default async function AdminBlokacePage() {
               Blokace z Booking.com / Airbnb jsou ve Channel Manageru.
             </p>
           </div>
-          <AddBlockForm apartments={apartments ?? []} />
+          <div className="shrink-0">
+            <AddBlockForm apartments={apartments ?? []} />
+          </div>
         </div>
 
         <BlocksList blocks={blocks ?? []} apartments={apartments ?? []} />

@@ -331,40 +331,50 @@ export function PricingRulesSection({ aptId, rules }: { aptId: string; rules: Pr
       </div>
 
       {rules.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm mb-4">
-            <thead>
-              <tr className="border-b border-stone text-left">
-                <th className="pb-2 text-xs text-slate-400 font-normal">Název</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Od</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Do</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Cena / noc</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Min. nocí</th>
-                <th className="pb-2"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone">
-              {rules.map(rule => (
-                <tr key={rule.id}>
-                  <td className="py-2.5 text-navy text-xs">{rule.name ?? '—'}</td>
-                  <td className="py-2.5 text-slate-600 text-xs">{fmtDate(rule.start_date)}</td>
-                  <td className="py-2.5 text-slate-600 text-xs">{fmtDate(rule.end_date)}</td>
-                  <td className="py-2.5 text-navy text-xs">{fmtCents(rule.price_per_night_cents)}</td>
-                  <td className="py-2.5 text-slate-600 text-xs">{rule.min_nights ?? 2}</td>
-                  <td className="py-2.5">
-                    <button
-                      onClick={() => handleDelete(rule.id)}
-                      disabled={isPending}
-                      className="text-slate-400 hover:text-red-500 text-xs transition-colors disabled:opacity-50"
-                    >
-                      Smazat
-                    </button>
-                  </td>
+        <>
+          {/* Mobile */}
+          <div className="md:hidden space-y-2 mb-4">
+            {rules.map(rule => (
+              <div key={rule.id} className="bg-stone px-3 py-2.5 flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-xs font-medium text-navy">{rule.name ?? '—'}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{fmtDate(rule.start_date)} – {fmtDate(rule.end_date)}</div>
+                  <div className="text-xs text-slate-400">{fmtCents(rule.price_per_night_cents)} / noc · min. {rule.min_nights ?? 2} noci</div>
+                </div>
+                <button onClick={() => handleDelete(rule.id)} disabled={isPending} className="text-slate-400 hover:text-red-500 text-xs shrink-0 disabled:opacity-50">Smazat</button>
+              </div>
+            ))}
+          </div>
+          {/* Desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm mb-4">
+              <thead>
+                <tr className="border-b border-stone text-left">
+                  <th className="pb-2 text-xs text-slate-400 font-normal">Název</th>
+                  <th className="pb-2 text-xs text-slate-400 font-normal">Od</th>
+                  <th className="pb-2 text-xs text-slate-400 font-normal">Do</th>
+                  <th className="pb-2 text-xs text-slate-400 font-normal">Cena / noc</th>
+                  <th className="pb-2 text-xs text-slate-400 font-normal">Min. nocí</th>
+                  <th className="pb-2"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone">
+                {rules.map(rule => (
+                  <tr key={rule.id}>
+                    <td className="py-2.5 text-navy text-xs">{rule.name ?? '—'}</td>
+                    <td className="py-2.5 text-slate-600 text-xs">{fmtDate(rule.start_date)}</td>
+                    <td className="py-2.5 text-slate-600 text-xs">{fmtDate(rule.end_date)}</td>
+                    <td className="py-2.5 text-navy text-xs">{fmtCents(rule.price_per_night_cents)}</td>
+                    <td className="py-2.5 text-slate-600 text-xs">{rule.min_nights ?? 2}</td>
+                    <td className="py-2.5">
+                      <button onClick={() => handleDelete(rule.id)} disabled={isPending} className="text-slate-400 hover:text-red-500 text-xs transition-colors disabled:opacity-50">Smazat</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       ) : (
         <p className="text-xs text-slate-400 mb-4">Žádná sezónní pravidla — platí základní cena.</p>
       )}
@@ -444,35 +454,16 @@ export function BlockedDatesSection({ aptId, blocks }: { aptId: string; blocks: 
       </div>
 
       {blocks.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm mb-4">
-            <thead>
-              <tr className="border-b border-stone text-left">
-                <th className="pb-2 text-xs text-slate-400 font-normal">Od</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Do</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Důvod</th>
-                <th className="pb-2"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone">
-              {blocks.map(block => (
-                <tr key={block.id}>
-                  <td className="py-2.5 text-slate-600 text-xs">{fmtDate(block.start_date)}</td>
-                  <td className="py-2.5 text-slate-600 text-xs">{fmtDate(block.end_date)}</td>
-                  <td className="py-2.5 text-navy text-xs">{reasonLabels[block.reason ?? ''] ?? block.reason ?? '—'}</td>
-                  <td className="py-2.5">
-                    <button
-                      onClick={() => handleDelete(block.id)}
-                      disabled={isPending}
-                      className="text-slate-400 hover:text-red-500 text-xs transition-colors disabled:opacity-50"
-                    >
-                      Smazat
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2 mb-4">
+          {blocks.map(block => (
+            <div key={block.id} className="bg-stone px-3 py-2.5 flex items-start justify-between gap-2">
+              <div>
+                <div className="text-xs font-medium text-navy">{reasonLabels[block.reason ?? ''] ?? block.reason ?? '—'}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{fmtDate(block.start_date)} – {fmtDate(block.end_date)}</div>
+              </div>
+              <button onClick={() => handleDelete(block.id)} disabled={isPending} className="text-slate-400 hover:text-red-500 text-xs shrink-0 disabled:opacity-50">Smazat</button>
+            </div>
+          ))}
         </div>
       ) : (
         <p className="text-xs text-slate-400 mb-4">Žádné blokace.</p>
@@ -526,46 +517,23 @@ export function RecentBookingsSection({ bookings }: { bookings: Booking[] }) {
       {bookings.length === 0 ? (
         <p className="text-xs text-slate-400">Žádné rezervace.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-stone text-left">
-                <th className="pb-2 text-xs text-slate-400 font-normal">Host</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Termín</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Nocí</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Částka</th>
-                <th className="pb-2 text-xs text-slate-400 font-normal">Status</th>
-                <th className="pb-2"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone">
-              {bookings.map(b => (
-                <tr key={b.id}>
-                  <td className="py-2.5 text-navy text-xs">
+        <div className="space-y-2">
+          {bookings.map(b => (
+            <a key={b.id} href={`/admin/rezervace/${b.id}`} className="block bg-stone px-3 py-2.5 hover:bg-stone/80 transition-colors">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-xs font-medium text-navy">
                     {[b.guest_first_name, b.guest_last_name].filter(Boolean).join(' ') || '—'}
-                  </td>
-                  <td className="py-2.5 text-slate-600 text-xs whitespace-nowrap">
-                    {fmtDate(b.check_in)} – {fmtDate(b.check_out)}
-                  </td>
-                  <td className="py-2.5 text-slate-600 text-xs">{b.nights ?? '—'}</td>
-                  <td className="py-2.5 text-navy text-xs">{fmtCents(b.total_amount_cents)}</td>
-                  <td className="py-2.5">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[b.status] ?? 'bg-slate-100 text-slate-600'}`}>
-                      {statusLabels[b.status] ?? b.status}
-                    </span>
-                  </td>
-                  <td className="py-2.5">
-                    <a
-                      href={`/admin/rezervace/${b.id}`}
-                      className="text-xs text-slate-400 hover:text-navy transition-colors whitespace-nowrap"
-                    >
-                      Detail →
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">{fmtDate(b.check_in)} – {fmtDate(b.check_out)} · {b.nights ?? '?'} nocí</div>
+                  <div className="text-xs text-navy mt-0.5">{fmtCents(b.total_amount_cents)}</div>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${statusColors[b.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                  {statusLabels[b.status] ?? b.status}
+                </span>
+              </div>
+            </a>
+          ))}
         </div>
       )}
     </div>

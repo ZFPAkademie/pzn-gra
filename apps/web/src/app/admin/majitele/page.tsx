@@ -41,14 +41,16 @@ export default async function AdminMajitelePage() {
       <AdminNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-light text-navy tracking-wide">Majitelé</h1>
             <p className="text-sm text-slate-500 mt-1">
               Správa vlastníků apartmánů. Pozvat do klientského portálu pomocí magic linku.
             </p>
           </div>
-          <AddOwnerForm apartments={apartments ?? []} />
+          <div className="shrink-0">
+            <AddOwnerForm apartments={apartments ?? []} />
+          </div>
         </div>
 
         {(owners ?? []).length === 0 ? (
@@ -60,51 +62,45 @@ export default async function AdminMajitelePage() {
             {(owners ?? []).map(owner => {
               const ownerApts = aptByOwner[owner.id] ?? [];
               return (
-                <div key={owner.id} className="bg-white border border-stone p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-3 flex-1">
-                      {/* Hlavička */}
-                      <div className="flex items-center gap-4">
-                        <h3 className="text-base font-medium text-navy">{owner.name}</h3>
-                        <ToggleActiveButton ownerId={owner.id} isActive={owner.is_active} />
-                        {owner.user_id && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">přihlášen do portálu</span>
-                        )}
-                      </div>
+                <div key={owner.id} className="bg-white border border-stone p-4 sm:p-5">
+                  {/* Hlavička */}
+                  <div className="flex items-center gap-3 flex-wrap mb-2">
+                    <h3 className="text-base font-medium text-navy">{owner.name}</h3>
+                    <ToggleActiveButton ownerId={owner.id} isActive={owner.is_active} />
+                    {owner.user_id && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">přihlášen do portálu</span>
+                    )}
+                  </div>
 
-                      {/* Kontakt */}
-                      <div className="flex items-center gap-6 text-sm text-slate-500">
-                        <span>{owner.email}</span>
-                        {owner.phone && <span>{owner.phone}</span>}
-                        <span className="flex items-center gap-1">
-                          Provize: <CommissionEditor ownerId={owner.id} currentRate={owner.commission_rate} />
+                  {/* Kontakt */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6 text-sm text-slate-500 mb-2">
+                    <span className="truncate">{owner.email}</span>
+                    {owner.phone && <span>{owner.phone}</span>}
+                    <span className="flex items-center gap-1">
+                      Provize: <CommissionEditor ownerId={owner.id} currentRate={owner.commission_rate} />
+                    </span>
+                  </div>
+
+                  {/* Apartmány */}
+                  {ownerApts.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                      {ownerApts.map(apt => (
+                        <span
+                          key={apt.id}
+                          className={`text-xs px-2 py-0.5 rounded ${apt.in_rental_program ? 'bg-gold/10 text-gold' : 'bg-stone text-slate-500'}`}
+                        >
+                          {apt.title ?? apt.slug}
+                          {apt.in_rental_program && ' (pronájem)'}
                         </span>
-                      </div>
-
-                      {/* Apartmány */}
-                      {ownerApts.length > 0 && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {ownerApts.map(apt => (
-                            <span
-                              key={apt.id}
-                              className={`text-xs px-2 py-0.5 rounded ${apt.in_rental_program ? 'bg-gold/10 text-gold' : 'bg-stone text-slate-500'}`}
-                            >
-                              {apt.title ?? apt.slug}
-                              {apt.in_rental_program && ' (pronájem)'}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      ))}
                     </div>
+                  )}
 
-                    {/* Akce */}
-                    <div className="ml-4 flex flex-col gap-2 items-end">
-                      <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
-                      <div className="flex gap-3">
-                        <EditOwnerForm owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }} />
-                        <DeleteOwnerButton ownerId={owner.id} name={owner.name} />
-                      </div>
-                    </div>
+                  {/* Akce */}
+                  <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-stone">
+                    <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
+                    <EditOwnerForm owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }} />
+                    <DeleteOwnerButton ownerId={owner.id} name={owner.name} />
                   </div>
                 </div>
               );

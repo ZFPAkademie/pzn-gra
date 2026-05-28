@@ -221,7 +221,7 @@ export function EditOwnerForm({ owner }: { owner: { id: string; name: string; em
 
   return (
     <form onSubmit={handleSubmit} className="mt-3 p-4 bg-stone border border-stone space-y-3">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-xs text-slate-500 mb-1">Jméno *</label>
           <input name="name" required defaultValue={owner.name} className="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
