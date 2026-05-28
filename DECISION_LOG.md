@@ -250,6 +250,57 @@ Důsledky: co z toho vyplývá
 
 ---
 
+### [2026-05] DEC-021 — C→A migrace: data apartmánů z JSON do DB
+**Status:** LOCKED
+
+**Kontext:** Veřejný web četl z `apartments.canonical.json`, admin panel z Supabase DB. Dva zdroje pravdy = nekonzistence.
+
+**Rozhodnutí:** Jednorázový import (C→A): přidat sloupce do DB (description, orientation, rooms, subtitle), seedovat z JSON, přepnout web na DB. JSON zachovat jako zálohu, ale nečíst z něj.
+
+**Důvod:**
+- Jeden zdroj pravdy (DB)
+- Admin může editovat obsah bez deploymentu
+- Žádný JSON maintenance overhead
+
+**Alternativy:**
+- A→C (DB → JSON): složitější, ztráta admin editovatelnosti
+- Zachovat dual-source: technický dluh, divergence
+
+**Důsledky:** `generateStaticParams` odstraněno z 5 stránek, `export const dynamic = 'force-dynamic'`, `getApartmentBySlugDB()` místo JSON funkcí. JSON funkce zachovány v kódu pro zpětnou kompatibilitu.
+
+---
+
+### [2026-05] DEC-022 — Shared AdminNav komponenta + mobilní bottom tab bar
+**Status:** LOCKED
+
+**Kontext:** Každá admin stránka měla vlastní hardcoded nav. Nekonzistence, missing items.
+
+**Rozhodnutí:** Centrální `AdminNav` komponenta v `_components/admin-nav.tsx`. Desktop: horizontální nav. Mobil: slim top bar + fixed bottom tab bar (3 primární sekce + Více drawer s 5 sekundárními).
+
+**Důvod:**
+- DRY — jedna změna propaguje všude
+- Mobile-first UX
+- Viditelné aktivní sekce na všech zařízeních
+
+**Důsledky:** Všechny admin stránky importují `<AdminNav />`. Stránky s bottom barem potřebují `pb-14` nebo spacer `div.h-14` na konci main obsahu.
+
+---
+
+### [2026-05] DEC-023 — revalidatePath nevolat v akcích které vrací data do UI
+**Status:** LOCKED
+
+**Kontext:** `sendMagicLink` volal `revalidatePath('/admin/majitele')` — způsobilo RSC re-render, který resetoval client component state před tím, než uživatel stihl zkopírovat magic link.
+
+**Rozhodnutí:** `revalidatePath` NEVOLAT v server actions které vracejí data zobrazovaná klientem (magic link URL, generované tokeny atp.). Revalidovat pouze při mutacích datových záznamů (create, update, delete).
+
+**Důvod:**
+- RSC re-render resetuje veškerý client useState
+- Uživatel ztratí výsledek akce dřív než ho použije
+
+**Důsledky:** `sendMagicLink` neobsahuje `revalidatePath`. Uživatel vidí link dokud nerefreshuje ručně.
+
+---
+
 ## Open Decisions (k řešení)
 
 ### [TBD] DEC-011 — Channel Manager — živé napojení
@@ -264,13 +315,12 @@ Důsledky: co z toho vyplývá
 
 ---
 
-### [TBD] DEC-012 — Owner Portal autentizace
-**Status:** OPEN
+### [2026-05] DEC-012 — Owner Portal autentizace
+**Status:** PARTIALLY LOCKED
 
-**Otázky:**
-- Supabase Auth (email/password) vs Magic Links?
-- Invitation flow (admin zve majitele)?
-- Multi-apartment owners?
+**Rozhodnutí:** Magic links přes `supabase.auth.admin.generateLink()`. Invite flow: admin klikne "Pozvat" → server action vygeneruje link → zobrazí ho adminovi → admin pošle ručně.
+
+**Zbývá rozhodnout:** Route middleware ochrana `/portal/**`, multi-apartment owners (zatím předpokládáme 1:1).
 
 ---
 

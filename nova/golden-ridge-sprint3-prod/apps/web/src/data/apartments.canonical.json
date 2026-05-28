@@ -1,0 +1,222 @@
+{
+  "sale": [
+    {
+      "slug": "chata-1-suite-7",
+      "title": "Apartmán č. 7",
+      "subtitle": "3NP, 1+kk | 38 m²",
+      "layout": "1+kk",
+      "totalArea": "37,89 m²",
+      "rooms": {
+        "hall": "6,25 m²",
+        "bathroom": "4,34 m²",
+        "bedroom": null,
+        "livingKitchen": "27,3 m²"
+      },
+      "description": "Apartmán vedle schodiště, předsíň s prostorem pro skříň, prostorná koupelna, obývací pokoj s kuchyní orientovaný na východ s výhledem na sjezdovku Labská. Kuchyňská linka bílý design s dřevěným dekorem, Electrolux spotřebiče, podlahové vytápění v koupelně, Laufen a Grohe.",
+      "features": ["Výhled na sjezdovku Labská", "Electrolux spotřebiče", "Podlahové vytápění", "Laufen a Grohe"],
+      "floor": 3,
+      "orientation": "východ",
+      "status": "available",
+      "belongsToRealEstateProduct": true
+    },
+    {
+      "slug": "chata-1-suite-9",
+      "title": "Apartmán č. 9",
+      "subtitle": "3NP, 2+kk | 62 m²",
+      "layout": "2+kk",
+      "totalArea": "61,53 m²",
+      "rooms": {
+        "hall": "11,05 m²",
+        "bathroom": "5,33 m²",
+        "bedroom": "18,06 m²",
+        "livingKitchen": "25,01 m²"
+      },
+      "description": "Prostorná chodba 13 m² s místem pro velkou skříň a botník. Ložnice s výhledem na západ. Obývací pokoj 25 m² orientovaný na západ a jih s výhledem do lesů. Kuchyň Electrolux, koupelna s vanou, Laufen a Grohe. Vhodný i pro rodinu s dětmi.",
+      "features": ["Samostatná ložnice", "Koupelna s vanou", "Výhled do lesů", "Vhodný pro rodinu"],
+      "floor": 3,
+      "orientation": "západ, jih",
+      "status": "available",
+      "belongsToRealEstateProduct": false
+    },
+    {
+      "slug": "chata-2-suite-11",
+      "title": "Apartmán č. 11",
+      "subtitle": "3NP, 1+kk | 35 m²",
+      "layout": "1+kk",
+      "totalArea": "34,7 m²",
+      "rooms": {
+        "hall": "2,53 m²",
+        "bathroom": "6,03 m²",
+        "bedroom": null,
+        "livingKitchen": "26,14 m²"
+      },
+      "description": "Apartmán naproti schodišti, předsíň 2,5 m² s prostorem pro skříň, koupelna s vanou vlevo. Obývací pokoj s kuchyní 34 m² orientovaný na západ s výhledem do přírody. Kuchyň Electrolux, bílá s dekorem dřeva. Podlahové vytápění, Laufen a Grohe. Vhodný pro malou rodinu nebo pár.",
+      "features": ["Koupelna s vanou", "Výhled do přírody", "Electrolux kuchyň", "Podlahové vytápění"],
+      "floor": 3,
+      "orientation": "západ",
+      "status": "available",
+      "belongsToRealEstateProduct": false
+    }
+  ],
+  "rental": [
+    {
+      "slug": "golden-ridge-1",
+      "title": "Golden Ridge apartmán č. 1",
+      "layout": "1+kk",
+      "totalArea": "44,74 m²",
+      "rooms": {
+        "hall": "4,69 m²",
+        "bathroom": "5,62 m²",
+        "bedroom": null,
+        "livingKitchen": "34,43 m²"
+      },
+      "description": "Nadstandardní ubytování s výhledem na hory, bezplatné Wi-Fi a soukromé parkoviště. Apartmán má obývací část s příjemným posezením a televizí, kompletně vybavenou kuchyň a koupelnu s fénem. Obývák orientovaný na jih, otevřená ložnice na západ oddělená příčkou. Podlahové vytápění, Grohe a Laufen. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Wi-Fi zdarma", "Parkoviště", "Kávovar", "TV", "Podlahové vytápění"],
+      "orientation": "jih, západ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-2",
+      "title": "Golden Ridge apartmán č. 2",
+      "layout": "1+kk",
+      "totalArea": "44,74 m²",
+      "rooms": {
+        "hall": "4,69 m²",
+        "bathroom": "5,62 m²",
+        "bedroom": null,
+        "livingKitchen": "34,43 m²"
+      },
+      "description": "Apartmán s výhledem do lesa, vhodný pro malou rodinu nebo pár. Obývák orientovaný na západ, otevřená ložnice oddělená příčkou. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled do lesa", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "západ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-3",
+      "title": "Golden Ridge apartmán č. 3",
+      "layout": "1+kk",
+      "totalArea": "35,02 m²",
+      "rooms": {
+        "hall": "3,21 m²",
+        "bathroom": "5,97 m²",
+        "bedroom": null,
+        "livingKitchen": "25,84 m²"
+      },
+      "description": "Plně vybavený apartmán (35 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "hory",
+      "maxGuests": 2,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-4",
+      "title": "Golden Ridge apartmán č. 4",
+      "layout": "1+kk",
+      "totalArea": "38,21 m²",
+      "rooms": {
+        "hall": "2,93 m²",
+        "bathroom": "6,17 m²",
+        "bedroom": null,
+        "livingKitchen": "29,11 m²"
+      },
+      "description": "Plně vybavený apartmán (38 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Designový nábytek KARE, myčka, trouba, kávovar, TV, Wi-Fi, trezor.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Myčka", "Kávovar", "TV", "Wi-Fi", "Trezor"],
+      "orientation": "hory",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-7",
+      "title": "Golden Ridge apartmán č. 7",
+      "layout": "1+kk",
+      "totalArea": "37,89 m²",
+      "rooms": {
+        "hall": "6,25 m²",
+        "bathroom": "4,34 m²",
+        "bedroom": null,
+        "livingKitchen": "27,3 m²"
+      },
+      "description": "Nadstandardní ubytování s výhledem na sjezdovku Labská, bezplatné Wi-Fi a soukromé parkoviště. Obývací pokoj s kuchyní orientovaný na východ. Prostorná koupelna, kuchyňská linka v bílém designu s dřevěným dekorem. Electrolux spotřebiče, podlahové vytápění, Laufen a Grohe. Tento apartmán je také k prodeji.",
+      "features": ["Výhled na sjezdovku Labská", "Electrolux spotřebiče", "Podlahové vytápění", "Laufen a Grohe", "Wi-Fi zdarma", "I k prodeji"],
+      "orientation": "východ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": true
+    },
+    {
+      "slug": "golden-ridge-8",
+      "title": "Golden Ridge apartmán č. 8",
+      "layout": "1+kk",
+      "totalArea": "38,24 m²",
+      "rooms": {
+        "hall": "2,91 m²",
+        "bathroom": "6,17 m²",
+        "bedroom": null,
+        "livingKitchen": "29,16 m²"
+      },
+      "description": "Plně vybavený apartmán (38 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Obývák orientovaný na západ, otevřená ložnice oddělená příčkou. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Otevřená ložnice", "Plně vybavený"],
+      "orientation": "západ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-9",
+      "title": "Golden Ridge apartmán č. 9",
+      "layout": "1+kk",
+      "totalArea": "44,16 m²",
+      "rooms": {
+        "hall": "5,21 m²",
+        "bathroom": "4,86 m²",
+        "bedroom": null,
+        "livingKitchen": "34,09 m²"
+      },
+      "description": "Plně vybavený apartmán (44 m²) s kuchyní, vlastní koupelnou a výhledem na hory. Obývák orientovaný na východ, otevřená ložnice. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Otevřená ložnice", "Velký obývák"],
+      "orientation": "východ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    },
+    {
+      "slug": "golden-ridge-11",
+      "title": "Golden Ridge apartmán č. 11",
+      "layout": "1+kk",
+      "totalArea": "34,7 m²",
+      "rooms": {
+        "hall": "2,53 m²",
+        "bathroom": "6,03 m²",
+        "bedroom": null,
+        "livingKitchen": "26,14 m²"
+      },
+      "description": "Nadstandardní ubytování s výhledem na hory, bezplatné Wi-Fi a soukromé parkoviště. Obývák orientovaný na východ, otevřená ložnice. Podlahové vytápění, Grohe a Laufen. Designový nábytek KARE.",
+      "features": ["Výhled na hory", "Nábytek KARE", "Wi-Fi zdarma", "Parkoviště", "Kávovar", "Podlahové vytápění"],
+      "orientation": "východ",
+      "maxGuests": 4,
+      "pricePerNight": 2500,
+      "status": "available",
+      "alsoForSale": false
+    }
+  ],
+  "salesManager": {
+    "name": "Michal Novotný",
+    "title": "Manažer prodeje",
+    "phone": "+420 736 242 624",
+    "email": "sales@podzlatymnavrsim.cz",
+    "photo": "/images/manager-michal.jpg"
+  }
+}

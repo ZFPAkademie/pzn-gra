@@ -1,9 +1,9 @@
 # PROJECT_SNAPSHOT.md
 ## Pod Zlatým návrším — Stav projektu
 
-**Datum:** 27. května 2026  
-**Verze:** v21-podil  
-**Status:** Production (fáze 1)
+**Datum:** 28. května 2026  
+**Verze:** v24  
+**Status:** Production (fáze 2 + admin)
 
 ---
 
@@ -73,20 +73,22 @@
 - Lead capture formuláře
 - Investiční kalkulačka
 
-### 2.2 Booking Engine (🚧 TODO)
-- Kalendář dostupnosti
-- Dynamický ceník (sezóny)
-- Rezervační flow
-- Stripe platby
-- Potvrzovací emaily
+### 2.2 Booking Engine (✅ HOTOVO — Fáze 2)
+- Kalendář dostupnosti (single-month widget, range selection)
+- Ceníky z DB (pricing_rules), min_nights enforcement
+- Rezervační flow — bankovní převod + SPD QR kód
+- Rezervační karta /rezervace/[token], messaging host↔admin
+- Admin panel + potvrzení platby + check-in info
+- Transakční emaily (Resend, soft-fail)
 
-### 2.3 Channel Manager (🚧 TODO)
-- Booking.com sync
-- Airbnb sync
-- Kalendář, ceny, rezervace
-- Automatický import
+### 2.3 Channel Manager (✅ Infrastruktura — Fáze 3)
+- iCal import z Booking.com/Airbnb → blocked_dates
+- iCal export /api/v1/ical/[token]
+- Admin UI /admin/channel-manager
+- Vercel Cron každou hodinu
+- Živé přihlašovací údaje z Booking.com/Airbnb: ČEKÁ
 
-### 2.4 Admin Dashboard (🚧 TODO)
+### 2.4 Admin Dashboard (🚧 Fáze A — průběžně)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  ADMIN DASHBOARD                                                │
@@ -132,35 +134,42 @@
 
 ---
 
-## 3. Aktuální stav (v23 — 27.5.2026)
+## 3. Aktuální stav (v24 — 28.5.2026)
 
 ### ✅ Hotovo
 | Komponenta | Status | Poznámky |
 |------------|--------|----------|
 | Homepage | ✅ | Alpine Quiet Luxury design |
-| Stránky prodej | ✅ | 3 apartmány |
-| Stránky pronájem | ✅ | 8 apartmánů |
+| Stránky prodej | ✅ | 3 apartmány, data z DB |
+| Stránky pronájem | ✅ | 8 apartmánů, data z DB |
 | Stránka podíl | ✅ | Dynamické URL /podil/[available] |
 | Lead capture | ✅ | 4 typy leadů |
 | Admin inbox (leady) | ✅ | Status, detail, odpověď |
 | Supabase Storage | ✅ | Fotky apartmánů |
-| **Booking engine** | ✅ | Kalendář, ceník, rezervační flow |
+| **Booking engine** | ✅ | Kalendář, ceník, min_nights, rezervační flow |
 | **Rezervační karta** | ✅ | /rezervace/[token], QR platba |
-| **Messaging** | ✅ | Host ↔ admin real-time (30s polling) |
+| **Messaging** | ✅ | Host ↔ admin (30s polling) |
 | **Admin rezervace** | ✅ | Seznam, detail, potvrzení, check-in info |
-| **Transakcní emaily** | ✅ | Resend — 3 šablony (přijetí, potvrzení, admin) |
-| **iCal channel manager** | ✅ | Import z Booking.com/Airbnb, export feed, cron |
+| **Transakční emaily** | ✅ | Resend — 3 šablony (soft-fail) |
+| **iCal channel manager** | ✅ | Import z Booking.com/Airbnb, export, cron |
+| **Admin apartmány** | ✅ | Seznam + detail (/admin/apartmany/[id]) |
+| **Admin ceníky** | ✅ | CRUD pricing_rules per apartmán |
+| **Admin blokace** | ✅ | Správa blocked_dates (ne-iCal) |
+| **Admin majitelé** | ✅ | CRUD + invite magic link → owners.user_id |
+| **Admin shared nav** | ✅ | Všechny sekce, mobilní bottom tab bar |
+| **Migrace 007** | ✅ | Data apartmánů v DB (title, desc, orientation, rooms) |
 
 ### 🚧 K implementaci
 | Komponenta | Priorita | Závislosti |
 |------------|----------|------------|
-| Sezónní ceníky (admin UI) | HIGH | — |
-| Blokace termínů majitelem | HIGH | Owner portal nebo admin UI |
-| Klientský portál | MEDIUM | Supabase Auth magic links |
+| Klientský portál — auth | HIGH | Supabase Auth magic links (invite flow hotový) |
+| Klientský portál — Můj apartmán | HIGH | Auth |
 | SVJ modul | MEDIUM | Klientský portál |
-| Admin dashboard v2 | MEDIUM | — |
+| Admin — visibility flags UI | MEDIUM | — |
+| Blokace — edit (jen delete) | LOW | — |
 | Stripe platby | LOW | Manager approval |
 | Stripe Connect (výplaty) | LOW | Portál + Stripe |
+| Channel Manager credentials | LOW | Booking.com/Airbnb přístupy od managera |
 
 ---
 
@@ -213,13 +222,12 @@ interface Apartment {
 
 ### Fáze 2 — Booking Engine ✅ HOTOVO
 - [x] Kalendář dostupnosti (single-month widget, range selection)
-- [x] Ceníky — flat rate (sezóny TODO)
+- [x] Ceníky z DB (pricing_rules), min_nights enforcement
 - [x] Rezervační flow — bankovní převod + SPD QR kód
 - [x] Rezervační karta /rezervace/[token]
 - [x] Messaging host ↔ admin
 - [x] Admin panel rezervací + check-in info
-- [x] Transakcní emaily (Resend)
-- [ ] Sezónní ceníky (pricing_rules tabulka existuje, admin UI chybí)
+- [x] Transakční emaily (Resend)
 - [ ] Stripe Checkout (čeká na schválení managera)
 
 ### Fáze 3 — Channel Manager ✅ HOTOVO (infrastruktura)
@@ -229,8 +237,19 @@ interface Apartment {
 - [x] Vercel Cron každou hodinu
 - [ ] Připojit URL adresy s manažerem (přístupy do Booking.com/Airbnb)
 
+### Fáze A — Admin Panel ✅ HOTOVO (průběžně)
+- [x] Shared AdminNav komponenta (desktop + mobilní bottom tab bar)
+- [x] Admin apartmány — seznam + detail /admin/apartmany/[id]
+- [x] Admin ceníky — CRUD pricing_rules
+- [x] Admin blokace — CRUD blocked_dates
+- [x] Admin majitelé — CRUD + invite magic link
+- [x] Data apartmánů migrována z JSON do DB (migrace 007)
+- [ ] Visibility flags UI (for_sale, for_rent, in_rental_program toggle)
+- [ ] Blokace edit (jen delete, chybí edit)
+
 ### Fáze 4 — Klientský Portál
-- [ ] Owner auth (magic links)
+- [x] Invite flow backend (generateLink → owners.user_id)
+- [ ] Owner auth middleware (/portal route ochrana)
 - [ ] Můj apartmán
 - [ ] SVJ modul
 - [ ] Dokumenty
@@ -238,11 +257,11 @@ interface Apartment {
 ### Fáze 5 — Rental Program
 - [ ] Opt-in flow
 - [ ] Výnosy & provize
-- [ ] Blokace
+- [ ] Blokace (majitel)
 - [ ] Stripe Connect (výplaty)
 
 ### Fáze 6 — Admin Dashboard v2
-- [ ] Správa visibility
+- [ ] Správa visibility flags
 - [ ] Nastavení provizí
 - [ ] Revenue analytika
 - [ ] SVJ správa
@@ -283,4 +302,20 @@ JWT_SECRET=
 
 ---
 
-*Aktualizace: 27.5.2026*
+---
+
+## 9. DB migrace
+
+| Migrace | Obsah | Status |
+|---------|-------|--------|
+| 001 | Základní schéma (apartments, owners, leads) | ✅ |
+| 002 | Booking engine (bookings, blocked_dates, pricing_rules) | ✅ |
+| 003 | iCal channel manager (channel_connections, source column) | ✅ |
+| 004 | Admin auth cookie | ✅ |
+| 005 | Messaging (booking_messages) | ✅ |
+| 006 | SVJ (svj_posts, svj_comments, svj_polls, svj_documents) | ✅ |
+| 007 | Apartmány obsah (description, orientation, rooms, subtitle + seed) | ✅ |
+
+---
+
+*Aktualizace: 28.5.2026*

@@ -1,0 +1,110 @@
+{
+  "title": "Book Now",
+  "subtitle": "Complete your reservation",
+  
+  "steps": {
+    "dates": "Dates",
+    "details": "Details",
+    "confirmation": "Confirmation"
+  },
+  
+  "dates": {
+    "title": "Select your dates",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "nights": "nights",
+    "night": "night",
+    "minNights": "Minimum stay is {{count}} nights",
+    "selectDates": "Select dates",
+    "continue": "Continue"
+  },
+  
+  "guests": {
+    "title": "Number of Guests",
+    "guest": "guest",
+    "guests": "guests",
+    "max": "Maximum {{count}} guests"
+  },
+  
+  "form": {
+    "title": "Guest Details",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "country": "Country",
+    "specialRequests": "Special Requests",
+    "specialRequestsPlaceholder": "E.g. late arrival, baby cot..."
+  },
+  
+  "consent": {
+    "gdpr": "I agree to the processing of personal data",
+    "gdprLink": "Privacy Policy",
+    "terms": "I agree to the terms and conditions",
+    "termsLink": "Terms and Conditions"
+  },
+  
+  "validation": {
+    "required": "Required field",
+    "invalidEmail": "Invalid email",
+    "invalidPhone": "Invalid phone number",
+    "nameTooShort": "Minimum 2 characters",
+    "mustAccept": "You must agree"
+  },
+  
+  "price": {
+    "title": "Price",
+    "perNight": "per night",
+    "total": "Total",
+    "seasonal": "Seasonal pricing",
+    "breakdown": "Price breakdown",
+    "calculating": "Calculating price..."
+  },
+  
+  "submit": {
+    "button": "Complete Booking",
+    "processing": "Processing...",
+    "back": "Back"
+  },
+  
+  "confirmation": {
+    "title": "Booking Confirmed!",
+    "subtitle": "Thank you for your booking",
+    "emailSent": "Confirmation sent to:",
+    "referenceNumber": "Reference Number",
+    "viewReservation": "View Reservation"
+  },
+  
+  "payment": {
+    "title": "Payment Information",
+    "info": "Please complete your payment via bank transfer",
+    "iban": "IBAN",
+    "reference": "Reference",
+    "amount": "Amount"
+  },
+  
+  "nextSteps": {
+    "title": "What happens next?",
+    "step1": "You will receive an email with confirmation and payment details",
+    "step2": "Once payment is received, we will confirm your reservation",
+    "step3": "One day before arrival, you will receive check-in instructions"
+  },
+  
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "notAvailable": "Selected dates are not available",
+    "bookingFailed": "Could not create booking",
+    "rateLimited": "Too many attempts",
+    "rateLimitedDescription": "Please wait a few minutes and try again.",
+    "unavailable": "Dates not available",
+    "unavailableDescription": "The selected dates have just been booked. Please try different dates.",
+    "serverError": "Server error",
+    "serverErrorDescription": "Sorry, a technical error occurred. Please try again later.",
+    "validation": "Invalid data",
+    "validationDescription": "Please check the entered data and correct any errors.",
+    "retry": "Try again",
+    "backToApartment": "Back to apartment",
+    "backHome": "Back to homepage",
+    "contactUs": "Contact us"
+  }
+}

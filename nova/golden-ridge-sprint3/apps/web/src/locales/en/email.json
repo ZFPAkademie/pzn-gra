@@ -1,0 +1,129 @@
+{
+  "confirmation": {
+    "subject": "Booking Confirmation - {{referenceNumber}}",
+    "greeting": "Hello, {{name}}",
+    "intro": "Thank you for your booking at {{apartmentName}}.",
+    
+    "details": {
+      "title": "Booking Details",
+      "referenceNumber": "Reference Number",
+      "apartment": "Apartment",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "nights": "Number of Nights",
+      "guests": "Number of Guests",
+      "total": "Total Price"
+    },
+    
+    "payment": {
+      "title": "Payment Information",
+      "intro": "Please complete your payment via bank transfer to the following account:",
+      "iban": "IBAN",
+      "bank": "Bank",
+      "reference": "Reference",
+      "amount": "Amount",
+      "deadline": "Please complete payment by {{date}}"
+    },
+    
+    "accessLink": {
+      "title": "Access Your Booking",
+      "intro": "Use the following link to view your booking details and check-in instructions:",
+      "button": "View Reservation",
+      "note": "This link is valid until {{date}}"
+    },
+    
+    "footer": {
+      "questions": "Have questions? Contact us at",
+      "thanks": "We look forward to your visit!",
+      "signature": "Best regards,",
+      "team": "Golden Ridge Apartments Team"
+    }
+  },
+  
+  "checkIn": {
+    "subject": "Check-in Instructions - {{referenceNumber}}",
+    "greeting": "Hello, {{name}}",
+    "intro": "Your stay at {{apartmentName}} is approaching! Here are your arrival instructions.",
+    
+    "arrival": {
+      "title": "Arrival Information",
+      "date": "Arrival Date",
+      "time": "Check-in from",
+      "checkOutTime": "Check-out by"
+    },
+    
+    "access": {
+      "title": "Apartment Access",
+      "address": "Address",
+      "accessCode": "Access Code",
+      "instructions": "Instructions"
+    },
+    
+    "parking": {
+      "title": "Parking",
+      "info": "Parking information"
+    },
+    
+    "wifi": {
+      "title": "WiFi Connection",
+      "network": "Network Name",
+      "password": "Password"
+    },
+    
+    "emergency": {
+      "title": "Emergency Contact",
+      "phone": "In case of emergency, call"
+    },
+    
+    "footer": {
+      "viewReservation": "View complete information here:",
+      "button": "View Reservation",
+      "safeTravel": "Have a safe journey!",
+      "signature": "Best regards,",
+      "team": "Golden Ridge Apartments Team"
+    }
+  },
+  
+  "tokenRequest": {
+    "subject": "New Access Link - {{referenceNumber}}",
+    "greeting": "Hello, {{name}}",
+    "intro": "We received your request for a new access link to your booking.",
+    
+    "link": {
+      "title": "Your New Access Link",
+      "button": "View Reservation",
+      "validity": "This link is valid until {{date}}"
+    },
+    
+    "security": {
+      "note": "If you did not request this link, you can ignore this email."
+    },
+    
+    "footer": {
+      "signature": "Best regards,",
+      "team": "Golden Ridge Apartments Team"
+    }
+  },
+  
+  "guestMessage": {
+    "subject": "Message from Guest - {{referenceNumber}}",
+    "intro": "You have received a new message from a guest:",
+    
+    "details": {
+      "reservation": "Reservation",
+      "guest": "Guest",
+      "email": "Email",
+      "dates": "Dates"
+    },
+    
+    "message": {
+      "title": "Message"
+    }
+  },
+  
+  "common": {
+    "currency": "EUR",
+    "dateFormat": "MMM d, yyyy",
+    "timeFormat": "h:mm a"
+  }
+}

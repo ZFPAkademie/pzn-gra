@@ -1,0 +1,364 @@
+// prisma/schema.prisma
+// Golden Ridge Apartments - Database Schema v0
+// Sprint 0: Structure only, no seed data
+// Based on IA_MAP v1.2 entities
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum ApartmentStatus {
+  FOR_SALE
+  FOR_RENT
+  RESIDENT
+  DISABLED
+}
+
+enum OwnerRole {
+  RESIDENT
+  BUSINESS
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum ReservationSource {
+  WEB
+  BOOKING
+  AIRBNB
+  OTHER
+}
+
+enum Language {
+  CZ
+  EN
+  DE
+  PL
+  SK
+}
+
+enum CommunicationType {
+  CONFIRMATION
+  PRE_ARRIVAL_7D
+  PRE_ARRIVAL_3D
+  CHECK_IN
+  WELCOME
+  CHECKOUT
+  MANUAL
+}
+
+enum CommunicationChannel {
+  EMAIL
+  SMS
+}
+
+enum CleaningStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+model Owner {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  phone       String?
+  companyName String?   @map("company_name")
+  role        OwnerRole @default(RESIDENT)
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  apartments  Apartment[]
+  user        User?
+  
+  @@map("owners")
+}
+
+model Apartment {
+  id            String          @id @default(cuid())
+  number        Int             @unique
+  name          String?
+  status        ApartmentStatus @default(RESIDENT)
+  rentalEnabled Boolean         @default(false) @map("rental_enabled")
+  
+  // Owner relation
+  ownerId       String          @map("owner_id")
+  owner         Owner           @relation(fields: [ownerId], references: [id])
+  
+  // Descriptions (per language)
+  descriptionCz String?         @map("description_cz") @db.Text
+  descriptionEn String?         @map("description_en") @db.Text
+  descriptionDe String?         @map("description_de") @db.Text
+  descriptionPl String?         @map("description_pl") @db.Text
+  descriptionSk String?         @map("description_sk") @db.Text
+  
+  // Attributes
+  photos        Json?           @default("[]")
+  amenities     Json?           @default("[]")
+  capacity      Int?
+  sizeSqm       Decimal?        @map("size_sqm") @db.Decimal(6, 2)
+  basePriceEur  Decimal?        @map("base_price_eur") @db.Decimal(10, 2)
+  
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  
+  reservations    Reservation[]
+  revenueRecords  RevenueRecord[]
+  pricingRules    PricingRule[]
+  cleaningTasks   CleaningTask[]
+  
+  @@map("apartments")
+}
+
+model Guest {
+  id              String    @id @default(cuid())
+  email           String
+  name            String
+  phone           String?
+  country         String?
+  language        Language  @default(CZ)
+  gdprConsent     Boolean   @default(false) @map("gdpr_consent")
+  gdprConsentDate DateTime? @map("gdpr_consent_date")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  
+  reservations    Reservation[]
+  
+  @@map("guests")
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  
+  // Relations
+  apartmentId     String            @map("apartment_id")
+  apartment       Apartment         @relation(fields: [apartmentId], references: [id])
+  guestId         String            @map("guest_id")
+  guest           Guest             @relation(fields: [guestId], references: [id])
+  
+  // Booking details
+  source          ReservationSource @default(WEB)
+  externalId      String?           @map("external_id")
+  checkIn         DateTime          @map("check_in") @db.Date
+  checkOut        DateTime          @map("check_out") @db.Date
+  nights          Int
+  status          ReservationStatus @default(PENDING)
+  
+  // Financial
+  totalPriceEur   Decimal           @map("total_price_eur") @db.Decimal(10, 2)
+  commissionRate  Decimal           @map("commission_rate") @db.Decimal(4, 3) // 0.300 or 0.400
+  
+  // Flags
+  isOwnerStay     Boolean           @default(false) @map("is_owner_stay")
+  specialRequests String?           @map("special_requests") @db.Text
+  
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  
+  guestToken      GuestToken?
+  communications  Communication[]
+  cleaningTask    CleaningTask?
+  
+  @@map("reservations")
+}
+
+model GuestToken {
+  id             String      @id @default(cuid())
+  
+  reservationId  String      @unique @map("reservation_id")
+  reservation    Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  
+  token          String      @unique
+  expiresAt      DateTime    @map("expires_at")
+  lastAccessedAt DateTime?   @map("last_accessed_at")
+  
+  createdAt      DateTime    @default(now()) @map("created_at")
+  
+  @@map("guest_tokens")
+}
+
+// ============================================
+// FINANCIAL ENTITIES
+// ============================================
+
+model RevenueRecord {
+  id                String    @id @default(cuid())
+  
+  apartmentId       String    @map("apartment_id")
+  apartment         Apartment @relation(fields: [apartmentId], references: [id])
+  
+  period            String    // Format: "YYYY-MM"
+  totalReservations Int       @map("total_reservations")
+  ownerReservations Int       @map("owner_reservations")
+  revenueEur        Decimal   @map("revenue_eur") @db.Decimal(12, 2)
+  revenueCzk        Decimal   @map("revenue_czk") @db.Decimal(12, 2)
+  exchangeRate      Decimal   @map("exchange_rate") @db.Decimal(6, 2)
+  extraCostsCzk     Decimal   @default(0) @map("extra_costs_czk") @db.Decimal(12, 2)
+  commissionRate    Decimal   @map("commission_rate") @db.Decimal(4, 3)
+  operatingCostsCzk Decimal   @map("operating_costs_czk") @db.Decimal(12, 2)
+  payoutCzk         Decimal   @map("payout_czk") @db.Decimal(12, 2)
+  
+  status            String    @default("draft") // draft | final
+  finalizedAt       DateTime? @map("finalized_at")
+  
+  createdAt         DateTime  @default(now()) @map("created_at")
+  
+  @@unique([apartmentId, period])
+  @@map("revenue_records")
+}
+
+model PricingRule {
+  id          String    @id @default(cuid())
+  
+  // Null = applies to all apartments
+  apartmentId String?   @map("apartment_id")
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id])
+  
+  name        String
+  priority    Int       @default(100)
+  conditions  Json      // { dateRange?, dayOfWeek?, occupancy?, etc. }
+  adjustment  Json      // { type: "percentage"|"absolute", value: number }
+  active      Boolean   @default(true)
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@map("pricing_rules")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("system_settings")
+}
+
+// ============================================
+// OPERATIONAL ENTITIES
+// ============================================
+
+model CleaningTask {
+  id            String         @id @default(cuid())
+  
+  reservationId String?        @unique @map("reservation_id")
+  reservation   Reservation?   @relation(fields: [reservationId], references: [id])
+  apartmentId   String         @map("apartment_id")
+  apartment     Apartment      @relation(fields: [apartmentId], references: [id])
+  
+  scheduledDate DateTime       @map("scheduled_date") @db.Date
+  status        CleaningStatus @default(SCHEDULED)
+  assignedTo    String?        @map("assigned_to")
+  notes         String?        @db.Text
+  completedAt   DateTime?      @map("completed_at")
+  
+  createdAt     DateTime       @default(now()) @map("created_at")
+  
+  @@map("cleaning_tasks")
+}
+
+model Communication {
+  id            String               @id @default(cuid())
+  
+  reservationId String               @map("reservation_id")
+  reservation   Reservation          @relation(fields: [reservationId], references: [id])
+  
+  type          CommunicationType
+  channel       CommunicationChannel @default(EMAIL)
+  subject       String?
+  content       String               @db.Text
+  sentAt        DateTime?            @map("sent_at")
+  openedAt      DateTime?            @map("opened_at")
+  
+  createdAt     DateTime             @default(now()) @map("created_at")
+  
+  @@map("communications")
+}
+
+// ============================================
+// CONTENT ENTITIES
+// ============================================
+
+model ContentPage {
+  id              String   @id @default(cuid())
+  slug            String
+  language        Language
+  title           String
+  content         String   @db.Text
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description") @db.Text
+  published       Boolean  @default(false)
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@unique([slug, language])
+  @@map("content_pages")
+}
+
+// ============================================
+// USER & AUTH ENTITIES
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole
+  
+  // Optional link to owner
+  ownerId       String?   @unique @map("owner_id")
+  owner         Owner?    @relation(fields: [ownerId], references: [id])
+  
+  lastLogin     DateTime? @map("last_login")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  auditLogs     AuditLog[]
+  
+  @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address")
+  
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  @@map("audit_logs")
+}

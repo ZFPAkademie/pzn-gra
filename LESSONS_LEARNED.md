@@ -275,6 +275,57 @@ export { Button, Form, Table };
 
 ---
 
+### 10. revalidatePath v server akci resetuje client useState
+**Problém:** `sendMagicLink` volal `revalidatePath()` — způsobilo RSC refresh, který resetoval komponentu před tím než admin stihl zkopírovat magic link URL. Tlačítko "probliklo a zmizelo".
+
+**Řešení:**
+```typescript
+// ❌ Resetuje UI dřív než admin vidí výsledek
+export async function sendMagicLink(id: string) {
+  const link = await generateLink(...);
+  revalidatePath('/admin/majitele'); // ← toto resetuje celý strom
+  return { ok: true, link };
+}
+
+// ✅ Revalidate jen pro mutace, nikdy pro "zobraz výsledek"
+export async function sendMagicLink(id: string) {
+  const link = await generateLink(...);
+  // žádný revalidatePath — uživatel refreshne ručně
+  return { ok: true, link };
+}
+```
+
+**Pravidlo:** `revalidatePath` používej jen po create/update/delete záznamů. Nikdy po akcích které vrací data zobrazovaná v UI (tokeny, linky, generované hodnoty).
+
+---
+
+### 11. Server action musí uložit user_id ihned po generateLink
+**Problém:** `generateLink` vytváří auth uživatele ale nevrací ho automaticky jako `session.user`. Pokud nezachytíme `data.user.id` a ihned neuložíme do `owners.user_id`, vazba se ztratí.
+
+**Řešení:**
+```typescript
+const { data, error } = await supabase.auth.admin.generateLink({
+  type: 'magiclink',
+  email,
+});
+if (data?.user?.id) {
+  await supabase.from('owners').update({ user_id: data.user.id }).eq('id', ownerId);
+}
+```
+
+**Platí pro:** Jakýkoli flow kde admin vytváří auth uživatele bez self-registrace.
+
+---
+
+### 12. Shared nav komponenta jako jediný zdroj pravdy
+**Problém:** Admin sekce (leads, rezervace, channel manager) měly každá vlastní hardcoded nav → missing items, nekonzistence, nutnost updatovat na 8 místech.
+
+**Řešení:** `_components/admin-nav.tsx` s `'use client'` a `usePathname()` pro active state. Importovat na každé admin stránce.
+
+**Pattern:** Jakmile sdílený layout existuje, vše jde do něj. Jinak: každá stránka = tech dluh.
+
+---
+
 ## 📊 Metriky projektu
 
 | Metrika | Hodnota |
@@ -285,8 +336,8 @@ export { Button, Form, Table };
 | Emergency restores | 2 |
 | Finální verze | v23 |
 | Doba vývoje | ~5 měsíců |
-| Migrací v DB | 5 |
-| Admin sekcí | 3 (leady, rezervace, channel manager) |
+| Migrací v DB | 7 |
+| Admin sekcí | 8 (leady, rezervace, apartmány, majitelé, ceníky, blokace, SVJ, channels) |
 
 ---
 
@@ -301,4 +352,4 @@ export { Button, Form, Table };
 
 ---
 
-*Aktualizace: 27.5.2026*
+*Aktualizace: 28.5.2026*
