@@ -58,9 +58,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // /portal/login — pokud již přihlášen, přesměruj do portálu
-  if (pathname === '/portal/login' && user) {
-    const portalUrl = request.nextUrl.clone();
-    portalUrl.pathname = '/portal';
+  // Ale ne pokud je error param — uživatel vidí chybu (no_access apod.)
+  if (pathname === '/portal/login' && user && !request.nextUrl.searchParams.get('error')) {
+    const portalUrl = new URL('/portal', request.url);
     return NextResponse.redirect(portalUrl);
   }
 

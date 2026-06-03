@@ -1,6 +1,17 @@
 import { LoginForm } from './magic-link-form';
+import { LogoutButton } from './logout-button';
 
-export default function PortalLoginPage() {
+interface Props {
+  searchParams: { error?: string };
+}
+
+const errorMessages: Record<string, string> = {
+  no_access: 'Váš účet nemá přiřazeny žádné apartmány. Kontaktujte správce.',
+};
+
+export default function PortalLoginPage({ searchParams }: Props) {
+  const errorMsg = searchParams.error ? errorMessages[searchParams.error] ?? 'Přístup odepřen.' : null;
+
   return (
     <main className="min-h-screen bg-[#0B1626] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -14,9 +25,16 @@ export default function PortalLoginPage() {
           <div className="mt-4 mx-auto w-16 h-px bg-[#C9A24D] opacity-60" />
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-sm p-8">
-          <LoginForm />
-        </div>
+        {errorMsg ? (
+          <div className="bg-white/5 border border-white/10 rounded-sm p-8 space-y-4">
+            <p className="text-amber-400 text-sm font-light leading-relaxed">{errorMsg}</p>
+            <LogoutButton />
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-sm p-8">
+            <LoginForm />
+          </div>
+        )}
 
         <p className="text-white/30 text-xs text-center mt-8">
           Přístup pouze pro majitele apartmánů.
