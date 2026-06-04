@@ -66,7 +66,16 @@ export function StatusActions({ bookingId, currentStatus }: StatusActionsProps) 
             </button>
           </>
         )}
-        {(currentStatus === 'completed' || currentStatus === 'cancelled') && (
+        {currentStatus === 'cancelled' && (
+          <button
+            onClick={() => handleUpdate('pending')}
+            disabled={loading === 'pending'}
+            className="px-4 py-2 bg-amber-100 text-amber-800 text-sm font-medium rounded-md hover:bg-amber-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading === 'pending' ? 'Ukládám...' : 'Obnovit rezervaci (vrátit na čekající)'}
+          </button>
+        )}
+        {currentStatus === 'completed' && (
           <p className="text-sm text-slate-400 italic">Žádné dostupné akce pro tento status.</p>
         )}
       </div>
