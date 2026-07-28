@@ -1,5 +1,8 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+
+export const dynamic = 'force-dynamic';
 
 type SvjPostType = 'announcement' | 'discussion' | 'poll' | 'document';
 
@@ -9,6 +12,7 @@ interface SvjPost {
   content: string | null;
   type: SvjPostType;
   is_pinned: boolean;
+  poll_deadline: string | null;
   created_at: string;
 }
 
@@ -40,17 +44,40 @@ export default async function SvjPage() {
 
   const { data: posts } = await admin
     .from('svj_posts')
-    .select('id, title, content, type, is_pinned, created_at')
+    .select('id, title, content, type, is_pinned, poll_deadline, created_at')
+    .is('archived_at', null)
     .order('is_pinned', { ascending: false })
     .order('created_at', { ascending: false });
 
   const typedPosts = (posts ?? []) as SvjPost[];
+
+  // Počty komentářů per post
+  const { data: commentRows } = await admin
+    .from('svj_comments')
+    .select('post_id')
+    .in('post_id', typedPosts.map((p) => p.id));
+
+  const commentCounts = new Map<string, number>();
+  for (const row of commentRows ?? []) {
+    commentCounts.set(row.post_id, (commentCounts.get(row.post_id) ?? 0) + 1);
+  }
 
   return (
     <div>
       <div className="mb-8">
         <p className="text-[#C9A24D] text-xs tracking-[0.25em] uppercase mb-1">Klientský portál</p>
         <h1 className="text-[#0B1626] font-light text-3xl">SVJ — Nástěnka</h1>
+      </div>
+
+      {/* Sub-navigace: Nástěnka | Dokumenty */}
+      <div className="flex gap-2 mb-8">
+        <span className="px-4 py-2 bg-[#0B1626] text-white text-sm font-light rounded-sm">Nástěnka</span>
+        <Link
+          href="/portal/svj/dokumenty"
+          className="px-4 py-2 border border-[#0B1626]/20 text-sm text-[#0B1626] font-light rounded-sm hover:border-[#0B1626] transition-colors"
+        >
+          Dokumenty
+        </Link>
       </div>
 
       {typedPosts.length === 0 ? (
@@ -62,10 +89,13 @@ export default async function SvjPage() {
         <div className="space-y-4">
           {typedPosts.map((post) => {
             const badge = typeBadge[post.type] ?? typeBadge.announcement;
+            const comments = commentCounts.get(post.id) ?? 0;
+            const deadlinePassed = post.poll_deadline && new Date(post.poll_deadline) < new Date();
             return (
-              <div
+              <Link
                 key={post.id}
-                className={`bg-white border rounded-sm p-6 ${post.is_pinned ? 'border-[#C9A24D]/40' : 'border-[#0B1626]/10'}`}
+                href={`/portal/svj/${post.id}`}
+                className={`block bg-white border rounded-sm p-6 transition-colors hover:border-[#C9A24D]/60 ${post.is_pinned ? 'border-[#C9A24D]/40' : 'border-[#0B1626]/10'}`}
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -75,16 +105,33 @@ export default async function SvjPage() {
                     <span className={`text-xs tracking-wider uppercase px-2 py-0.5 rounded-sm ${badge.className}`}>
                       {badge.label}
                     </span>
+                    {post.type === 'poll' && (
+                      <span className={`text-xs ${deadlinePassed ? 'text-[#0B1626]/30' : 'text-green-700'}`}>
+                        {deadlinePassed ? 'Ukončeno' : 'Probíhá'}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[#0B1626]/30 text-xs whitespace-nowrap">{formatDate(post.created_at)}</span>
                 </div>
                 <h2 className="text-[#0B1626] font-light text-base mb-2">{post.title}</h2>
                 {post.content && (
-                  <p className="text-[#0B1626]/60 font-light text-sm leading-relaxed whitespace-pre-line">
+                  <p className="text-[#0B1626]/60 font-light text-sm leading-relaxed whitespace-pre-line line-clamp-3">
                     {post.content}
                   </p>
                 )}
-              </div>
+                <div className="mt-3 flex items-center gap-4 text-xs text-[#0B1626]/40">
+                  <span>
+                    {comments === 0
+                      ? 'Bez komentářů'
+                      : comments === 1
+                        ? '1 komentář'
+                        : comments < 5
+                          ? `${comments} komentáře`
+                          : `${comments} komentářů`}
+                  </span>
+                  <span className="text-[#C9A24D]">Otevřít →</span>
+                </div>
+              </Link>
             );
           })}
         </div>

@@ -79,7 +79,7 @@ export default async function PronaJemPage() {
 
   const { data: upcomingBookings } = await admin
     .from('bookings')
-    .select('id, apartment_id, check_in, check_out, nights_count, total_price_cents, status, guest_first_name, guest_last_name')
+    .select('id, apartment_id, check_in, check_out, nights, total_amount_cents, status, guest_first_name, guest_last_name')
     .in('apartment_id', aptIds)
     .not('status', 'eq', 'cancelled')
     .gte('check_out', from)
@@ -93,14 +93,14 @@ export default async function PronaJemPage() {
 
   const { data: monthBookings } = await admin
     .from('bookings')
-    .select('nights_count, total_price_cents, status')
+    .select('nights, total_amount_cents, status')
     .in('apartment_id', aptIds)
     .eq('status', 'confirmed')
     .gte('check_in', monthStart)
     .lte('check_out', monthEnd);
 
-  const monthNights = (monthBookings ?? []).reduce((s, b) => s + (b.nights_count ?? 0), 0);
-  const monthRevenueCents = (monthBookings ?? []).reduce((s, b) => s + (b.total_price_cents ?? 0), 0);
+  const monthNights = (monthBookings ?? []).reduce((s, b) => s + (b.nights ?? 0), 0);
+  const monthRevenueCents = (monthBookings ?? []).reduce((s, b) => s + (b.total_amount_cents ?? 0), 0);
   const commissionRate = owner.commission_rate ?? 0.2;
   const monthNetCents = Math.round(monthRevenueCents * (1 - commissionRate));
 
@@ -158,7 +158,7 @@ export default async function PronaJemPage() {
                     )}
                     <p className="text-[#0B1626] font-light text-sm">
                       {formatDate(booking.check_in)} – {formatDate(booking.check_out)}
-                      <span className="text-[#0B1626]/40 ml-2">({booking.nights_count} nocí)</span>
+                      <span className="text-[#0B1626]/40 ml-2">({booking.nights} nocí)</span>
                     </p>
                     {booking.guest_first_name && (
                       <p className="text-[#0B1626]/50 text-xs">{booking.guest_first_name} {booking.guest_last_name}</p>
@@ -168,8 +168,8 @@ export default async function PronaJemPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-sm ${statusColors[booking.status] ?? ''}`}>
                       {statusLabels[booking.status] ?? booking.status}
                     </span>
-                    {booking.total_price_cents && (
-                      <p className="text-[#0B1626]/50 text-xs">{formatAmount(booking.total_price_cents)}</p>
+                    {booking.total_amount_cents && (
+                      <p className="text-[#0B1626]/50 text-xs">{formatAmount(booking.total_amount_cents)}</p>
                     )}
                   </div>
                 </div>

@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+
+export const dynamic = 'force-dynamic';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
 import { ProfilForm } from './profil-form';
 

@@ -30,8 +30,8 @@ export default async function PortalLayout({ children }: { children: React.React
         apartments={apartments || []}
         userEmail={user.email ?? ''}
       />
-      <main className="flex-1 ml-64">
-        <div className="max-w-4xl mx-auto px-8 py-10">
+      <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
           {children}
         </div>
       </main>

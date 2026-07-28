@@ -15,6 +15,8 @@ const secondaryItems = [
   { href: '/admin/ceniky', label: 'Ceníky' },
   { href: '/admin/blokace', label: 'Blokace' },
   { href: '/admin/svj', label: 'SVJ' },
+  { href: '/admin/dokumenty', label: 'Dokumenty' },
+  { href: '/admin/udrzba', label: 'Údržba' },
   { href: '/admin/channel-manager', label: 'Channels' },
 ];
 
