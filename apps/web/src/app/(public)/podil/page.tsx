@@ -136,14 +136,34 @@ const steps = [
   },
 ];
 
-// Share availability - EDIT THIS to update available shares
 const TOTAL_SHARES = 50;
-const AVAILABLE_SHARES = 50; // Change this number as shares are sold
+
+/**
+ * Počet volných podílů čteme z app_settings (edituje asistentka na
+ * /sprava-podilu). Fallback 50 při výpadku DB — stránka nesmí spadnout.
+ */
+async function getAvailableShares(): Promise<number> {
+  try {
+    const { createSupabaseAdminClient } = await import('@/lib/supabase-server');
+    const supabase = createSupabaseAdminClient();
+    const { data } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'podil_available')
+      .maybeSingle();
+    const parsed = parseInt(data?.value ?? '', 10);
+    if (Number.isNaN(parsed)) return TOTAL_SHARES;
+    return Math.min(Math.max(parsed, 0), TOTAL_SHARES);
+  } catch {
+    return TOTAL_SHARES;
+  }
+}
 
 export default async function PodilPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
-  
+  const AVAILABLE_SHARES = await getAvailableShares();
+
   // Get apartment 7 data (but don't mention the number)
   const apartment = getSaleApartmentBySlug('chata-1-suite-7');
   const heroImage = getApartmentHeroImage('chata-1-suite-7');
