@@ -3,12 +3,12 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { PODIL_COOKIE, podilAccessToken, hasPodilAccess } from './auth';
+import { PODIL_COOKIE, podilAccessToken, hasPodilAccess, getPodilPin } from './auth';
 
 const TOTAL_SHARES = 50;
 
 export async function verifyPodilPin(formData: FormData) {
-  const pin = process.env.PODIL_PIN;
+  const pin = getPodilPin();
   if (!pin) return { ok: false as const, error: 'PIN není nastaven — kontaktujte správce webu' };
 
   const input = ((formData.get('pin') as string) ?? '').trim();

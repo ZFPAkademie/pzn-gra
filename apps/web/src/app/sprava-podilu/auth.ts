@@ -12,8 +12,14 @@ export function podilAccessToken(pin: string): string {
   return createHmac('sha256', pin).update('podil-editor-v1').digest('hex');
 }
 
+/** Env hodnota může obsahovat neviditelné whitespace (echo, copy-paste) — vždy trim. */
+export function getPodilPin(): string | null {
+  const pin = process.env.PODIL_PIN?.trim();
+  return pin || null;
+}
+
 export function hasPodilAccess(): boolean {
-  const pin = process.env.PODIL_PIN;
+  const pin = getPodilPin();
   if (!pin) return false;
   const cookie = cookies().get(PODIL_COOKIE)?.value;
   return cookie === podilAccessToken(pin);
