@@ -49,7 +49,7 @@ export default async function BookingTokenPage({ params }: Props) {
 
   const apt = booking.apartments as { slug: string; title: string } | null;
   const staticApt = apt?.slug ? getRentalApartmentBySlug(apt.slug) : null;
-  const heroImage = apt?.slug ? getApartmentHeroImage(apt.slug) : null;
+  const heroImage = apt?.slug ? await getApartmentHeroImage(apt.slug) : null;
 
   const isPending   = booking.status === 'pending';
   const isConfirmed = booking.status === 'confirmed';

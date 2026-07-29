@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SaleApartmentDetailPage({ params }: Props) {
   const apt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
-  const images = getApartmentImages(params.slug);
+  const images = await getApartmentImages(params.slug);
 
   if (!apt || !apt.for_sale) {
     notFound();

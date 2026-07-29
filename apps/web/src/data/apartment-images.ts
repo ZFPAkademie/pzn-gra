@@ -230,26 +230,85 @@ const SLUG_TO_FOLDER: Record<string, string> = {
 };
 
 /**
- * Get all images for an apartment by slug (already sorted)
+ * Statické mapování — záloha pro případ, že DB nevrátí fotky.
+ * Zdroj pravdy je od migrace 010 tabulka `apartment_images` (admin je edituje).
  */
-export function getApartmentImages(slug: string): string[] {
+function getStaticApartmentImages(slug: string): string[] {
   const folder = SLUG_TO_FOLDER[slug];
   if (!folder) return [];
   return APARTMENT_IMAGES_BY_FOLDER[folder] || [];
 }
 
+export function storagePathToUrl(path: string): string {
+  return `${SUPABASE_STORAGE_URL}/${path}`;
+}
+
 /**
- * Get the main (hero) image for an apartment
+ * Načte fotky pro zadané slugy z DB jedním dotazem.
+ * Slug bez fotek v DB spadne zpět na statické mapování (soft fail — web
+ * nikdy nesmí zůstat bez fotek kvůli výpadku DB).
  */
-export function getApartmentHeroImage(slug: string): string | null {
-  const images = getApartmentImages(slug);
+export async function getImagesBySlugs(slugs: string[]): Promise<Record<string, string[]>> {
+  const result: Record<string, string[]> = {};
+  if (slugs.length === 0) return result;
+
+  try {
+    const { createSupabaseAdminClient } = await import('@/lib/supabase-server');
+    const supabase = createSupabaseAdminClient();
+    const { data } = await supabase
+      .from('apartment_images')
+      .select('storage_path, sort_order, apartments!inner(slug)')
+      .in('apartments.slug', slugs)
+      .order('sort_order', { ascending: true });
+
+    for (const row of (data ?? []) as unknown as {
+      storage_path: string;
+      apartments: { slug: string };
+    }[]) {
+      const slug = row.apartments?.slug;
+      if (!slug) continue;
+      (result[slug] ??= []).push(storagePathToUrl(row.storage_path));
+    }
+  } catch {
+    // ignoruj — níže se doplní statický fallback
+  }
+
+  for (const slug of slugs) {
+    if (!result[slug]?.length) result[slug] = getStaticApartmentImages(slug);
+  }
+  return result;
+}
+
+/**
+ * Get all images for an apartment by slug (seřazené dle sort_order)
+ */
+export async function getApartmentImages(slug: string): Promise<string[]> {
+  const bySlug = await getImagesBySlugs([slug]);
+  return bySlug[slug] ?? [];
+}
+
+/**
+ * Get the main (hero) image for an apartment — první dle sort_order
+ */
+export async function getApartmentHeroImage(slug: string): Promise<string | null> {
+  const images = await getApartmentImages(slug);
   return images[0] || null;
+}
+
+/**
+ * Hero fotky pro seznam bytů — jeden dotaz místo N (použij v listech)
+ */
+export async function getHeroImagesBySlugs(slugs: string[]): Promise<Record<string, string | null>> {
+  const bySlug = await getImagesBySlugs(slugs);
+  const heroes: Record<string, string | null> = {};
+  for (const slug of slugs) heroes[slug] = bySlug[slug]?.[0] ?? null;
+  return heroes;
 }
 
 /**
  * Get thumbnail images (first N) for grid display
  */
-export function getApartmentThumbnails(slug: string, count = 4): string[] {
-  const images = getApartmentImages(slug);
+export async function getApartmentThumbnails(slug: string, count = 4): Promise<string[]> {
+  const images = await getApartmentImages(slug);
   return images.slice(0, count);
 }

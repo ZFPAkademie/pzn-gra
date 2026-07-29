@@ -1,6 +1,8 @@
 'use client';
 
 import { useTransition, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import {
   updateApartmentInfo,
   updateApartmentFeatures,
@@ -8,6 +10,11 @@ import {
   deletePricingRuleForApt,
   addBlock,
   deleteBlock,
+  createImageUploadUrl,
+  saveApartmentImage,
+  deleteApartmentImage,
+  moveApartmentImage,
+  setApartmentHeroImage,
 } from './actions';
 
 // ─── Typy ─────────────────────────────────────────────────────────
@@ -533,6 +540,169 @@ export function RecentBookingsSection({ bookings }: { bookings: Booking[] }) {
                 </span>
               </div>
             </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Fotogalerie ──
+
+export interface ApartmentImage {
+  id: string;
+  url: string;
+  storage_path: string;
+}
+
+export function PhotosSection({
+  apartmentId,
+  images,
+}: {
+  apartmentId: string;
+  images: ApartmentImage[];
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [error, setError] = useState('');
+
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setError('');
+    setUploading(true);
+    const supabase = createSupabaseBrowserClient();
+    let done = 0;
+
+    try {
+      for (const file of files) {
+        setProgress(`Nahrávám ${done + 1}/${files.length}: ${file.name}`);
+
+        const urlResult = await createImageUploadUrl(apartmentId, file.name);
+        if (!urlResult.ok) { setError(urlResult.error ?? 'Chyba'); break; }
+
+        // Upload přímo z prohlížeče do Storage (FILE-01 — Vercel 4.5MB limit)
+        const { error: uploadError } = await supabase.storage
+          .from('apartmany')
+          .uploadToSignedUrl(urlResult.path, urlResult.token, file);
+        if (uploadError) { setError(`Upload "${file.name}" selhal: ${uploadError.message}`); break; }
+
+        const saveResult = await saveApartmentImage(apartmentId, urlResult.path);
+        if (!saveResult.ok) { setError(saveResult.error ?? 'Chyba'); break; }
+        done++;
+      }
+    } finally {
+      setUploading(false);
+      setProgress('');
+      e.target.value = '';
+      if (done > 0) router.refresh();
+    }
+  }
+
+  function run(action: () => Promise<{ ok: boolean; error?: string }>) {
+    setError('');
+    startTransition(async () => {
+      const result = await action();
+      if (!result.ok) { setError(result.error ?? 'Chyba'); return; }
+      router.refresh();
+    });
+  }
+
+  const busy = isPending || uploading;
+
+  return (
+    <div className="bg-white border border-stone rounded-sm p-5 mb-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+          <h2 className="text-navy font-light text-lg">Fotogalerie</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {images.length === 0
+              ? 'Zatím žádné fotky'
+              : `${images.length} fotek · první je hlavní (zobrazuje se v seznamech)`}
+          </p>
+        </div>
+        <label className={`px-4 py-2 bg-navy text-white text-sm font-light cursor-pointer hover:bg-navy/90 ${busy ? 'opacity-50 pointer-events-none' : ''}`}>
+          {uploading ? 'Nahrávám…' : 'Přidat fotky'}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFiles}
+            disabled={busy}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {progress && <p className="text-xs text-slate-500 mb-3">{progress}</p>}
+      {error && <p className="text-red-600 text-xs mb-3">{error}</p>}
+
+      {images.length === 0 ? (
+        <div className="border border-dashed border-stone p-8 text-center text-sm text-slate-400">
+          Nahrajte fotky tlačítkem výše. Můžete vybrat víc souborů najednou.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {images.map((image, index) => (
+            <div key={image.id} className="border border-stone rounded-sm overflow-hidden">
+              <div className="relative aspect-[4/3] bg-stone">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image.url}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {index === 0 && (
+                  <span className="absolute top-1 left-1 bg-gold text-navy text-[10px] px-1.5 py-0.5 tracking-wider uppercase">
+                    Hlavní
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between px-2 py-1.5 gap-1">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => run(() => moveApartmentImage(image.id, apartmentId, 'up'))}
+                    disabled={busy || index === 0}
+                    title="Posunout dopředu"
+                    className="text-slate-400 hover:text-navy disabled:opacity-30 px-1"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => run(() => moveApartmentImage(image.id, apartmentId, 'down'))}
+                    disabled={busy || index === images.length - 1}
+                    title="Posunout dozadu"
+                    className="text-slate-400 hover:text-navy disabled:opacity-30 px-1"
+                  >
+                    →
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  {index !== 0 && (
+                    <button
+                      onClick={() => run(() => setApartmentHeroImage(image.id, apartmentId))}
+                      disabled={busy}
+                      className="text-[10px] text-slate-400 hover:text-gold disabled:opacity-50"
+                    >
+                      Hlavní
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      if (!confirm('Odebrat tuto fotku z galerie bytu?')) return;
+                      run(() => deleteApartmentImage(image.id, apartmentId));
+                    }}
+                    disabled={busy}
+                    className="text-[10px] text-red-400 hover:text-red-600 disabled:opacity-50"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

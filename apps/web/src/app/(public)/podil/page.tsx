@@ -166,8 +166,8 @@ export default async function PodilPage() {
 
   // Get apartment 7 data (but don't mention the number)
   const apartment = getSaleApartmentBySlug('chata-1-suite-7');
-  const heroImage = getApartmentHeroImage('chata-1-suite-7');
-  const allImages = getApartmentImages('chata-1-suite-7');
+  const heroImage = await getApartmentHeroImage('chata-1-suite-7');
+  const allImages = await getApartmentImages('chata-1-suite-7');
   const carouselImages = allImages.filter(img => img !== heroImage).slice(0, 6);
 
   if (!apartment) {

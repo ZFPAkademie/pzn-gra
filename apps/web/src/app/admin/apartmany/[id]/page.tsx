@@ -8,12 +8,14 @@ import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { AdminNav } from '../../_components/admin-nav';
+import { storagePathToUrl } from '@/data/apartment-images';
 import {
   BasicInfoSection,
   FeaturesSection,
   PricingRulesSection,
   BlockedDatesSection,
   RecentBookingsSection,
+  PhotosSection,
 } from './detail-client';
 
 export const dynamic = 'force-dynamic';
@@ -46,6 +48,7 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
     { data: pricingRules },
     { data: blockedDates },
     { data: bookings },
+    { data: images },
   ] = await Promise.all([
     supabase
       .from('apartments')
@@ -69,6 +72,11 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
       .eq('apartment_id', id)
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase
+      .from('apartment_images')
+      .select('id, storage_path')
+      .eq('apartment_id', id)
+      .order('sort_order', { ascending: true }),
   ]);
 
   if (!apt) notFound();
@@ -120,6 +128,15 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
         <BasicInfoSection apt={{ ...apt, features }} />
 
         <FeaturesSection apt={{ ...apt, features }} />
+
+        <PhotosSection
+          apartmentId={id}
+          images={(images ?? []).map((img) => ({
+            id: img.id,
+            storage_path: img.storage_path,
+            url: storagePathToUrl(img.storage_path),
+          }))}
+        />
 
         <PricingRulesSection
           aptId={id}

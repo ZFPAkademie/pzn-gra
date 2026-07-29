@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getRentalApartmentsDB } from '@/lib/apartments';
-import { getApartmentHeroImage } from '@/data/apartment-images';
+import { getHeroImagesBySlugs } from '@/data/apartment-images';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 
 export default async function RentalApartmentsPage() {
   const apartments = await getRentalApartmentsDB();
+  const heroImages = await getHeroImagesBySlugs(apartments.map((a) => a.slug));
 
   return (
     <>
@@ -64,7 +65,7 @@ export default async function RentalApartmentsPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apartments.map((apt) => {
-              const heroImage = getApartmentHeroImage(apt.slug);
+              const heroImage = heroImages[apt.slug] ?? null;
               const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
               const alsoForSale = apt.for_sale;
               return (

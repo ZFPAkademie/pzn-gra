@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getSaleApartmentsDB, getSalesManager } from '@/lib/apartments';
-import { getApartmentHeroImage } from '@/data/apartment-images';
+import { getHeroImagesBySlugs } from '@/data/apartment-images';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 
 export default async function SuitesPage() {
   const apartments = await getSaleApartmentsDB();
+  const heroImages = await getHeroImagesBySlugs(apartments.map((a) => a.slug));
   const manager = getSalesManager();
 
   return (
@@ -77,7 +78,7 @@ export default async function SuitesPage() {
 
           <div className="space-y-16">
             {apartments.map((apt, index) => {
-              const heroImage = getApartmentHeroImage(apt.slug);
+              const heroImage = heroImages[apt.slug] ?? null;
               const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
               return (
                 <Link
