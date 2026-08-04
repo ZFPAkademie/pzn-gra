@@ -293,6 +293,12 @@ export default async function PodilPage() {
               </div>
             ))}
           </div>
+
+          {/* LEGAL NOTE - přesunuto sem z konce stránky */}
+          <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto mt-12">
+            Uvedené výnosy a zhodnocení jsou orientační a mohou se lišit v závislosti na obsazenosti a tržních podmínkách.
+            Družstevní podíl nezakládá přímé vlastnictví nemovitosti.
+          </p>
         </div>
       </section>
 
@@ -474,18 +480,6 @@ export default async function PodilPage() {
           </div>
           
           <ShareRequestForm locale={locale} />
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          LEGAL NOTE - PŮVODNÍ OBSAH
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-8 bg-stone">
-        <div className="max-w-6xl mx-auto px-6">
-          <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto">
-            Uvedené výnosy a zhodnocení jsou orientační a mohou se lišit v závislosti na obsazenosti a tržních podmínkách.
-            Družstevní podíl nezakládá přímé vlastnictví nemovitosti.
-          </p>
         </div>
       </section>
 
