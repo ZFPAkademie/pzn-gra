@@ -1,0 +1,17 @@
+{
+  "ref": "nudiugowvzflokflcokd",
+  "allow_api": [
+    {
+      "route": "POST /api/v1/bookings",
+      "why": "veřejná rezervace apartmánu"
+    },
+    {
+      "route": "POST /api/v1/checkout",
+      "why": "platba rezervace (Stripe checkout)"
+    },
+    {
+      "route": "POST /api/v1/contact",
+      "why": "veřejný kontaktní formulář"
+    }
+  ]
+}
