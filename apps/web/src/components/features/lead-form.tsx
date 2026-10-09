@@ -293,7 +293,6 @@ export function LeadForm({
           />
         </div>
       )}
-      )}
 
       {/* Message */}
       <div>

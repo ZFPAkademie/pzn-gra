@@ -66,6 +66,7 @@ export async function getBookingByToken(token: string) {
       total_amount_cents,
       currency,
       confirmation_token,
+      checkin_info,
       created_at,
       apartments (
         id,
@@ -81,6 +82,20 @@ export async function getBookingByToken(token: string) {
     return null;
   }
 
+  return data;
+}
+
+export async function getBookingById(id: string) {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from('bookings')
+    .select('id, status, apartment_id, check_in, check_out')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) {
+    console.error('[bookings] getBookingById error:', error);
+    return null;
+  }
   return data;
 }
 

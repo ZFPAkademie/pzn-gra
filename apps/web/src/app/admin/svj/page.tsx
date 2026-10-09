@@ -46,7 +46,7 @@ export default async function AdminSvjPage() {
   ]);
 
   const commentsByPost = new Map<string, AdminComment[]>();
-  for (const c of (commentsRes.data ?? []) as {
+  for (const c of (commentsRes.data ?? []) as unknown as {
     id: string; post_id: string; content: string; created_at: string; owners: { name: string | null } | null;
   }[]) {
     const list = commentsByPost.get(c.post_id) ?? [];

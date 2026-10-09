@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe, StripeEvent } from '@/lib/stripe';
-import { confirmBookingPayment, getBookingByCheckoutSession } from '@/lib/booking-engine/bookings';
-import { blockDatesForBooking } from '@/lib/booking-engine/availability';
+import { confirmBookingPayment, getBookingById } from '@/lib/booking-engine/bookings';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -31,9 +30,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true });
       }
 
-      const booking = await getBookingByCheckoutSession(session.id);
+      const booking = await getBookingById(bookingId);
       if (!booking) {
-        console.error('[stripe-webhook] Booking not found for session:', session.id);
+        console.error('[stripe-webhook] Booking not found:', bookingId, 'session:', session.id);
         return NextResponse.json({ received: true });
       }
 
@@ -42,21 +41,10 @@ export async function POST(req: NextRequest) {
           ? session.payment_intent
           : (session.payment_intent?.id ?? '');
 
-      const [confirmResult, blockResult] = await Promise.all([
-        confirmBookingPayment(booking.id, paymentIntentId),
-        blockDatesForBooking(
-          booking.id,
-          booking.apartment_id,
-          booking.check_in,
-          booking.check_out
-        ),
-      ]);
-
+      // Dostupnost se počítá z bookings (status != cancelled), potvrzení tedy termín blokuje samo.
+      const confirmResult = await confirmBookingPayment(booking.id, paymentIntentId);
       if (!confirmResult.ok) {
         console.error('[stripe-webhook] confirmBookingPayment failed:', confirmResult.error);
-      }
-      if (!blockResult.ok) {
-        console.error('[stripe-webhook] blockDatesForBooking failed:', blockResult.error);
       }
 
       console.log('[stripe-webhook] Booking confirmed:', booking.id);

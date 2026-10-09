@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const booking = await getBookingByToken(params.token);
-  const apt = booking?.apartments as { title: string } | null;
+  const apt = booking?.apartments as unknown as { title: string } | null;
   return {
     title: apt?.title ? `Rezervace — ${apt.title} | Pod Zlatým návrším` : 'Rezervace | Pod Zlatým návrším',
     robots: { index: false },
@@ -47,7 +47,7 @@ export default async function BookingTokenPage({ params }: Props) {
   const booking = await getBookingByToken(params.token);
   if (!booking) notFound();
 
-  const apt = booking.apartments as { slug: string; title: string } | null;
+  const apt = booking.apartments as unknown as { slug: string; title: string } | null;
   const staticApt = apt?.slug ? getRentalApartmentBySlug(apt.slug) : null;
   const heroImage = apt?.slug ? await getApartmentHeroImage(apt.slug) : null;
 

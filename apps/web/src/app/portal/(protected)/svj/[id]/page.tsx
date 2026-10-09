@@ -60,7 +60,7 @@ export default async function SvjPostDetailPage({ params }: { params: { id: stri
     id: c.id as string,
     content: c.content as string,
     createdAt: c.created_at as string,
-    authorName: ((c.owners as { name: string | null } | null)?.name) ?? 'Vlastník',
+    authorName: ((c.owners as unknown as { name: string | null } | null)?.name) ?? 'Vlastník',
     isMine: c.author_id === owner.id,
   }));
 

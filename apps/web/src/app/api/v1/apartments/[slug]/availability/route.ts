@@ -57,7 +57,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       totalCents: price?.totalCents ?? 0,
       pricePerNightCents: price?.pricePerNightCents ?? apartment.base_price_cents,
       currency: 'CZK',
-      blockedDates: avail.blockedDates,
     });
   }
 
