@@ -99,7 +99,7 @@ Pracuješ evolučně — nikdy nepřepisuješ fungující části bez důvodu.
 
 ---
 
-## AKTUÁLNÍ STAV (v24 — 28.5.2026)
+## AKTUÁLNÍ STAV (v26 — 28.7.2026)
 
 ### ✅ Implementováno
 - Veřejný web s Alpine Quiet Luxury design systémem — data z DB (migrace 007)
@@ -110,17 +110,22 @@ Pracuješ evolučně — nikdy nepřepisuješ fungující části bez důvodu.
 - **Rezervační karta** — /rezervace/[token], messaging host↔admin
 - **Resend emaily** — 3 transakční šablony (soft-fail)
 - **iCal channel manager** — import Booking.com/Airbnb, export feed, admin UI, Vercel Cron
-- **Admin panel — 8 sekcí** se shared nav (desktop + mobilní bottom tab bar):
-  - Leady, Rezervace, Apartmány + detail (/admin/apartmany/[id])
+- **Admin panel — 10 sekcí** se shared nav (desktop + mobilní bottom tab bar):
+  - Leady, Rezervace, Apartmány + detail (/admin/apartmany/[id], visibility flags toggle)
   - Majitelé + invite magic link (owners.user_id linkován)
-  - Ceníky (CRUD), Blokace (CRUD), SVJ, Channels
-- DB migrace 001–007 spuštěné
+  - Ceníky (CRUD), Blokace (CRUD + edit), SVJ (posty CRUD + ankety + dokumenty), Channels
+  - Dokumenty (klientské — upload per majitel), Údržba (hlášení závad, status chips)
+- **Portal login** — email + heslo (`signInWithPassword`), magic link zůstává jako admin nástroj
+- **Klientský portál — kompletní** (mobilně responsive, DEC-027):
+  - Můj apartmán, Dokumenty (signed URLs), Údržba (hlášení závad), Profil
+  - SVJ: nástěnka + detail postu + komentáře + hlasování (DEC-025) + dokumenty
+  - Pronájem (jen in_rental_program): dashboard, rezervace, blokace
+- **Sitemap z DB** — slugy dle visibility flags, /podil, revalidate 1h
+- DB migrace 001–008 spuštěné (008 = poll options, archived_at, bucket dokumenty)
 
 ### 🚧 K implementaci
-- [ ] Klientský portál — /portal route ochrana (middleware)
-- [ ] Klientský portál — Můj apartmán, SVJ, dokumenty
-- [ ] Admin — visibility flags UI (for_sale/for_rent/in_rental_program)
-- [ ] Blokace — edit formulář (jen delete)
+- [ ] 🔴 Ceníky: pricing_rules jen pro 1/8 pronajímaných apartmánů (blokuje launch rezervací)
+- [ ] Portál — fotogalerie apartmánu
 - [ ] Stripe platby (čeká na schválení managera)
 - [ ] Channel Manager credentials (Booking.com/Airbnb přístupy od managera)
 
@@ -509,7 +514,6 @@ Před implementací přečti (soubory jsou v ROOT projektu):
 
 Tento projekt staví dle **Vibecodex OS**. Při každém novém modulu:
 - Přečti `VIBEKODEX_MODULE_PROTOCOL.md` — Fáze 0 (7 otázek povinně)
-- Najdi relevantní pattern v `VIBEKODEX_PATTERNS.md` nebo `VIBEKODEX_ADVANCED.md`
 - Zapiš do `PATTERNS_CONTRIB` pokud implementuješ něco nového a opakovatelného
 
 ### Pattern mapping — tento projekt
@@ -575,8 +579,42 @@ Přidání nového jazyka (PL, DE):
   nikdy mergnut do main. Kód existuje ale není integrovaný, práce ztracena.
   Prevence: každý sprint = merge do main, ne ZIP deliverable.
   → kandidát Vibecodex Error Patterns (sekce 7)
+
+[2026-07] plausible-env-fallback-antipattern — `process.env.X ?? 'CZ00 0000 0000 0000'`
+  skryl chybějící proměnnou na produkci; hostům se tiše zobrazoval zástupný bankovní účet.
+  Fallback smí být bezpečný default (URL, název), NIKDY hodnota vypadající funkčně
+  (číslo účtu, API klíč, telefon) — tam nech chybu vybouchnout.
+  Kontrola: `vercel env ls production` vs `.env.local` přes `comm -23`.
+  → kandidát VIBEKODEX_PATTERNS.md / ERR sekce (anti-pattern)
+
+[2026-07] code-to-db-migration-with-fallback — Přesun natvrdo zapsaných dat z kódu do DB
+  (fotky, obsah) bez rizika ztráty: (1) seed SQL vygeneruj spuštěním samotného zdrojového
+  modulu, ne ručním přepisem — zaručí 1:1 včetně řazení, (2) čtecí funkce nech spadnout
+  zpět na původní statická data, když DB vrátí prázdno. Pozor: sync → async znamená,
+  že listy nemohou awaitovat v `.map()` → batch loader `getXBySlugs(slugs[])`.
+  → kandidát VIBEKODEX_PATTERNS.md / DB sekce
+
+[2026-07] pin-gated-micro-admin — Netechnický uživatel (asistentka) potřebuje měnit jedinou
+  hodnotu, ale nemá mít přístup do adminu. Samostatná stránka + PIN z env, cookie = HMAC(PIN),
+  hodnota v `app_settings` (key/value). Změna PINu zneplatní všechny přístupy.
+  Levnější než role a oprávnění, když jde opravdu o jednu hodnotu.
+  → kandidát VIBEKODEX_PATTERNS.md / AUTH sekce
+
+[2026-07] vercel-alias-is-not-dns — Doména uvedená v `vercel inspect` mezi aliasy neznamená,
+  že na Vercel skutečně míří. Ověřuj vždy `dig +short www.domena.cz` a `curl -sIL | grep server`.
+  → kandidát Vibecodex Error Patterns (sekce 7)
 ```
 
 ---
 
-*Verze: v24 | Aktualizace: 28.5.2026*
+*Verze: v26 | Aktualizace: 30.7.2026*
+
+## Vibekodex OS (jádro — auto-načtení)
+@/Users/ondrej/Documents/moje-weby/__vibekodex/os/vibekodex-agentic.md
+@/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_BRAND.md
+
+Milníky (načti přes Read, až nastanou — neimportovat, šetří kontext):
+- Nový modul → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_MODULE_PROTOCOL.md` (Fáze 0 povinně)
+- Pattern ID v zadání → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_PATTERNS.md` (jen daný pattern)
+- Nasazení → skill /ship (AUTO-SHIP platí) · Migrace → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/supabase_sql.sh`
+- Konec session → skill /handoff
