@@ -617,4 +617,5 @@ Milníky (načti přes Read, až nastanou — neimportovat, šetří kontext):
 - Nový modul → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_MODULE_PROTOCOL.md` (Fáze 0 povinně)
 - Pattern ID v zadání → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_PATTERNS.md` (jen daný pattern)
 - Nasazení → skill /ship (AUTO-SHIP platí) · Migrace → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/supabase_sql.sh`
+- Monorepo: aplikace je `apps/web` — bezpečnostní test (/ship krok 1b) pouštět `security_probe.py apps/web`, konfigurace v `apps/web/.vibekodex/security.json`; `nova/` je archiv sprintu 3, ne živý kód
 - Konec session → skill /handoff

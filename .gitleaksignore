@@ -1,0 +1,5 @@
+# Build výstup .next/ zakommitovaný v únoru 2026 (dnes ignorovaný) — klíč server actions generovaný při buildu, ne tajemství.
+fdac0059d836d9167a54564b93761cee5bae4a95:apps/web/.next/server/server-reference-manifest.json:generic-api-key:4
+0584ab39715e62495cdfceac994ae8a7eff54ed0:apps/web/.next/server/server-reference-manifest.json:generic-api-key:4
+268bd1d8ff0a5c1ba2ee70d3e321cb11e9c5dda7:apps/web/.next/server/server-reference-manifest.json:generic-api-key:4
+e0afd790ef6ab6bd8d8a7cbebf5d8c5af087a6e8:apps/web/.next/server/server-reference-manifest.json:generic-api-key:4

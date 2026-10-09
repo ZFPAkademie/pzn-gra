@@ -1,0 +1,67 @@
+# CI (úroveň 4 Vibekodex): na každý push a PR typecheck, build, statická kontrola API a gitleaks.
+# Bez tajemství: proměnné prostředí pro build se najdou v kódu a dostanou falešné hodnoty,
+# bezpečnostní test jen v režimu --api-only (databázi ověřuje /ship a týdenní běh na Macu).
+# Šablona: __vibekodex/os/ci/ci.yml (postup v README.md vedle). Tenhle projekt je monorepo:
+# aplikace je v apps/web (npm, vlastní package-lock), gitleaks a .gitleaksignore v kořeni.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/web
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Falešné proměnné pro build (z process.env.X v kódu)
+        run: |
+          echo "NEXT_TELEMETRY_DISABLED=1" >> "$GITHUB_ENV"
+          for v in $(grep -rhoE "process\.env\.[A-Z][A-Z0-9_]+" src 2>/dev/null | sed 's/process.env.//' | sort -u); do
+            case "$v" in NODE_ENV|VERCEL*|CI|PORT) continue ;; *URL) echo "$v=https://example.supabase.co" ;; *) echo "$v=ci-dummy" ;; esac
+          done >> "$GITHUB_ENV"
+
+      - name: npm stejné verze jako lokální vývoj (lock soubory generuje npm 11)
+        run: npm install -g npm@11.6.2
+
+      - name: Instalace
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npx next build
+
+      - name: Bezpečnost API (statická kontrola rout)
+        run: python3 ../../scripts/security_probe.py . --api-only
+
+      - name: Tajemství v nových commitech (gitleaks)
+        working-directory: ${{ github.workspace }}
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz | tar xz gitleaks
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then RANGE="HEAD~1..HEAD"; else RANGE="$BEFORE..${{ github.sha }}"; fi
+          ./gitleaks git --redact --no-banner --log-opts="$RANGE"
