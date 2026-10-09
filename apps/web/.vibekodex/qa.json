@@ -1,0 +1,9 @@
+{
+  "_poznamka": "QA kořen je apps/web (monorepo). supabase/ je symlink na ../../supabase. Schéma QA = dump z produkce (migrace v repu neodpovídají realitě, viz WORKLOG 7/2026). qa_refs prázdné = testy jen proti lokální DB; prod_ref slouží jen parity.sh ke čtení schématu.",
+  "name": "gra3",
+  "qa_refs": [],
+  "base_url": "http://localhost:3005",
+  "prod_ref": "nudiugowvzflokflcokd",
+  "schema": "dump",
+  "keychain_service": "vibekodex QA gra3"
+}
