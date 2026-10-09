@@ -1,9 +1,26 @@
 # PROJECT_SNAPSHOT.md
 ## Pod Zlatým návrším — Stav projektu
 
-**Datum:** 28. května 2026  
-**Verze:** v24  
-**Status:** Production (fáze 2 + admin)
+**Datum:** 30. července 2026  
+**Verze:** v27  
+**Status:** Funkčně hotovo (web + booking + admin + portál + SVJ). Blokuje spuštění: ceníky a DNS.
+
+### ⚠️ Kde projekt reálně běží
+- **`https://pzn-gra.vercel.app`** — jediná živá adresa nového webu
+- **`podzlatymnavrsim.cz` NENÍ náš web** — DNS stále míří na Wix (ověřeno 29.7.2026).
+  Alias ve Vercelu je nastavený, přepnutí DNS je otevřený úkol.
+
+### Přístupy (tři oddělené systémy — nepleť si je)
+| Kde | Adresa | Přihlášení |
+|-----|--------|-----------|
+| Administrace | `/admin` | pouze heslo `ADMIN_DASH_PASSWORD` (= `zlato`, slabé → doporučena změna). Supabase Auth se tu NEPOUŽÍVÁ. |
+| Klientský portál | `/portal` | Supabase Auth, e-mail + heslo. Funkční účet: `obelsky@gmail.com`. `gra@podzlatymnavrsim.cz` má heslo, ale chybí mu vazba v `owners` → odmítne ho. |
+| Správa podílů | `/sprava-podilu` | PIN z env `PODIL_PIN` (= `943702`) |
+
+### Další krok
+1. 🔴 Doplnit ceníky pro 7 bytů v `/admin/ceniky` — bez nich nejdou rezervovat
+2. 🔴 Přepnout DNS ostré domény (odblokuje i Resend e-maily / magic link)
+3. Projít E2E rezervaci (platební údaje jsou od 30.7. konečně správné)
 
 ---
 
@@ -88,7 +105,7 @@
 - Vercel Cron každou hodinu
 - Živé přihlašovací údaje z Booking.com/Airbnb: ČEKÁ
 
-### 2.4 Admin Dashboard (🚧 Fáze A — průběžně)
+### 2.4 Admin Dashboard (✅ HOTOVO — 10 sekcí)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  ADMIN DASHBOARD                                                │
@@ -108,7 +125,7 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.5 Klientský Portál (🚧 TODO)
+### 2.5 Klientský Portál (✅ HOTOVO — mobilně responsive)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  KLIENTSKÝ PORTÁL (pro všechny majitele)                        │
@@ -134,7 +151,7 @@
 
 ---
 
-## 3. Aktuální stav (v24 — 28.5.2026)
+## 3. Aktuální stav (v27 — 30.7.2026)
 
 ### ✅ Hotovo
 | Komponenta | Status | Poznámky |
@@ -142,7 +159,7 @@
 | Homepage | ✅ | Alpine Quiet Luxury design |
 | Stránky prodej | ✅ | 3 apartmány, data z DB |
 | Stránky pronájem | ✅ | 8 apartmánů, data z DB |
-| Stránka podíl | ✅ | Dynamické URL /podil/[available] |
+| Stránka podíl | ✅ | Počet volných podílů z DB, edituje asistentka na /sprava-podilu (DEC-028) |
 | Lead capture | ✅ | 4 typy leadů |
 | Admin inbox (leady) | ✅ | Status, detail, odpověď |
 | Supabase Storage | ✅ | Fotky apartmánů |
@@ -158,18 +175,43 @@
 | **Admin majitelé** | ✅ | CRUD + invite magic link → owners.user_id |
 | **Admin shared nav** | ✅ | Všechny sekce, mobilní bottom tab bar |
 | **Migrace 007** | ✅ | Data apartmánů v DB (title, desc, orientation, rooms) |
+| **Admin blokace — edit** | ✅ | updateBlock action + EditBlockForm inline |
+| **Portal login — email+heslo** | ✅ | Přechod z magic link na signInWithPassword (DEC-024) |
+| **Portal — základní struktura** | ✅ | Layout, nav, Můj apartmán, SVJ nástěnka, Pronájem dashboard, Blokace |
+| **Portal — redirect loop fix** | ✅ | Middleware + no_access error stránka |
+| **Portal — mobilní layout** | ✅ | Top bar + drawer (DEC-027), responsive grids |
+| **Portal — pronajem fix sloupců** | ✅ | 🔴 bug: nights_count/total_price_cents → nights/total_amount_cents |
+| **SVJ — detail + komentáře** | ✅ | /portal/svj/[id], add/delete own, admin moderace |
+| **SVJ — hlasování** | ✅ | options jsonb + svj_poll_votes upsert (DEC-025), optimistic UI |
+| **SVJ — dokumenty** | ✅ | Privátní bucket + signed URLs (DEC-026), admin upload/edit/delete |
+| **SVJ admin — edit postů** | ✅ | updateSvjPost, soft delete (archived_at), author moderace |
+| **Portal — dokumenty klienta** | ✅ | /portal/dokumenty (owner_documents), admin /admin/dokumenty |
+| **Portal — údržba** | ✅ | /portal/udrzba hlášení závad, admin /admin/udrzba (status chips + note) |
+| **Sitemap z DB** | ✅ | Slugy dle visibility flags, /podil přidán, revalidate 1h |
+| **Migrace 008** | ✅ | Poll options, archived_at, GRANTy, bucket dokumenty |
+| **/sprava-podilu** | ✅ | PIN stránka pro asistentku — počet volných podílů (DEC-028, migrace 009) |
+| **Fotogalerie bytů** | ✅ | Admin upload/řazení/mazání fotek (DEC-029, migrace 010 + seed 158 fotek) |
 
 ### 🚧 K implementaci
 | Komponenta | Priorita | Závislosti |
 |------------|----------|------------|
-| Klientský portál — auth | HIGH | Supabase Auth magic links (invite flow hotový) |
-| Klientský portál — Můj apartmán | HIGH | Auth |
-| SVJ modul | MEDIUM | Klientský portál |
-| Admin — visibility flags UI | MEDIUM | — |
-| Blokace — edit (jen delete) | LOW | — |
+| **PRODUKCE — rezervace live** | 🔴 KRITICKÉ | Viz checklist níže — ceníky jen 1/8 apartmánů! |
+| Channel Manager credentials | HIGH | Booking.com/Airbnb přístupy od managera |
+| Admin — subtitle/rooms edit na detailu | MEDIUM | Zobrazují se veřejně, ale nejdou editovat |
+| `lead-form.tsx:296` — přebývající `)}` | LOW | tsc hlásí TS1381 (schová `ignoreBuildErrors`), běh webu OK |
 | Stripe platby | LOW | Manager approval |
 | Stripe Connect (výplaty) | LOW | Portál + Stripe |
-| Channel Manager credentials | LOW | Booking.com/Airbnb přístupy od managera |
+
+### 🔴 Checklist pro spuštění rezervací v produkci
+| Krok | Status | Akce |
+|------|--------|------|
+| **DNS ostré domény** | 🔴 | Ověřeno 29.7.2026: podzlatymnavrsim.cz stále míří na WIX (apex → 301 na www → wixdns.net). Nový web běží POUZE na pzn-gra.vercel.app. Alias v Vercelu je nastavený, chybí přepnout DNS. |
+| Vercel env vars | ✅ | 30.7.2026 doplněno BANK_IBAN, BANK_NAME, EMAIL_FROM, NEXT_PUBLIC_APP_URL — do té doby se hostům zobrazoval zástupný IBAN `CZ00 0000…`! Chybí už jen ADMIN_EMAIL (fallback rezervace@podzlatymnavrsim.cz). |
+| Resend doména | ❓ | DNS záznamy pro podzlatymnavrsim.cz ověřeny? |
+| Ceníky v DB | 🔴 | Ověřeno 28.7.: pricing_rules má jen 1/8 pronajímaných apartmánů — doplnit! |
+| Apartmány viditelné | ✅ | Ověřeno 28.7.: 8× for_rent + in_rental_program, 3× for_sale |
+| E2E test rezervace | ❓ | Projít celý flow od výběru termínu po potvrzení |
+| Channel Manager URL | ❓ | iCal URL z Booking.com/Airbnb vloženy do /admin/channel-manager |
 
 ---
 
@@ -241,18 +283,29 @@ interface Apartment {
 - [x] Shared AdminNav komponenta (desktop + mobilní bottom tab bar)
 - [x] Admin apartmány — seznam + detail /admin/apartmany/[id]
 - [x] Admin ceníky — CRUD pricing_rules
-- [x] Admin blokace — CRUD blocked_dates
+- [x] Admin blokace — CRUD blocked_dates + edit
 - [x] Admin majitelé — CRUD + invite magic link
 - [x] Data apartmánů migrována z JSON do DB (migrace 007)
-- [ ] Visibility flags UI (for_sale, for_rent, in_rental_program toggle)
-- [ ] Blokace edit (jen delete, chybí edit)
+- [x] Visibility flags UI (for_sale, for_rent, in_rental_program toggle)
+- [x] Fotogalerie bytů — upload/řazení/hlavní foto/mazání (migrace 010, DEC-029)
+- [x] Klientské dokumenty /admin/dokumenty + údržba /admin/udrzba
+- [ ] Editace polí `subtitle` a `rooms` (zobrazují se veřejně, ale nejdou měnit)
 
-### Fáze 4 — Klientský Portál
-- [x] Invite flow backend (generateLink → owners.user_id)
-- [ ] Owner auth middleware (/portal route ochrana)
-- [ ] Můj apartmán
-- [ ] SVJ modul
-- [ ] Dokumenty
+### Fáze 4 — Klientský Portál ✅ HOTOVO
+- [x] Login stránka — email + heslo (signInWithPassword)
+- [x] Auth middleware — /portal ochrana hotová + redirect loop fix
+- [x] Základní struktura (layout, nav, protected routes)
+- [x] Můj apartmán — základní info, profil
+- [x] SVJ — nástěnka (read-only)
+- [x] Pronájem — dashboard, statistiky, nadcházející rezervace
+- [x] Blokace majitele — přidat/smazat termíny
+- [x] Mobilní layout — top bar + drawer (DEC-027)
+- [x] Dokumenty majitele — /portal/dokumenty, signed URLs (DEC-026)
+- [x] Údržba — hlášení závad + sledování stavu
+- [x] SVJ — detail postu + komentáře
+- [x] SVJ — hlasování (DEC-025)
+- [x] SVJ — dokumenty sekce
+- [ ] Fotogalerie apartmánu v portálu (admin ji už má)
 
 ### Fáze 5 — Rental Program
 - [ ] Opt-in flow
@@ -308,14 +361,17 @@ JWT_SECRET=
 
 | Migrace | Obsah | Status |
 |---------|-------|--------|
-| 001 | Základní schéma (apartments, owners, leads) | ✅ |
-| 002 | Booking engine (bookings, blocked_dates, pricing_rules) | ✅ |
-| 003 | iCal channel manager (channel_connections, source column) | ✅ |
-| 004 | Admin auth cookie | ✅ |
-| 005 | Messaging (booking_messages) | ✅ |
-| 006 | SVJ (svj_posts, svj_comments, svj_polls, svj_documents) | ✅ |
+| 001 | Owner portal foundation (owners, apartments, owner_documents, maintenance_requests, blocked_dates, svj_posts, svj_poll_votes, audit_log) | ✅ |
+| 002 | Booking engine (pricing_rules + ALTER apartments flags) | ✅ |
+| 003 | Bookings + seed (bookings, ALTER apartments title/base_price_cents/max_guests) | ✅ |
+| 004 | Messaging (booking_messages, checkin_info) | ✅ |
+| 005 | iCal channel manager (channel_connections, blocked_dates.source) | ✅ |
+| 006 | Portal fáze 4 (svj_comments, svj_documents, owner_invitations) | ✅ |
 | 007 | Apartmány obsah (description, orientation, rooms, subtitle + seed) | ✅ |
+| 008 | SVJ dotažení (svj_posts.options/poll_deadline/archived_at, GRANTy, bucket dokumenty) | ✅ |
+
+Pozn.: `svj_polls` tabulka neexistuje a nikdy neexistovala — ankety řeší DEC-025.
 
 ---
 
-*Aktualizace: 28.5.2026*
+*Aktualizace: 3.6.2026*

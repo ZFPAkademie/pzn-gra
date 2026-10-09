@@ -326,16 +326,95 @@ if (data?.user?.id) {
 
 ---
 
+### 13. Dual layout pattern pro mobil/desktop (admin tabulky)
+**Problém:** Admin tabulky (`<table>`) se na mobilech horizontálně přesouvají mimo viewport — nelze to vyřešit CSS bez ztráty čitelnosti.
+
+**Řešení:** Paralelní renderování dvou layoutů:
+```tsx
+{/* Mobilní karty */}
+<div className="md:hidden space-y-3">
+  {items.map(item => <MobileCard key={item.id} item={item} />)}
+</div>
+{/* Desktop tabulka */}
+<div className="hidden md:block">
+  <table>...</table>
+</div>
+```
+
+**Kdy použít:** Jakákoli admin stránka s tabulkovým přehledem + více než 4 sloupci.
+
+---
+
+### 14. Portal login: magic link vs. heslo
+**Problém:** Magic link vyžaduje fungující emailovou infrastrukturu (vlastní doména + DNS záznamy pro Resend/Vercel). Při vývoji nebo při blokovaném přechodu domény nelze testovat portál.
+
+**Řešení:** Primární login = email + heslo (`signInWithPassword`). Magic link invite ponechat jako admin nástroj. Heslo admin nastaví ručně v Supabase Dashboard (Auth → Users → Create user).
+
+**Pravidlo:** Pokud testovatelnost závisí na externím DNS/emailu, implementuj fallback s heslem od začátku.
+
+---
+
+### 15. Monorepo: root .env.local Next.js nenačítá
+**Problém:** `.env.local` ležel v rootu monorepa (gra3/), ale Next.js běží v `apps/web` a čte env jen odtud. Lokální dev/start běžel bez env vars — tichý fail (Supabase klienti s undefined URL).
+
+**Řešení:** Kopie `.env.local` do `apps/web/` (je v .gitignore). Při změně env měnit obě, nebo root smazat.
+
+---
+
+### 16. sitemap.ts s DB dotazem = build-time static
+**Problém:** `app/sitemap.ts` se prerendruje při buildu (○ Static). DB dotaz na slugy proběhl bez env vars → soft-fail → sitemap bez apartmánů, a v runtime se už nikdy neobnovila.
+
+**Řešení:**
+```typescript
+export const revalidate = 3600; // ISR — regeneruje se s daty
+// + try/catch kolem DB dotazu (sitemap bez apartmánů > 500)
+// + baseUrl.replace(/\/+$/, '') — env s trailing slash = double slash v URL
+```
+
+---
+
+### 17. Názvy sloupců ověřovat proti živé DB, ne proti dokumentaci
+**Problém:** Portál pronájem selectoval `nights_count`/`total_price_cents` — sloupce se reálně jmenují `nights`/`total_amount_cents`. Supabase vrátí error → `data = null` → majitel viděl 0 Kč tržeb. Dokumentace (CLAUDE.md datový model) popisovala jiné schéma, než jaké migrace vytvořily.
+
+**Řešení:** Před psaním dotazů `supabase_sql.sh "SELECT column_name FROM information_schema.columns WHERE table_name='...'"`. Dokumentace lže, DB ne.
+
+---
+
+### 18. Fallback hodnota v kódu skryje chybějící env var na produkci
+**Problém:** `const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000'` — proměnná nebyla ve Vercelu vůbec nastavená, ale nic nespadlo. Hostům se v platebních údajích tiše zobrazoval zástupný IBAN. Objeveno až porovnáním `.env.local` s `vercel env ls`.
+
+**Řešení:** Po každém přidání env var ověř, že je i v prostředí, kde poběží:
+```bash
+vercel env ls production | awk 'NR>3 {print $1}' | sort > /tmp/v.txt
+grep -E '^[A-Z_]+=' .env.local | sed 's/=.*//' | sort -u | comm -23 - /tmp/v.txt
+```
+**Pravidlo:** Fallback smí být bezpečný default (URL, jméno), nikdy hodnota, která vypadá funkčně, ale funkční není (číslo účtu, API klíč, telefon). Tam radši nech chybu vybouchnout.
+
+**Pozn.:** Změna env var ve Vercelu se projeví až po novém nasazení — `vercel redeploy <url>`.
+
+---
+
+### 19. Alias domény ve Vercelu ≠ doména skutečně míří na Vercel
+**Problém:** `vercel inspect` vypsal podzlatymnavrsim.cz mezi aliasy, z čehož jsem usoudil, že web běží na ostré doméně. Ve skutečnosti DNS pořád mířilo na Wix (apex → 301 na www → wixdns.net, server Pepyaka). Klientovi tak málem šel odkaz na neexistující stránku.
+
+**Řešení:** Alias ověřuj vždy ze strany DNS a odpovědi serveru, ne z konfigurace:
+```bash
+dig +short www.domena.cz          # kam to reálně míří
+curl -sIL https://domena.cz | grep -i '^server\|^x-vercel'
+```
+
+---
+
 ## 📊 Metriky projektu
 
 | Metrika | Hodnota |
 |---------|---------|
-| Počet konverzací | 30+ |
-| Počet sprintů | 5 |
+| Počet konverzací | 35+ |
+| Počet sprintů | 6 |
 | Počet redesignů homepage | 5 |
 | Emergency restores | 2 |
-| Finální verze | v23 |
-| Doba vývoje | ~5 měsíců |
+| Finální verze | v25 |
+| Doba vývoje | ~6 měsíců |
 | Migrací v DB | 7 |
 | Admin sekcí | 8 (leady, rezervace, apartmány, majitelé, ceníky, blokace, SVJ, channels) |
 
@@ -352,4 +431,4 @@ if (data?.user?.id) {
 
 ---
 
-*Aktualizace: 28.5.2026*
+*Aktualizace: 3.6.2026*

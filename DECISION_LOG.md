@@ -316,11 +316,11 @@ Důsledky: co z toho vyplývá
 ---
 
 ### [2026-05] DEC-012 — Owner Portal autentizace
-**Status:** PARTIALLY LOCKED
+**Status:** LOCKED (viz DEC-024 pro změnu login metody)
 
-**Rozhodnutí:** Magic links přes `supabase.auth.admin.generateLink()`. Invite flow: admin klikne "Pozvat" → server action vygeneruje link → zobrazí ho adminovi → admin pošle ručně.
+**Rozhodnutí:** Primární login = email + heslo (DEC-024). Invite magic link zůstává jako admin nástroj (`sendMagicLink` action). Route ochrana přes Next.js middleware — `/portal/**` vyžaduje platnou Supabase session. Multi-apartment owners: zatím 1:1 (owner vidí jen svůj apartmán).
 
-**Zbývá rozhodnout:** Route middleware ochrana `/portal/**`, multi-apartment owners (zatím předpokládáme 1:1).
+**Middleware pattern:** `createSupabaseServerClient` v middleware → `getSession()` → redirect na `/portal/login` pokud no session.
 
 ---
 
@@ -419,3 +419,74 @@ Důsledky: co z toho vyplývá
 - Provize nastavena před aktivací
 
 **Důsledky:** Admin workflow pro onboarding majitelů do rental programu.
+
+---
+
+### [2026-07] DEC-029 — Fotky bytů: DB tabulka apartment_images místo mapování v kódu
+**Status:** LOCKED
+
+**Kontext:** Fotky žily v `src/data/apartment-images.ts` (mapování slug → složka v bucketu). Přidání nebo výměna fotky = zásah programátora + deploy. Stejná bolest jako DEC-021 s obsahem apartmánů.
+
+**Rozhodnutí:** Tabulka `apartment_images` (apartment_id, storage_path, sort_order, UNIQUE(apartment_id, storage_path)) je zdroj pravdy. Migrace 010 + seed 010b naimportoval 158 stávajících fotek se zachovaným pořadím. Hlavní (hero) foto = nejnižší `sort_order`, žádný separátní flag. Statické mapování v kódu zůstává jako **fallback** — když DB vrátí prázdno, web ukáže původní fotky.
+
+**Sdílené soubory:** Byty párů chata ↔ golden-ridge sdílejí 44 souborů. Každý byt má vlastní DB řádek; při mazání se soubor odstraní ze Storage jen tehdy, když na něj neodkazuje žádný jiný řádek.
+
+**Důsledky:** `getApartmentImages`/`getApartmentHeroImage` jsou nově **async**. Seznamy musí použít `getHeroImagesBySlugs(slugs)` — jeden dotaz místo N (nelze awaitovat uvnitř `.map()` v JSX). Upload jde přímo z prohlížeče do Storage (FILE-01), bucket `apartmany` zůstává public kvůli CDN.
+
+---
+
+### [2026-07] DEC-028 — Počet podílů: DB + PIN editor místo čísla v URL
+**Status:** LOCKED (reviduje DEC-010)
+
+**Kontext:** DEC-010 (číslo v URL /podil/[available]) znamenal editovat inzerované linky při každém prodeji podílu — na to se linkuje ze statických materiálů, měnit link pokaždé nejde.
+
+**Rozhodnutí:** `/podil` je stabilní link — počet volných podílů čte z `app_settings.podil_available` (migrace 009). Editace: `/sprava-podilu` — stránka chráněná PINem (env `PODIL_PIN`), určená pro asistentku. Cookie = HMAC(PODIL_PIN), 30 dní, změna PINu zneplatní přístup. `/podil/[cislo]` zůstává funkční pro explicitní marketingové linky.
+
+**Důsledky:** Asistentka mění číslo bez deploye a bez přístupu do admin panelu. Fallback 50 při výpadku DB. PIN v env — lokálně i Vercel production.
+
+---
+
+### [2026-07] DEC-025 — SVJ ankety: options jsonb na svj_posts, hlasy odděleně
+**Status:** LOCKED
+
+**Kontext:** CLAUDE.md počítal s tabulkou `svj_polls`, která nikdy nevznikla. Gotcha: votes[] v jsonb nelze chránit RLS a vznikají race conditions.
+
+**Rozhodnutí:** Žádná `svj_polls` tabulka. Definice ankety žije přímo na `svj_posts` (type='poll'): `options jsonb` = `[{key: 'opt-1', label: 'Ano'}, ...]` + `poll_deadline timestamptz`. Hlasy odděleně v `svj_poll_votes` s `UNIQUE(post_id, owner_id)` — změna hlasu = upsert.
+
+**Důsledky:** Options jsou po prvním hlasu immutable (updateSvjPost to vynucuje) — hlasy odkazují na klíče možností. Deadline = konec dne CET (+01:00).
+
+---
+
+### [2026-07] DEC-026 — Dokumenty: privátní bucket + signed URLs
+**Status:** LOCKED
+
+**Kontext:** SVJ dokumenty (stanovy, zápisy) a klientské dokumenty (kupní smlouvy) obsahují citlivá data — nesmí být ve veřejném bucketu.
+
+**Rozhodnutí:** Privátní Storage bucket `dokumenty` (migrace 008). Upload: server action `createSignedUploadUrl` → browser nahrává přímo do Storage (FILE-01, obchází Vercel 4.5MB limit) → server action uloží metadata do DB (`svj_documents` / `owner_documents`), při selhání insertu cleanup souboru. Čtení: výhradně signed URLs (1h expirace) generované server action s ownership checkem.
+
+**Struktura cest:** `svj/{ts}-{file}` pro SVJ, `owners/{ownerId}/{ts}-{file}` pro klientské. `saveOwnerDocument` validuje prefix cesty proti ownerId.
+
+---
+
+### [2026-07] DEC-027 — Portál mobilní nav: top bar + drawer
+**Status:** LOCKED
+
+**Kontext:** Portál měl fixed sidebar bez breakpointů — na mobilu nepoužitelný. Admin používá bottom tab bar (DEC-022), ale portál má 6 položek (Apartmán, Dokumenty, Údržba, SVJ, Pronájem, Profil) — do tab baru se nevejdou.
+
+**Rozhodnutí:** Desktop (lg+): sidebar beze změny. Mobil: fixed top bar (brand + hamburger) + full-width drawer se všemi položkami a odhlášením. Main content `lg:ml-64 pt-14 lg:pt-0`.
+
+---
+
+### [2026-06] DEC-024 — Portal login: email + heslo místo magic link
+**Status:** LOCKED
+
+**Kontext:** Magic link vyžaduje funkční emailovou infrastrukturu (Resend + vlastní doména). Doména podzlatymnavrsim.cz zatím na Cloudflare/Wix — nelze nastavit DNS záznamy pro Vercel/Resend dokud nový web není live. Blokuje testování portálu.
+
+**Rozhodnutí:** Primární login portálu = email + heslo (`supabase.auth.signInWithPassword`). Admin vytváří uživatele ručně v Supabase dashboard. Magic link invite flow (`sendMagicLink` server action) zůstává jako backup pro budoucí onboarding.
+
+**Důvod:**
+- Testování portálu bez emailové infrastruktury
+- Jednodušší UX — majitelé znají heslo, nepotřebují email při každém přihlášení
+- Magic link lze přidat zpět jako "zaslat odkaz" po přechodu domény
+
+**Důsledky:** Při tvorbě majitele admin: (1) vytvoří uživatele v Supabase Auth s heslem, (2) propojí `owners.user_id`.
