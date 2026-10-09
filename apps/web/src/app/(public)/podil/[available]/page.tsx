@@ -86,7 +86,7 @@ const benefits = [
   { icon: 'scroll', title: 'Jednoduchost a rychlost', description: 'Podpis jedné smlouvy' },
   { icon: 'coins', title: 'Výnos z nájmu', description: 'Orientačně 2–5 % ročně s potenciálem růstu v čase, vypláceno pololetně' },
   { icon: 'grid', title: '50 podílů na apartmán', description: 'Možnost koupě libovolného počtu' },
-  { icon: 'mountain', title: 'Růst hodnoty nemovitostí', description: 'Historický růst cen nemovitostí ve Špindlerově Mlýně 8–12 % ročně' },
+  { icon: 'mountain', title: 'Růst hodnoty nemovitostí', description: 'Ceny bytů v Královéhradeckém kraji rostly v letech 2015–2025 v průměru o 11 % ročně, v roce 2023 ale meziročně klesly.¹' },
   { icon: 'percent', title: 'Podíl na zisku', description: 'Z turistického pronájmu' },
   { icon: 'home', title: '20% sleva na ubytování', description: 'Pro držitele podílu' },
   { icon: 'layers', title: 'Diverzifikace majetku', description: 'O podíl na reálné nemovitosti' },
@@ -280,6 +280,15 @@ export default async function PodilDynamicPage({ params }: PageProps) {
           <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto mt-12">
             Uvedené výnosy a zhodnocení jsou orientační a mohou se lišit v závislosti na obsazenosti a tržních podmínkách.
             Družstevní podíl nezakládá přímé vlastnictví nemovitosti.
+          </p>
+          {/* Zdroj a varování k růstu hodnoty nemovitostí (požadavek právní compliance, 10/2026) */}
+          <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto mt-4 leading-relaxed">
+            ¹ Zdroj: Český statistický úřad, Ceny nemovitostí 2023–2025 (kód 014016-26, vydáno 15. 7. 2026),
+            tabulka 2-6b Indexy cen bytů, průměr 2015 = 100, Královéhradecký kraj; realizované kupní ceny
+            z katastru nemovitostí. Průměrná cena bytů ve Špindlerově Mlýně dosáhla podle analýzy Deloitte
+            v letech 2023 a 2024 téměř 190 000 Kč/m² (Aktuálně.cz 28. 1. 2024, Echo24 2. 8. 2025).
+            Údaje se týkají minulosti. Minulý vývoj cen není spolehlivým ukazatelem budoucího vývoje
+            ani zárukou budoucího zhodnocení. Hodnota nemovitosti i podílu může klesat. Nejde o investiční doporučení.
           </p>
         </div>
       </section>
