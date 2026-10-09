@@ -12,12 +12,21 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
+ * Next.js (App Router) ukládá odpovědi `fetch` do datové cache i v route handlerech —
+ * supabase-js přes něj volá REST, takže dotaz na rezervace vracel starý výsledek
+ * (QA 9. 10. 2026: po založení rezervace zůstal termín „volný"). Každý dotaz na Supabase
+ * jde proto bez cache.
+ */
+const noStoreFetch: typeof fetch = (input, init) => fetch(input, { ...init, cache: 'no-store' });
+
+/**
  * Server Component / Server Action klient — čte a zapisuje cookies pro session.
  * Použití: autentizovaní uživatelé (owner portal).
  */
 export function createSupabaseServerClient() {
   const cookieStore = cookies();
   return createServerClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: noStoreFetch },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -41,6 +50,7 @@ export function createSupabaseServerClient() {
  */
 export function createSupabaseAdminClient() {
   return createClient(supabaseUrl, supabaseServiceKey, {
+    global: { fetch: noStoreFetch },
     auth: {
       autoRefreshToken: false,
       persistSession: false,

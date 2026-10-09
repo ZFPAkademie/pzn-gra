@@ -5,6 +5,27 @@ Append-only, nejnovější nahoře.
 
 ---
 
+## 2026-10-09 — Vibekodex úroveň 4: CI, QA staging, oprava cache dostupnosti
+
+### Setup
+- CI (GitHub Actions): typecheck, build s falešnými env, `security_probe --api-only`, gitleaks nových commitů — zelené od běhu #2 (lock přegenerovaný npm 11)
+- QA staging (`os/qa`): kořen `apps/web`, `supabase/` symlink, schéma = dump z produkce (parita ✓), stack `gra3` (API 54401, app 3005)
+- `.vibekodex/security.json` přesunut do `apps/web` (probe vidí middleware, ne archiv `nova/`), allow_read/allow_api s důvody
+- gitleaks pre-commit hook v repu neběžel (lokální `core.hooksPath` přebíjel globální) → odstraněno; `.gitleaksignore` pro zakommitovaný `.next` z února
+
+### Opravy v kódu
+- **Dostupnost vracela zastaralý výsledek**: Next.js datová cache ukládala odpovědi supabase-js i v route handlerech (`.next/cache/fetch-cache` obsahovala dotazy na `bookings`). Po založení rezervace zůstal termín „volný". Všichni serveroví klienti Supabase mají `global.fetch` s `cache: 'no-store'` (`supabase-server.ts`, `supabase.ts`). Nalezeno kouřovým testem v QA, platilo i v produkci.
+- Typecheck: duplicitní `)}` v `lead-form.tsx` maskoval 11 typových chyb (build je přecházel kvůli `ignoreBuildErrors`): Stripe webhook importoval neexistující funkce, `checkin_info` chybělo v selectu rezervace, mrtvý `ApartmentGrid`, přetypování Supabase joinů
+- QA: `scripts/seed-qa.mjs` (pevné ID apartmánu + ceník), `scripts/e2e-smoke.mjs` (RLS anon, iCal token skrytý, dostupnost/cena/blokace přes API, web, admin redirect) — 17 kontrol, 2× po sobě zelené
+- Lekce do OS: dump schématu nepřenese REVOKE (→ `supabase/qa/seed_grants.sql`), Next datová cache v route handlerech
+
+### Otevřené
+- `next.config.js` má stále `typescript.ignoreBuildErrors: true` — CI typecheck to teď hlídá; zvážit vypnutí
+- `VERCEL_TOKEN` v `.env.local` chybí → `vercel_project.sh` nejde použít, stav deploye se ověřuje jen přes web
+- `nova/` (archiv sprintu 3, 249 souborů) v repu — rozhodnutí, zda smazat
+
+---
+
 ## 2026-07-28 až 30 — SVJ modul, evidence klientů, fotogalerie, produkční opravy
 
 ### Audit vstupního stavu
