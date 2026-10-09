@@ -30,7 +30,7 @@ export function MessagesThread({ token, guestName }: Props) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   async function load() {
     try {
@@ -48,8 +48,11 @@ export function MessagesThread({ token, guestName }: Props) {
     return () => clearInterval(timer);
   }, [token]);
 
+  // Roluje jen vnitřní box vlákna, ne celou stránku (scrollIntoView posouval
+  // stránku na zprávy hned po načtení i po příchodu z odkazu).
   useEffect(() => {
-    if (loaded) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = threadRef.current;
+    if (loaded && el) el.scrollTop = el.scrollHeight;
   }, [messages.length, loaded]);
 
   async function send(e: React.FormEvent) {
@@ -87,7 +90,7 @@ export function MessagesThread({ token, guestName }: Props) {
       </div>
 
       {/* Thread */}
-      <div className="px-4 py-4 space-y-3 min-h-[120px] max-h-[320px] overflow-y-auto">
+      <div ref={threadRef} className="px-4 py-4 space-y-3 min-h-[120px] max-h-[320px] overflow-y-auto">
         {!loaded && (
           <p className="text-center text-[11px] text-[#0B1626]/30 py-4">Načítám...</p>
         )}
@@ -130,7 +133,6 @@ export function MessagesThread({ token, guestName }: Props) {
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
