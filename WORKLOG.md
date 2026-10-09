@@ -5,6 +5,26 @@ Append-only, nejnovější nahoře.
 
 ---
 
+## 2026-10-09 — Compliance /podil: doložení růstu hodnoty nemovitostí
+
+### Zadání
+- Právník: u „Historický růst cen nemovitostí ve Špindlerově Mlýně 8–12 % ročně" doplnit název zdroje, rok a upozornění, že minulý vývoj nezaručuje budoucí výnosy; poté upraví bod 9 smlouvy o zprostředkování nabytí.
+
+### Rešerše (výsledek)
+- Pro Špindlerův Mlýn neexistuje veřejná roční řada realizovaných cen — jen bodové údaje (město/REAS 2021: 119 858 Kč/m²; Deloitte 2023 a 2024: ~190 000 Kč/m² přes Aktuálně.cz a Echo24). Spojovat je nelze (různé metodiky, vyšlo by 26 % p.a.).
+- Doložitelný zdroj: ČSÚ, Ceny nemovitostí 2023–2025 (014016-26, 15. 7. 2026), tab. 2-6b index cen bytů 2015 = 100 — Královéhradecký kraj 11,1 % p.a. 2015–2025, ale −3,6 % v 2023 a jen 2,1 % p.a. 2022–2025. Okres Trutnov (tab. 2-4): 2023→2025 10,6 % p.a.
+- Právní rámec: § 5 odst. 2 a § 5a ZOS (pravdivé číslo bez kontextu = klamavé), § 2 odst. 1 b) zák. o regulaci reklamy; čl. 44 odst. 4 nař. 2017/565 jako standard formulace; stanovisko ČNB RS2022-06 (§ 98 ZISIF) předáno právníkovi k posouzení.
+
+### Změna na webu
+- `/podil` + `/podil/[available]`: karta „Růst hodnoty nemovitostí" → krajský index ČSÚ 11 % p.a. 2015–2025 včetně poklesu 2023; pod Hlavní výhody poznámka ¹ se zdrojem, rokem, bodovými údaji Deloitte a varováním o minulé výkonnosti.
+- Deploy `c605ae1` → https://pzn-gra.vercel.app/podil — ověřeno markerem, starý text zmizel, screenshot mobil OK, security_probe (apps/web) PROŠLO.
+
+### Otevřené
+- Právník upraví bod 9 smlouvy o zprostředkování nabytí podle doplněného zdroje (text poznámky z webu lze převzít doslova).
+- `security_probe` z kořene repa hlásí falešné nálezy (prochází archiv `nova/`) — spouštět na `apps/web`.
+
+---
+
 ## 2026-10-09 — Vibekodex úroveň 4: CI, QA staging, oprava cache dostupnosti
 
 ### Setup
@@ -21,7 +41,7 @@ Append-only, nejnovější nahoře.
 
 ### Otevřené
 - `next.config.js` má stále `typescript.ignoreBuildErrors: true` — CI typecheck to teď hlídá; zvážit vypnutí
-- `VERCEL_TOKEN` v `.env.local` chybí → `vercel_project.sh` nejde použít, stav deploye se ověřuje jen přes web
+- `VERCEL_TOKEN` je v kořenovém `.env.local` (ne v `apps/web`) — `vercel_project.sh ls` pouštět z kořene; `inspect` s týmovým tokenem padá („User not found“), detail nasazení přes API `GET /v6/deployments?projectId&teamId` (vrací commit a stav). Ověřeno: 5195413 a d32a53d READY ve 14:00
 - `nova/` (archiv sprintu 3, 249 souborů) v repu — rozhodnutí, zda smazat
 
 ---

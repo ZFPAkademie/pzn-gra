@@ -1,13 +1,13 @@
 # PROJECT_SNAPSHOT.md
 ## Pod Zlatým návrším — Stav projektu
 
-**Datum:** 30. července 2026  
-**Verze:** v27  
+**Datum:** 9. října 2026  
+**Verze:** v28  
 **Status:** Funkčně hotovo (web + booking + admin + portál + SVJ). Blokuje spuštění: ceníky a DNS.
 
 ### ⚠️ Kde projekt reálně běží
 - **`https://pzn-gra.vercel.app`** — jediná živá adresa nového webu
-- **`podzlatymnavrsim.cz` NENÍ náš web** — DNS stále míří na Wix (ověřeno 29.7.2026).
+- **`podzlatymnavrsim.cz` NENÍ náš web** — DNS stále míří na Wix (ověřeno 29.7. a znovu 9.10.2026).
   Alias ve Vercelu je nastavený, přepnutí DNS je otevřený úkol.
 
 ### Přístupy (tři oddělené systémy — nepleť si je)
@@ -21,6 +21,7 @@
 1. 🔴 Doplnit ceníky pro 7 bytů v `/admin/ceniky` — bez nich nejdou rezervovat
 2. 🔴 Přepnout DNS ostré domény (odblokuje i Resend e-maily / magic link)
 3. Projít E2E rezervaci (platební údaje jsou od 30.7. konečně správné)
+4. Právník: bod 9 smlouvy o zprostředkování nabytí podle zdroje doplněného na /podil (DEC-030)
 
 ---
 
@@ -151,7 +152,7 @@
 
 ---
 
-## 3. Aktuální stav (v27 — 30.7.2026)
+## 3. Aktuální stav (v28 — 9.10.2026)
 
 ### ✅ Hotovo
 | Komponenta | Status | Poznámky |
@@ -191,6 +192,10 @@
 | **Migrace 008** | ✅ | Poll options, archived_at, GRANTy, bucket dokumenty |
 | **/sprava-podilu** | ✅ | PIN stránka pro asistentku — počet volných podílů (DEC-028, migrace 009) |
 | **Fotogalerie bytů** | ✅ | Admin upload/řazení/mazání fotek (DEC-029, migrace 010 + seed 158 fotek) |
+| **Vibekodex úroveň 4** | ✅ | 9.10.2026: CI (GitHub Actions, zelené), QA staging `os/qa` v `apps/web` (schéma = dump z produkce, parita ✓, kouřový test 17 kontrol), security.json s důvody, gitleaks hook obnoven (DEC-031) |
+| **Dostupnost bez Next cache** | ✅ | 9.10.2026: serveroví klienti Supabase `cache: 'no-store'` — dřív API vracelo starou dostupnost (lekce 21, deploy 5195413) |
+| **Typecheck zelený** | ✅ | 9.10.2026: 12 chyb opraveno (lead-form, Stripe webhook, checkin_info, ApartmentGrid) — commit 88e53f7; `ignoreBuildErrors` zatím zůstává, hlídá CI |
+| **/podil — compliance růstu hodnoty** | ✅ | 9.10.2026: krajský index ČSÚ 11 % p.a. + zdroj + varování místo nedoloženého 8–12 % (DEC-030, deploy c605ae1) |
 
 ### 🚧 K implementaci
 | Komponenta | Priorita | Závislosti |
@@ -198,14 +203,15 @@
 | **PRODUKCE — rezervace live** | 🔴 KRITICKÉ | Viz checklist níže — ceníky jen 1/8 apartmánů! |
 | Channel Manager credentials | HIGH | Booking.com/Airbnb přístupy od managera |
 | Admin — subtitle/rooms edit na detailu | MEDIUM | Zobrazují se veřejně, ale nejdou editovat |
-| `lead-form.tsx:296` — přebývající `)}` | LOW | tsc hlásí TS1381 (schová `ignoreBuildErrors`), běh webu OK |
 | Stripe platby | LOW | Manager approval |
 | Stripe Connect (výplaty) | LOW | Portál + Stripe |
+| `nova/` archiv sprintu 3 (249 souborů) smazat? | LOW | rozhodnutí uživatele; probe se mu vyhýbá (běží na `apps/web`) |
+| `next.config.js` `ignoreBuildErrors` vypnout | LOW | CI typecheck je zelený, lze vypnout kdykoli |
 
 ### 🔴 Checklist pro spuštění rezervací v produkci
 | Krok | Status | Akce |
 |------|--------|------|
-| **DNS ostré domény** | 🔴 | Ověřeno 29.7.2026: podzlatymnavrsim.cz stále míří na WIX (apex → 301 na www → wixdns.net). Nový web běží POUZE na pzn-gra.vercel.app. Alias v Vercelu je nastavený, chybí přepnout DNS. |
+| **DNS ostré domény** | 🔴 | Ověřeno 29.7. a 9.10.2026: podzlatymnavrsim.cz stále míří na WIX (apex → 301 na www → wixdns.net). Nový web běží POUZE na pzn-gra.vercel.app. Alias v Vercelu je nastavený, chybí přepnout DNS. |
 | Vercel env vars | ✅ | 30.7.2026 doplněno BANK_IBAN, BANK_NAME, EMAIL_FROM, NEXT_PUBLIC_APP_URL — do té doby se hostům zobrazoval zástupný IBAN `CZ00 0000…`! Chybí už jen ADMIN_EMAIL (fallback rezervace@podzlatymnavrsim.cz). |
 | Resend doména | ❓ | DNS záznamy pro podzlatymnavrsim.cz ověřeny? |
 | Ceníky v DB | 🔴 | Ověřeno 28.7.: pricing_rules má jen 1/8 pronajímaných apartmánů — doplnit! |

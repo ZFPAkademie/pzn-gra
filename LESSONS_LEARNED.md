@@ -405,6 +405,50 @@ curl -sIL https://domena.cz | grep -i '^server\|^x-vercel'
 
 ---
 
+### 20. Procento zhodnocení pro malé město nejde doložit, kraj ano
+**Symptom:** Web tvrdil „růst 8–12 % ročně ve Špindlerově Mlýně" bez zdroje; právník to zastavil.
+
+**Příčina:** Pro obec s ~1 100 obyvateli žádná veřejná roční řada realizovaných cen neexistuje — ČSÚ publikuje jen kraj a okres, Deloitte Real Index jen krajská města, média citují bodové údaje různých metodik (nabídkové vs. realizované, novostavby vs. vše). Číslo vzniklo odhadem.
+
+**Fix:** Nejnižší úroveň, kde existuje oficiální řada (ČSÚ Ceny nemovitostí, tab. 2-6b index 2015 = 100 za kraj, tab. 2-4 Kč/m² za okres), + bodové údaje pro lokalitu s citací, + varování o minulé výkonnosti. Nikdy nespojovat body z různých metodik do jednoho ročního růstu.
+
+**Universal?** ANO — každý web, který uvádí procento výnosu nebo zhodnocení.
+
+---
+
+### 21. Next.js datová cache vracela starou dostupnost
+**Symptom:** V QA po založení rezervace vracel `/api/v1/apartments/[slug]/availability` dál `available: true`; v `.next/cache/fetch-cache` ležely uložené odpovědi PostgREST na dotaz do `bookings`.
+
+**Příčina:** App Router cachuje `fetch` i v route handlerech a supabase-js přes něj volá REST. Dotaz bez `cache: 'no-store'` se vrátil z disku. Platilo i v produkci (bez rezervací se to neprojevilo).
+
+**Fix:** `global.fetch = (i, init) => fetch(i, { ...init, cache: 'no-store' })` u všech serverových klientů (`supabase-server.ts`, `supabase.ts`). Test `scripts/e2e-smoke.mjs` (vložit rezervaci → termín obsazený).
+
+**Universal?** ANO — každý Next 13+/14 projekt se supabase-js na serveru.
+
+---
+
+### 22. Lokální `core.hooksPath` tiše vypnul globální gitleaks
+**Symptom:** Commity šly bez kontroly tajemství, přestože globálně je `core.hooksPath` na `os/hooks/git`.
+
+**Příčina:** `.git/config` projektu měl vlastní `hooksPath` na prázdnou `.git/hooks` (pozůstatek staršího nástroje). Lokální hodnota přebíjí globální a nic to nehlásí.
+
+**Fix:** `git config --unset core.hooksPath` v projektu. Kontrola: `git config --show-origin core.hooksPath` musí ukázat `~/.gitconfig`.
+
+**Universal?** ANO — ověřit v každém projektu, který kdy měl husky/lefthook.
+
+---
+
+### 23. `ignoreBuildErrors` schoval syntaktickou chybu a 11 typových chyb
+**Symptom:** `tsc` hlásil jediný TS1381 v `lead-form.tsx`; po odstranění přebytečného `)}` vyplavalo 11 dalších chyb (neexistující importy ve Stripe webhooku, chybějící sloupec v selectu, mrtvá komponenta).
+
+**Příčina:** `next.config.js` má `typescript.ignoreBuildErrors: true`, takže build i deploy procházely; syntaktická chyba navíc zastavila typecheck souboru dřív, než stihl ohlásit zbytek.
+
+**Fix:** Vše opraveno (commit 88e53f7), CI má krok `tsc --noEmit`, který to od teď zastaví. `ignoreBuildErrors` zatím zůstává.
+
+**Universal?** ANO — `ignoreBuildErrors` jen s CI typecheckem, jinak nikdy.
+
+---
+
 ## 📊 Metriky projektu
 
 | Metrika | Hodnota |

@@ -603,6 +603,24 @@ Přidání nového jazyka (PL, DE):
 [2026-07] vercel-alias-is-not-dns — Doména uvedená v `vercel inspect` mezi aliasy neznamená,
   že na Vercel skutečně míří. Ověřuj vždy `dig +short www.domena.cz` a `curl -sIL | grep server`.
   → kandidát Vibecodex Error Patterns (sekce 7)
+
+[2026-10] sourced-performance-claim — Procento výnosu/zhodnocení na webu jen jako: oficiální
+  zdroj s názvem, kódem a datem publikace (ČSÚ, kraj/okres — pro malé obce řada neexistuje),
+  období ≥ 5 let včetně záporných roků, bodové údaje pro lokalitu s citací média + data,
+  varování podle čl. 44 odst. 4 nař. 2017/565 (minulost, není spolehlivý ukazatel, může klesat,
+  není doporučení). Opora: § 5 odst. 2 a § 5a ZOS. Nikdy nespojovat body různých metodik.
+  → kandidát VIBEKODEX_PATTERNS.md / nová sekce LEGAL (compliance textů)
+
+[2026-10] supabase-no-store-fetch — Serverový klient Supabase v Next App Routeru vždy s
+  `global: { fetch: (i, init) => fetch(i, { ...init, cache: 'no-store' }) }`, jinak route handler
+  vrací odpovědi PostgREST z datové cache (gra3: obsazený termín „volný“). Test: založit záznam,
+  hned číst přes API.
+  → kandidát VIBEKODEX_PATTERNS.md / DB sekce (anti-pattern Next cache)
+
+[2026-10] monorepo-qa-root — Vibekodex QA i security_probe v monorepu: kořen = složka aplikace
+  (`apps/web`), `supabase/` symlink, `"name"` v qa.json, security.json u aplikace. Schéma QA
+  dumpem z produkce + `supabase/qa/seed_grants.sql` pro sloupcové REVOKE, které dump nepřenese.
+  → kandidát os/qa/README.md (zapsáno 9. 10.) + VIBEKODEX_PATTERNS.md / QA sekce
 ```
 
 ---
@@ -618,4 +636,7 @@ Milníky (načti přes Read, až nastanou — neimportovat, šetří kontext):
 - Pattern ID v zadání → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/VIBEKODEX_PATTERNS.md` (jen daný pattern)
 - Nasazení → skill /ship (AUTO-SHIP platí) · Migrace → `/Users/ondrej/Documents/moje-weby/__vibekodex/os/supabase_sql.sh`
 - Monorepo: aplikace je `apps/web` — bezpečnostní test (/ship krok 1b) pouštět `security_probe.py apps/web`, konfigurace v `apps/web/.vibekodex/security.json`; `nova/` je archiv sprintu 3, ne živý kód
+- QA (os/qa): `local_db.sh apps/web`, `parity.sh apps/web`, v `apps/web`: `npm run dev:qa` + `npm run qa` (seed + `scripts/e2e-smoke.mjs`). Před startem `colima start`.
+- Vercel: `VERCEL_TOKEN` je v kořenovém `.env.local` → `vercel_project.sh ls` z kořene gra3. `inspect` s týmovým tokenem nefunguje („User not found“); detail nasazení: `GET https://api.vercel.com/v6/deployments?projectId=prj_KPYmTFeY7qdf3TsP3TybTv8HIhM7&teamId=team_25BUXTU0XGSYdkfuDf2RIzuh&target=production` (vrací commit + stav).
+- CI: `.github/workflows/ci.yml` (typecheck, build, security_probe --api-only, gitleaks) — po pushi `gh run watch -R ZFPAkademie/pzn-gra <id>`; `.gitleaksignore` kryje zakommitovaný `.next` z 2/2026.
 - Konec session → skill /handoff

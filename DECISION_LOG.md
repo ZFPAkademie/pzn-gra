@@ -435,6 +435,32 @@ Důsledky: co z toho vyplývá
 
 ---
 
+### [2026-10] DEC-031 — Vibekodex úroveň 4 v monorepu: QA a bezpečnostní test z `apps/web`, schéma QA = dump z produkce
+**Status:** LOCKED
+
+**Kontext:** Repo je pnpm monorepo (aplikace v `apps/web`, migrace v `supabase/`, archiv sprintu 3 v `nova/`). Skripty `os/qa` i `security_probe.py` počítají s jedním kořenem; z kořene repa probe skenoval i routy v `nova/` a neviděl middleware. Migrace v repu neodpovídají produkci (WORKLOG 7/2026: `svj_polls` nikdy neexistovala).
+
+**Rozhodnutí:** QA kořen je `apps/web` (`supabase/` tam je symlink na `../../supabase`, jméno stacku `gra3` přes `"name"` v `qa.json`), `.vibekodex/security.json` leží v `apps/web`, týdenní test i CI běží na `apps/web`. Schéma QA se bere `--dump-schema` z produkce (parita ověřená), ne z migrací; sloupcové REVOKE doplňuje `supabase/qa/seed_grants.sql`. Serveroví klienti Supabase volají `fetch` s `cache: 'no-store'`.
+
+**Alternativy:** (a) QA z kořene repa — `dev:qa` nemá kde spustit Next, probe hlásí fantomové routy; (b) opravit migrace, aby seděly s produkcí — dražší a nic nezaručí, dump je pravda; (c) `nova/` smazat — rozhodnutí uživatele, zatím ponecháno.
+
+**Důsledky:** `/ship` krok 1b = `security_probe.py apps/web`. Nová migrace v produkci → znovu `local_db.sh apps/web --dump-schema nudiugowvzflokflcokd` + `--reset` + `parity.sh`. Každý nový serverový klient Supabase dědí `noStoreFetch`.
+
+---
+
+### [2026-10] DEC-030 — Růst hodnoty na /podil: krajský index ČSÚ místo čísla pro Špindlerův Mlýn
+**Status:** LOCKED
+
+**Kontext:** Právník požadoval k „8–12 % ročně ve Špindlerově Mlýně" zdroj, rok a varování. Rešerše ukázala, že pro samotné město žádná veřejná řada realizovaných cen neexistuje; dostupné bodové údaje mají různé metodiky a nelze z nich poctivě spočítat roční růst.
+
+**Rozhodnutí:** Na webu se uvádí jen doložitelný údaj: index cen bytů ČSÚ (Ceny nemovitostí 2023–2025, tab. 2-6b, 2015 = 100) za Královéhradecký kraj — průměr 11 % ročně 2015–2025 s výslovnou zmínkou poklesu v roce 2023. Špindlerův Mlýn jen bodově (Deloitte 2023/2024 ~190 000 Kč/m²) s citací média a data. Vždy s varováním podle standardu čl. 44 odst. 4 nař. 2017/565 (minulost, není spolehlivý ukazatel, hodnota může klesat, nejde o doporučení).
+
+**Alternativy:** (a) okres Trutnov 10,6 % p.a. 2023–2025 — jen dva roky, pod doporučených pět; (b) spojit město 2021 a Deloitte 2023 — 26 % p.a., metodicky nepoctivé; (c) číslo úplně vypustit — zbytečně oslabuje nabídku, když krajský údaj doložit lze.
+
+**Důsledky:** Každé procento výnosu nebo zhodnocení na webu musí mít zdroj, rok, období a varování (platí i pro „2–5 % výnos z nájmu" — zatím označeno jen jako orientační). Při nové publikaci ČSÚ (vždy v létě) aktualizovat číslo a kód publikace. Smlouva bod 9 — právník.
+
+---
+
 ### [2026-07] DEC-028 — Počet podílů: DB + PIN editor místo čísla v URL
 **Status:** LOCKED (reviduje DEC-010)
 
