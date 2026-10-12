@@ -92,13 +92,23 @@ export function parseFdmDate(value: unknown): string {
   return '';
 }
 
-/** YYYY-MM-DD → ms UTC půlnoci (formát, který FDM očekává v těle rezervace) */
+/** YYYY-MM-DD → ms UTC půlnoci */
 export function toFdmMs(dateStr: string): number {
   return Date.UTC(
     parseInt(dateStr.slice(0, 4), 10),
     parseInt(dateStr.slice(5, 7), 10) - 1,
     parseInt(dateStr.slice(8, 10), 10)
   );
+}
+
+/**
+ * YYYY-MM-DD → "/Date(ms)/" — serializovaný DateTime pro .NET server FDM.
+ * Formulář FDM posílá datumy přesně takhle (Utils/DateTimeHelper.ToMS). Holé číslo
+ * server neumí deserializovat a vrací HTTP 417 „Operation failed due to exception"
+ * (zjištěno 12. 10. 2026 na rezervaci golden-ridge-4).
+ */
+export function toFdmDate(dateStr: string): string {
+  return `/Date(${toFdmMs(dateStr)})/`;
 }
 
 async function request<T>(
@@ -214,8 +224,8 @@ export async function fdmGetRestrictions(startDate: string, endDate: string): Pr
 export function buildFdmReservationBody(input: FdmCreateReservationInput, overrides: Record<string, unknown> = {}) {
   const nights = Math.round((toFdmMs(input.checkOut) - toFdmMs(input.checkIn)) / 86400000);
   const body = {
-    CheckInDate: toFdmMs(input.checkIn),
-    CheckOutDate: toFdmMs(input.checkOut),
+    CheckInDate: toFdmDate(input.checkIn),
+    CheckOutDate: toFdmDate(input.checkOut),
     ArrivalTime: { Hours: null, Minutes: null },
     RateId: input.rateId,
     Note: input.note ?? '',
@@ -248,7 +258,7 @@ export function buildFdmReservationBody(input: FdmCreateReservationInput, overri
     },
     Nights: [
       {
-        Day: toFdmMs(input.checkIn),
+        Day: toFdmDate(input.checkIn),
         Beds: input.guests,
         Nights: nights,
         Price: Math.round(input.totalPrice * 100) / 100,
@@ -272,10 +282,6 @@ export async function fdmPostReservationBody(body: Record<string, unknown>): Pro
   return request<FdmReservationResponse>('/bookingengine/reservations', {}, { method: 'POST', body });
 }
 
-/**
- * První pokus 12. 10. 2026 (PaymentViaBankTransfer: true) vrátil HTTP 417 „Operation failed
- * due to exception" — tělo je třeba doladit ručním testem z adminu (tlačítko „Odeslat do FDM").
- */
 export async function fdmCreateReservation(
   input: FdmCreateReservationInput,
   overrides: Record<string, unknown> = {}

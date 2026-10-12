@@ -5,7 +5,7 @@
  */
 
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { fdmCreateReservation, isFdmConfigured } from './client';
+import { fdmCreateReservation, fdmGetRoomUses, isFdmConfigured } from './client';
 import { FDM_STANDARD_RATE_ID } from './sync';
 
 export type PushResult = { ok: true; reservationCode: string } | { ok: false; error: string };
@@ -49,9 +49,14 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
     .filter(Boolean)
     .join(' | ');
 
+  // Název typu pokoje přesně jak ho vede FDM (formulář FDM posílá tentýž)
+  const roomUses = await fdmGetRoomUses();
+  const roomUseName =
+    (roomUses.ok ? roomUses.data.find((r) => r.Id === roomUseId)?.Name : undefined) ?? `${apt?.title ?? apt?.slug ?? ''}`;
+
   const res = await fdmCreateReservation({
     roomUseId,
-    roomUseName: `${apt?.title ?? apt?.slug ?? ''}`,
+    roomUseName,
     rateId: FDM_STANDARD_RATE_ID,
     checkIn: b.check_in,
     checkOut: b.check_out,
