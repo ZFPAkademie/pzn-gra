@@ -104,7 +104,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
               {/* Description */}
               <div className="mb-16">
                 <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">O apartmánu</h2>
-                <p className="text-navy/70 leading-relaxed text-lg">
+                <p className="text-navy/70 leading-relaxed text-lg whitespace-pre-line">
                   {apt.description}
                 </p>
               </div>
