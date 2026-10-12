@@ -72,6 +72,7 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
   });
 
   if (!res.ok) return fail(res.error);
+  console.log('[fdm-push] pokusy:', res.attempts.join(' | '));
 
   const code = res.data?.ReservationCode ? String(res.data.ReservationCode) : null;
   if (!code) return fail(`FDM nevrátilo ReservationCode: ${JSON.stringify(res.data).slice(0, 200)}`);
@@ -82,7 +83,7 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
       fdm_reservation_code: code,
       fdm_guest_account_id: res.data?.GuestAccountId != null ? String(res.data.GuestAccountId) : null,
       fdm_sync_status: 'synced',
-      fdm_sync_error: null,
+      fdm_sync_error: `OK varianta ${res.data._variant}`,
       fdm_synced_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })

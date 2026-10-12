@@ -221,30 +221,54 @@ export async function fdmGetRestrictions(startDate: string, endDate: string): Pr
  * Založí rezervaci v FDM (zdroj „Booking Engine“). Tělo odpovídá tomu, co posílá
  * formulář FDM (modul Bll/ReservationDataBuilder). Bez karty, platba převodem u nás.
  */
-export function buildFdmReservationBody(input: FdmCreateReservationInput, overrides: Record<string, unknown> = {}) {
+/**
+ * Varianty těla rezervace. Server FDM (.NET WCF) je přísný na typy a vrací jen obecné
+ * HTTP 417 „Operation failed due to exception". Formulář FDM (Bll/ReservationDataBuilder
+ * + StepPaymentViewModel.OnSubmit) posílá:
+ *  - datumy jako "/Date(ms)/",
+ *  - Prepayment/PrepaymentGBP jako řetězec (toFixed(2)), IgnoreAnonymize jako řetězec z nastavení,
+ *  - nevyplněné údaje hosta vůbec (undefined → v JSON chybí), ne null,
+ *  - PaymentViaBankTransfer = false, když property nemá převod povolený (náš případ).
+ * 'mirror' je věrná kopie; další varianty se zkouší jen když předchozí selže (nic nevzniklo).
+ */
+export type FdmBodyVariant = 'mirror' | 'mirror-bank' | 'numeric' | 'prepay';
+export const FDM_BODY_VARIANTS: FdmBodyVariant[] = ['mirror', 'mirror-bank', 'numeric', 'prepay'];
+
+/** Záloha jak ji počítá formulář FDM: DownPaymentPercent z BookingEngine.SiteSettings (12. 10. 2026: 3 %). */
+const FDM_DOWN_PAYMENT_PERCENT = Number(process.env.FDM_DOWN_PAYMENT_PERCENT ?? '3');
+/** Kurz EUR/GBP pro PrepaymentGBP — FDM SiteSettings.RateGBP (12. 10. 2026: 1.1835). */
+const FDM_RATE_GBP = Number(process.env.FDM_RATE_GBP ?? '1.1835');
+
+function dropEmpty<T extends Record<string, unknown>>(o: T): Partial<T> {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== undefined && v !== '')) as Partial<T>;
+}
+
+export function buildFdmReservationBody(
+  input: FdmCreateReservationInput,
+  variant: FdmBodyVariant = 'mirror'
+): Record<string, unknown> {
   const nights = Math.round((toFdmMs(input.checkOut) - toFdmMs(input.checkIn)) / 86400000);
-  const body = {
+  const price = Math.round(input.totalPrice * 100) / 100;
+  const numeric = variant === 'numeric';
+  const prepay = variant === 'prepay' ? Math.round(price * FDM_DOWN_PAYMENT_PERCENT) / 100 : 0;
+
+  return {
     CheckInDate: toFdmDate(input.checkIn),
     CheckOutDate: toFdmDate(input.checkOut),
     ArrivalTime: { Hours: null, Minutes: null },
     RateId: input.rateId,
     Note: input.note ?? '',
     EmailConsentGiven: false,
-    Prepayment: 0,
-    PrepaymentGBP: 0,
-    IgnoreAnonymize: false,
+    Prepayment: numeric ? 0 : prepay.toFixed(2),
+    PrepaymentGBP: numeric ? 0 : (prepay / FDM_RATE_GBP).toFixed(2),
+    IgnoreAnonymize: numeric ? false : 'false',
     Guest: {
-      FirstName: input.guest.firstName,
-      LastName: input.guest.lastName,
-      Address: null,
-      Email: input.guest.email,
-      City: null,
-      Country: null,
-      ZipCode: null,
-      Phone: input.guest.phone ?? null,
-      Gender: null,
-      TaxNumber: null,
-      IdNumber: null,
+      ...dropEmpty({
+        FirstName: input.guest.firstName,
+        LastName: input.guest.lastName,
+        Email: input.guest.email,
+        Phone: input.guest.phone,
+      }),
       CreditCardDetails: {
         CCName: '',
         CCType: '',
@@ -261,8 +285,8 @@ export function buildFdmReservationBody(input: FdmCreateReservationInput, overri
         Day: toFdmDate(input.checkIn),
         Beds: input.guests,
         Nights: nights,
-        Price: Math.round(input.totalPrice * 100) / 100,
-        OriginalPrice: Math.round(input.totalPrice * 100) / 100,
+        Price: price,
+        OriginalPrice: price,
         RoomUseId: input.roomUseId,
         RoomUseName: input.roomUseName,
         RoomsCount: 1,
@@ -271,11 +295,9 @@ export function buildFdmReservationBody(input: FdmCreateReservationInput, overri
       },
     ],
     Extras: [],
-    CouponId: null,
     IsFromBookLocal: false,
-    PaymentViaBankTransfer: true,
+    PaymentViaBankTransfer: variant === 'mirror-bank',
   };
-  return { ...body, ...overrides };
 }
 
 export async function fdmPostReservationBody(body: Record<string, unknown>): Promise<FdmResult<FdmReservationResponse>> {
@@ -283,10 +305,22 @@ export async function fdmPostReservationBody(body: Record<string, unknown>): Pro
 }
 
 export async function fdmCreateReservation(
-  input: FdmCreateReservationInput,
-  overrides: Record<string, unknown> = {}
-): Promise<FdmResult<FdmReservationResponse>> {
+  input: FdmCreateReservationInput
+): Promise<FdmResult<FdmReservationResponse & { _variant: FdmBodyVariant }> & { attempts: string[] }> {
   const nights = Math.round((toFdmMs(input.checkOut) - toFdmMs(input.checkIn)) / 86400000);
-  if (nights < 1) return { ok: false, error: 'Neplatný rozsah dat' };
-  return fdmPostReservationBody(buildFdmReservationBody(input, overrides));
+  if (nights < 1) return { ok: false, error: 'Neplatný rozsah dat', attempts: [] };
+
+  const attempts: string[] = [];
+  for (const variant of FDM_BODY_VARIANTS) {
+    const r = await fdmPostReservationBody(buildFdmReservationBody(input, variant));
+    if (r.ok) {
+      attempts.push(`${variant}: ok`);
+      return { ok: true, data: { ...r.data, _variant: variant }, attempts };
+    }
+    attempts.push(`${variant}: ${r.error}`);
+    // Jen chyba deserializace/výjimky serveru (417) má smysl zkoušet znovu jinou variantou;
+    // síť, 4xx validace apod. → konec, ať nevznikne duplicita.
+    if (!/HTTP 417/.test(r.error)) break;
+  }
+  return { ok: false, error: attempts.join(' || '), attempts };
 }
