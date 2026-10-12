@@ -4,6 +4,7 @@
  */
 
 import Link from 'next/link';
+import { formatMoney } from '@/lib/booking-engine/money';
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
 
@@ -15,8 +16,8 @@ function formatDate(d: string) {
   });
 }
 
-function formatAmount(cents: number) {
-  return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
+function formatAmount(cents: number, currency: string = 'CZK') {
+  return formatMoney(cents, currency);
 }
 
 const statusLabels: Record<string, string> = {
@@ -79,7 +80,7 @@ export default async function PronaJemPage() {
 
   const { data: upcomingBookings } = await admin
     .from('bookings')
-    .select('id, apartment_id, check_in, check_out, nights, total_amount_cents, status, guest_first_name, guest_last_name')
+    .select('id, apartment_id, check_in, check_out, nights, total_amount_cents, currency, status, guest_first_name, guest_last_name')
     .in('apartment_id', aptIds)
     .not('status', 'eq', 'cancelled')
     .gte('check_out', from)
@@ -93,14 +94,18 @@ export default async function PronaJemPage() {
 
   const { data: monthBookings } = await admin
     .from('bookings')
-    .select('nights, total_amount_cents, status')
+    .select('nights, total_amount_cents, currency, status')
     .in('apartment_id', aptIds)
     .eq('status', 'confirmed')
     .gte('check_in', monthStart)
     .lte('check_out', monthEnd);
 
   const monthNights = (monthBookings ?? []).reduce((s, b) => s + (b.nights ?? 0), 0);
-  const monthRevenueCents = (monthBookings ?? []).reduce((s, b) => s + (b.total_amount_cents ?? 0), 0);
+  // Měna souhrnu = měna rezervací daného měsíce (FDM účtuje v EUR, starší rezervace v CZK)
+  const monthCurrency = (monthBookings ?? []).find((b) => b.currency)?.currency ?? 'CZK';
+  const monthRevenueCents = (monthBookings ?? [])
+    .filter((b) => (b.currency ?? 'CZK') === monthCurrency)
+    .reduce((s, b) => s + (b.total_amount_cents ?? 0), 0);
   const commissionRate = owner.commission_rate ?? 0.2;
   const monthNetCents = Math.round(monthRevenueCents * (1 - commissionRate));
 
@@ -115,8 +120,8 @@ export default async function PronaJemPage() {
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
           { label: 'Nocí tento měsíc', value: monthNights.toString() },
-          { label: 'Tržby (hrubé)', value: formatAmount(monthRevenueCents) },
-          { label: `Váš podíl (${Math.round((1 - commissionRate) * 100)} %)`, value: formatAmount(monthNetCents) },
+          { label: 'Tržby (hrubé)', value: formatAmount(monthRevenueCents, monthCurrency) },
+          { label: `Váš podíl (${Math.round((1 - commissionRate) * 100)} %)`, value: formatAmount(monthNetCents, monthCurrency) },
         ].map(stat => (
           <div key={stat.label} className="bg-white border border-[#0B1626]/10 rounded-sm p-5">
             <p className="text-[#0B1626]/40 text-xs tracking-wider uppercase mb-2">{stat.label}</p>
@@ -169,7 +174,7 @@ export default async function PronaJemPage() {
                       {statusLabels[booking.status] ?? booking.status}
                     </span>
                     {booking.total_amount_cents && (
-                      <p className="text-[#0B1626]/50 text-xs">{formatAmount(booking.total_amount_cents)}</p>
+                      <p className="text-[#0B1626]/50 text-xs">{formatAmount(booking.total_amount_cents, booking.currency)}</p>
                     )}
                   </div>
                 </div>

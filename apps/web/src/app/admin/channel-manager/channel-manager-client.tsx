@@ -1,7 +1,34 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { addConnection, deleteConnection, toggleConnection } from './actions';
+import { addConnection, deleteConnection, toggleConnection, syncFdmNow } from './actions';
+
+function FdmSyncButton() {
+  const [pending, startTransition] = useTransition();
+  const [result, setResult] = useState<string | null>(null);
+
+  function handleSync() {
+    setResult(null);
+    startTransition(async () => {
+      const res = await syncFdmNow();
+      setResult(res.ok ? `Načteno ${res.days} dnů pro ${res.apartments} apartmánů` : `Chyba: ${res.error}`);
+      if (res.ok) setTimeout(() => window.location.reload(), 2000);
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      {result && <p className="text-sm text-slate-600">{result}</p>}
+      <button
+        onClick={handleSync}
+        disabled={pending}
+        className="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white text-sm rounded-md hover:bg-navy/90 disabled:opacity-50 transition-colors"
+      >
+        {pending ? 'Synchronizuji…' : 'Načíst z FDM'}
+      </button>
+    </div>
+  );
+}
 
 function SyncAllButton() {
   const [syncing, setSyncing] = useState(false);
@@ -199,4 +226,4 @@ function ConnectionActions({ connectionId, syncEnabled }: { connectionId: string
   );
 }
 
-export { SyncAllButton, AddConnectionButton, ConnectionActions };
+export { FdmSyncButton, SyncAllButton, AddConnectionButton, ConnectionActions };

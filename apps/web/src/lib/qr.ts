@@ -2,16 +2,17 @@ import QRCode from 'qrcode';
 
 export async function generatePaymentQR(params: {
   iban: string;
-  amount: number; // in CZK (not cents)
+  amount: number; // v měně currency (ne v centech)
   message: string;
   recipientName?: string;
+  currency?: 'CZK' | 'EUR' | string; // SPD podporuje CC:<ISO 4217>
 }): Promise<string> {
   const ibanClean = params.iban.replace(/\s/g, '');
   const spdString = [
     'SPD*1.0',
     `ACC:${ibanClean}`,
     `AM:${params.amount.toFixed(2)}`,
-    'CC:CZK',
+    `CC:${params.currency ?? 'CZK'}`,
     `MSG:${params.message.slice(0, 60)}`,
   ].join('*');
 

@@ -6,6 +6,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getRentalApartmentsDB } from '@/lib/apartments';
+import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
+import { formatMoney } from '@/lib/booking-engine/money';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +19,10 @@ export const metadata: Metadata = {
 
 export default async function RentalApartmentsPage() {
   const apartments = await getRentalApartmentsDB();
+  // Cena „od" z Front Desk Master pro napojené apartmány (klíč = slug)
+  const fdmPrices = await getFdmPriceFromMany(apartments.filter((a) => a.fdm_room_use_id).map((a) => a.id));
+  const priceFromBySlug: Record<string, { cents: number; currency: 'CZK' | 'EUR' } | undefined> = {};
+  for (const a of apartments) priceFromBySlug[a.slug] = fdmPrices[a.id];
   const heroImages = await getHeroImagesBySlugs(apartments.map((a) => a.slug));
 
   return (
@@ -115,7 +121,14 @@ export default async function RentalApartmentsPage() {
 
                     <div className="flex items-center justify-between pt-4 border-t border-navy/10">
                       <div>
-                        {apt.base_price_cents ? (
+                        {priceFromBySlug[apt.slug] ? (
+                          <>
+                            <p className="text-2xl font-light text-navy">
+                              od {formatMoney(priceFromBySlug[apt.slug]!.cents, priceFromBySlug[apt.slug]!.currency)}
+                            </p>
+                            <p className="text-xs text-navy/40">za noc</p>
+                          </>
+                        ) : apt.base_price_cents ? (
                           <>
                             <p className="text-2xl font-light text-navy">
                               {Math.round(apt.base_price_cents / 100).toLocaleString('cs-CZ')} Kč

@@ -14,6 +14,8 @@ interface Props {
   apartmentSlug: string;
   maxGuests: number;
   basePricePerNight: number;
+  /** Měna ceny „od“ — CZK (lokální ceník) nebo EUR (Front Desk Master) */
+  currency?: 'CZK' | 'EUR';
 }
 
 function fmtDate(d: string) {
@@ -23,7 +25,7 @@ function nights(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
 
-export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePricePerNight }: Props) {
+export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePricePerNight, currency = 'CZK' }: Props) {
   const [step, setStep]         = useState<Step>('calendar');
   const [checkIn, setCheckIn]   = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
           <span className="text-[2.2rem] font-light text-white leading-none">
             {basePricePerNight.toLocaleString('cs-CZ')}
           </span>
-          <span className="text-white/40 text-sm">Kč / noc</span>
+          <span className="text-white/40 text-sm">{currency === 'EUR' ? '€' : 'Kč'} / noc</span>
         </div>
         <p className="text-white/25 text-[11px] mt-1.5">Ceny se mohou lišit dle sezóny</p>
       </div>

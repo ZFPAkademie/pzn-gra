@@ -4,6 +4,8 @@ import { checkAvailability } from '@/lib/booking-engine/availability';
 import { calculatePrice } from '@/lib/booking-engine/pricing';
 import { createBooking } from '@/lib/booking-engine/bookings';
 import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email';
+import { fdmGetAvailability, isFdmConfigured } from '@/lib/fdm/client';
+import { pushBookingToFdm } from '@/lib/fdm/push';
 
 const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
     const admin = createSupabaseAdminClient();
     const { data: apartment } = await admin
       .from('apartments')
-      .select('id, title, slug, max_guests, base_price_cents')
+      .select('id, title, slug, max_guests, base_price_cents, fdm_room_use_id')
       .eq('id', apartmentId)
       .eq('for_rent', true)
       .maybeSingle();
@@ -46,6 +48,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Vybrané termíny nejsou volné' }, { status: 409 });
     }
 
+    // FDM je master: před zápisem ještě živá kontrola dostupnosti (soft fail → platí cache)
+    const fdmLinked = !!apartment.fdm_room_use_id && isFdmConfigured();
+    if (fdmLinked) {
+      const lastNight = new Date(checkOut + 'T00:00:00Z');
+      lastNight.setUTCDate(lastNight.getUTCDate() - 1);
+      const live = await fdmGetAvailability(checkIn, lastNight.toISOString().slice(0, 10));
+      if (live.ok) {
+        const taken = live.data.some(
+          (d) => d.roomUseId === apartment.fdm_room_use_id && d.date >= checkIn && d.date < checkOut && d.available < 1
+        );
+        if (taken) {
+          return NextResponse.json({ error: 'Vybrané termíny nejsou volné' }, { status: 409 });
+        }
+      } else {
+        console.warn('[bookings] FDM živá kontrola selhala, platí cache:', live.error);
+      }
+    }
+
     const booking = await createBooking({
       apartmentId,
       checkIn,
@@ -57,6 +77,8 @@ export async function POST(req: NextRequest) {
       email,
       phone: phone ?? '',
       totalAmountCents: price.totalCents,
+      currency: price.currency,
+      fdmLinked,
       gdprConsent,
     });
 
@@ -68,6 +90,14 @@ export async function POST(req: NextRequest) {
 
     const reference = `REZ-${booking.confirmationToken.slice(0, 8).toUpperCase()}`;
 
+    // Zápis do Front Desk Master — soft fail, výsledek v bookings.fdm_* (admin může poslat znovu)
+    let fdmNote: string | null = null;
+    if (fdmLinked) {
+      const pushed = await pushBookingToFdm(booking.bookingId);
+      fdmNote = pushed.ok ? `FDM: ${pushed.reservationCode}` : `FDM zápis selhal: ${pushed.error}`;
+      if (!pushed.ok) console.error('[bookings] FDM push failed:', pushed.error);
+    }
+
     // Emails — soft-fail via sendSafe wrapper
     sendBookingReceivedEmail({
       guestEmail: email,
@@ -78,6 +108,7 @@ export async function POST(req: NextRequest) {
       nights: price.nights,
       guestsCount: guests ?? 1,
       totalAmountCents: price.totalCents,
+      currency: price.currency,
       confirmationToken: booking.confirmationToken,
       bankIban: BANK_IBAN,
       bankName: BANK_NAME,
@@ -94,7 +125,9 @@ export async function POST(req: NextRequest) {
       checkOut,
       nights: price.nights,
       totalAmountCents: price.totalCents,
+      currency: price.currency,
       reference,
+      fdmNote,
     });
 
     return NextResponse.json({

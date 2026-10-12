@@ -115,3 +115,14 @@ export async function sendAdminMessage(
 
   return { ok: true };
 }
+
+export async function pushBookingToFdmAction(
+  id: string
+): Promise<{ ok: true; reservationCode: string } | { ok: false; error: string }> {
+  const isAuth = await isAdminAuthenticated();
+  if (!isAuth) return { ok: false, error: 'Neautorizováno' };
+  const { pushBookingToFdm } = await import('@/lib/fdm/push');
+  const res = await pushBookingToFdm(id);
+  revalidatePath(`/admin/rezervace/${id}`);
+  return res;
+}

@@ -23,6 +23,7 @@ export interface ApartmentDB {
   rooms: { hall: string; bathroom: string; bedroom: string | null; livingKitchen: string } | null;
   max_guests: number | null;
   base_price_cents: number | null;
+  fdm_room_use_id: number | null;
   for_sale: boolean;
   for_rent: boolean;
   in_rental_program: boolean;
@@ -30,7 +31,7 @@ export interface ApartmentDB {
 }
 
 const DB_SELECT =
-  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, for_sale, for_rent, in_rental_program, status' as const;
+  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status' as const;
 
 export async function getApartmentBySlugDB(slug: string): Promise<ApartmentDB | null> {
   const admin = createSupabaseAdminClient();

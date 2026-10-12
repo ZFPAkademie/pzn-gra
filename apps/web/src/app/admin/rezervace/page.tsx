@@ -4,6 +4,7 @@
  */
 
 import { redirect } from 'next/navigation';
+import { formatMoney } from '@/lib/booking-engine/money';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
@@ -34,8 +35,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatAmount(cents: number): string {
-  return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
+function formatAmount(cents: number, currency: string = 'CZK'): string {
+  return formatMoney(cents, currency);
 }
 
 function formatCreatedAt(dateString: string): string {
@@ -185,7 +186,7 @@ export default async function AdminRezervacePage({
                     {formatDate(booking.check_in)} → {formatDate(booking.check_out)} · {booking.nights} nocí
                   </div>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-sm font-medium text-navy">{formatAmount(booking.total_amount_cents)}</span>
+                    <span className="text-sm font-medium text-navy">{formatAmount(booking.total_amount_cents, booking.currency)}</span>
                     {unread > 0 && (
                       <span className="inline-flex items-center justify-center w-5 h-5 text-xs rounded-full bg-amber-500 text-white font-medium">{unread}</span>
                     )}
@@ -234,7 +235,7 @@ export default async function AdminRezervacePage({
                         {booking.nights} nocí / {booking.guests_count} os.
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-navy whitespace-nowrap">
-                        {formatAmount(booking.total_amount_cents)}
+                        {formatAmount(booking.total_amount_cents, booking.currency)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${statusColors[booking.status] || 'bg-slate-100 text-slate-600'}`}>

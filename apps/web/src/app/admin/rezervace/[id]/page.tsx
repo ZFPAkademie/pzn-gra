@@ -11,6 +11,8 @@ import { AdminNav } from '../../_components/admin-nav';
 import { StatusActions } from './status-actions';
 import { CheckinForm } from './checkin-form';
 import { MessageThread } from './message-thread';
+import { FdmPushButton } from './fdm-push-button';
+import { formatMoney } from '@/lib/booking-engine/money';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +38,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatAmount(cents: number): string {
-  return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
+function formatAmount(cents: number, currency: string = 'CZK'): string {
+  return formatMoney(cents, currency);
 }
 
 export default async function AdminRezervaceDetailPage({
@@ -175,7 +177,7 @@ export default async function AdminRezervaceDetailPage({
               <div>
                 <dt className="text-slate-400">Celková částka</dt>
                 <dd className="text-navy font-medium mt-0.5">
-                  {formatAmount(booking.total_amount_cents)}
+                  {formatAmount(booking.total_amount_cents, booking.currency)}
                 </dd>
               </div>
             </dl>
@@ -185,6 +187,16 @@ export default async function AdminRezervaceDetailPage({
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-base font-medium text-navy mb-4">Změna statusu</h2>
             <StatusActions bookingId={booking.id} currentStatus={booking.status} />
+
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Front Desk Master</p>
+              <FdmPushButton
+                bookingId={booking.id}
+                syncStatus={booking.fdm_sync_status ?? 'skipped'}
+                reservationCode={booking.fdm_reservation_code ?? null}
+                syncError={booking.fdm_sync_error ?? null}
+              />
+            </div>
           </div>
 
           {/* Check-in info */}

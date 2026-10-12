@@ -7,7 +7,9 @@ import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { AdminNav } from '../_components/admin-nav';
-import { SyncAllButton, AddConnectionButton, ConnectionActions } from './channel-manager-client';
+import { SyncAllButton, AddConnectionButton, ConnectionActions, FdmSyncButton } from './channel-manager-client';
+import { getLastFdmSync } from '@/lib/fdm/sync';
+import { isFdmConfigured } from '@/lib/fdm/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,9 +29,13 @@ export default async function AdminChannelManagerPage() {
 
   const { data: apartments } = await supabase
     .from('apartments')
-    .select('id, slug, title, for_rent, ical_export_token')
+    .select('id, slug, title, for_rent, ical_export_token, fdm_room_use_id')
     .eq('for_rent', true)
     .order('slug');
+
+  const lastFdmSync = await getLastFdmSync();
+  const fdmConfigured = isFdmConfigured();
+  const fdmMapped = (apartments ?? []).filter((a) => a.fdm_room_use_id != null).length;
 
   const { data: connections } = await supabase
     .from('channel_connections')
@@ -52,6 +58,27 @@ export default async function AdminChannelManagerPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-light text-navy">Channel Manager</h1>
           <SyncAllButton />
+        </div>
+
+        {/* Front Desk Master — master PMS */}
+        <div className="bg-white rounded-lg shadow px-5 py-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-navy">Front Desk Master</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Zdroj dostupnosti a cen. Napojeno {fdmMapped}/{apartments?.length ?? 0} apartmánů
+              {fdmConfigured ? '' : ' · chybí FDM_HOSTEL_ID'}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Poslední synchronizace:{' '}
+              {lastFdmSync?.started_at
+                ? new Date(lastFdmSync.started_at).toLocaleString('cs-CZ', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                : 'zatím žádná'}
+              {lastFdmSync && !lastFdmSync.error && ` · ${lastFdmSync.days} dnů, ${lastFdmSync.apartments} apartmánů`}
+              {lastFdmSync?.error && <span className="text-red-600"> · chyba: {lastFdmSync.error}</span>}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">Automaticky každých 15 minut (Vercel Cron).</p>
+          </div>
+          <FdmSyncButton />
         </div>
 
         <div className="space-y-6">

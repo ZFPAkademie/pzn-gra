@@ -11,6 +11,9 @@ export interface CreateBookingData {
   email: string;
   phone: string;
   totalAmountCents: number;
+  currency?: 'CZK' | 'EUR';
+  /** true = apartmán je napojen na Front Desk Master, rezervace se tam má zapsat */
+  fdmLinked?: boolean;
   gdprConsent: boolean;
 }
 
@@ -34,7 +37,8 @@ export async function createBooking(
       guest_phone: data.phone,
       guests_count: data.guestsCount,
       total_amount_cents: data.totalAmountCents,
-      currency: 'CZK',
+      currency: data.currency ?? 'CZK',
+      fdm_sync_status: data.fdmLinked ? 'pending' : 'skipped',
     })
     .select('id, confirmation_token')
     .single();
@@ -65,6 +69,7 @@ export async function getBookingByToken(token: string) {
       guests_count,
       total_amount_cents,
       currency,
+      fdm_reservation_code,
       confirmation_token,
       checkin_info,
       created_at,

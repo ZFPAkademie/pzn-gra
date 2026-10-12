@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import type { BookingCurrency } from './money';
 
 export interface PriceBreakdown {
   date: string;
@@ -12,7 +13,111 @@ export interface PriceResult {
   nights: number;
   minNights: number;
   breakdown: PriceBreakdown[];
-  currency: 'CZK';
+  currency: BookingCurrency;
+  /** 'fdm' = ceny z Front Desk Master, 'local' = pricing_rules/base_price */
+  source: 'fdm' | 'local';
+}
+
+/**
+ * Ceník z FDM (fdm_calendar, Standard Rate). Vrací null, když apartmán není na FDM
+ * napojen; když napojen je, ale některá noc nemá cenu, vrací { missing: true } —
+ * rezervovat pak nelze (FDM je zdroj pravdy, nic nedopočítáváme).
+ */
+async function calculateFdmPrice(
+  apartmentId: string,
+  checkIn: string,
+  checkOut: string
+): Promise<PriceResult | { missing: true } | null> {
+  const admin = createSupabaseAdminClient();
+  const { data: apt } = await admin
+    .from('apartments')
+    .select('fdm_room_use_id')
+    .eq('id', apartmentId)
+    .maybeSingle();
+  if (!apt?.fdm_room_use_id) return null;
+
+  const { data: days } = await admin
+    .from('fdm_calendar')
+    .select('date, price_cents, min_stay, currency')
+    .eq('apartment_id', apartmentId)
+    .gte('date', checkIn)
+    .lt('date', checkOut)
+    .order('date', { ascending: true });
+
+  const byDate = new Map((days ?? []).map((d) => [d.date as string, d]));
+  const breakdown: PriceBreakdown[] = [];
+  let totalCents = 0;
+  let minNights = 2;
+  let currency: BookingCurrency = 'EUR';
+
+  const current = new Date(checkIn + 'T00:00:00Z');
+  const end = new Date(checkOut + 'T00:00:00Z');
+  while (current < end) {
+    const dateStr = current.toISOString().slice(0, 10);
+    const d = byDate.get(dateStr);
+    if (!d || d.price_cents == null) return { missing: true };
+    breakdown.push({ date: dateStr, pricePerNightCents: d.price_cents, ruleName: 'FDM' });
+    totalCents += d.price_cents;
+    if (d.min_stay && d.min_stay > minNights) minNights = d.min_stay;
+    if (d.currency === 'CZK' || d.currency === 'EUR') currency = d.currency;
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  const nights = breakdown.length;
+  return {
+    totalCents,
+    pricePerNightCents: nights > 0 ? Math.round(totalCents / nights) : 0,
+    nights,
+    minNights,
+    breakdown,
+    currency,
+    source: 'fdm',
+  };
+}
+
+/** Batch varianta getFdmPriceFrom pro seznamy (sync → async: listy nemohou awaitovat v .map()). */
+export async function getFdmPriceFromMany(
+  apartmentIds: string[]
+): Promise<Record<string, { cents: number; currency: BookingCurrency }>> {
+  if (apartmentIds.length === 0) return {};
+  const admin = createSupabaseAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await admin
+    .from('fdm_calendar')
+    .select('apartment_id, price_cents, currency')
+    .in('apartment_id', apartmentIds)
+    .gte('date', today)
+    .eq('available', true)
+    .not('price_cents', 'is', null);
+  const out: Record<string, { cents: number; currency: BookingCurrency }> = {};
+  for (const row of data ?? []) {
+    const id = row.apartment_id as string;
+    const cents = row.price_cents as number;
+    if (!out[id] || cents < out[id].cents) {
+      out[id] = { cents, currency: row.currency === 'CZK' ? 'CZK' : 'EUR' };
+    }
+  }
+  return out;
+}
+
+/** Nejnižší cena za noc v příštím roce (pro „Pronájem od“). Null = apartmán není na FDM nebo bez cen. */
+export async function getFdmPriceFrom(
+  apartmentId: string
+): Promise<{ cents: number; currency: BookingCurrency } | null> {
+  const admin = createSupabaseAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await admin
+    .from('fdm_calendar')
+    .select('price_cents, currency')
+    .eq('apartment_id', apartmentId)
+    .gte('date', today)
+    .eq('available', true)
+    .not('price_cents', 'is', null)
+    .order('price_cents', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!data?.price_cents) return null;
+  return { cents: data.price_cents, currency: data.currency === 'CZK' ? 'CZK' : 'EUR' };
 }
 
 export async function calculatePrice(
@@ -20,6 +125,11 @@ export async function calculatePrice(
   checkIn: string,
   checkOut: string
 ): Promise<PriceResult | null> {
+  // FDM je zdroj pravdy pro ceny napojených apartmánů
+  const fdm = await calculateFdmPrice(apartmentId, checkIn, checkOut);
+  if (fdm && 'missing' in fdm) return null;
+  if (fdm) return fdm;
+
   const admin = createSupabaseAdminClient();
 
   const { data: apartment, error: aptError } = await admin
@@ -87,5 +197,6 @@ export async function calculatePrice(
     minNights,
     breakdown,
     currency: 'CZK',
+    source: 'local',
   };
 }

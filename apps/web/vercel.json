@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/ical-sync",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/fdm-sync",
+      "schedule": "*/15 * * * *"
     }
   ],
   "redirects": [

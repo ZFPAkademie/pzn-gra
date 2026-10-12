@@ -57,3 +57,14 @@ export async function toggleConnection(id: string, enabled: boolean) {
   revalidatePath('/admin/channel-manager');
   return { ok: true };
 }
+
+export async function syncFdmNow() {
+  const isAuth = await isAdminAuthenticated();
+  if (!isAuth) return { ok: false as const, error: 'Neautorizováno' };
+  const { syncFdmCalendar } = await import('@/lib/fdm/sync');
+  const result = await syncFdmCalendar();
+  revalidatePath('/admin/channel-manager');
+  return result.ok
+    ? { ok: true as const, apartments: result.apartments, days: result.days }
+    : { ok: false as const, error: result.error ?? 'Synchronizace selhala' };
+}

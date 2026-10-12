@@ -6,6 +6,7 @@ import { getBookingByToken } from '@/lib/booking-engine/bookings';
 import { getRentalApartmentBySlug } from '@/lib/apartments';
 import { getApartmentHeroImage } from '@/data/apartment-images';
 import { generatePaymentQR } from '@/lib/qr';
+import { formatMoney } from '@/lib/booking-engine/money';
 import { CopyButton } from './copy-button';
 import { MessagesThread } from './messages-thread';
 
@@ -22,8 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function fmtCZK(cents: number) {
-  return (cents / 100).toLocaleString('cs-CZ', { minimumFractionDigits: 0 }) + ' Kč';
+function fmtAmount(cents: number, currency: string = 'CZK') {
+  return formatMoney(cents, currency);
 }
 function fmtDate(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', {
@@ -56,8 +57,9 @@ export default async function BookingTokenPage({ params }: Props) {
   const isCancelled = booking.status === 'cancelled';
 
   const reference   = `REZ-${params.token.slice(0, 8).toUpperCase()}`;
+  const currency    = booking.currency ?? 'CZK';
   const amountCZK   = booking.total_amount_cents / 100;
-  const amountStr   = amountCZK.toFixed(2);
+  const amountStr   = amountCZK.toFixed(2) + (currency === 'EUR' ? ' EUR' : '');
 
   // QR kód pro platbu (pouze pending)
   let qrDataUrl: string | null = null;
@@ -66,6 +68,7 @@ export default async function BookingTokenPage({ params }: Props) {
       qrDataUrl = await generatePaymentQR({
         iban: BANK_IBAN,
         amount: amountCZK,
+        currency,
         message: reference,
       });
     } catch { /* soft fail */ }
@@ -174,7 +177,7 @@ export default async function BookingTokenPage({ params }: Props) {
               {' · '}
               {booking.guests_count} {booking.guests_count === 1 ? 'host' : booking.guests_count < 5 ? 'hosté' : 'hostů'}
             </span>
-            <span className="text-sm font-light text-[#0B1626]">{fmtCZK(booking.total_amount_cents)}</span>
+            <span className="text-sm font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency)}</span>
           </div>
         </div>
 
@@ -213,7 +216,7 @@ export default async function BookingTokenPage({ params }: Props) {
                 <div className="flex items-center justify-between px-5 py-3.5">
                   <div>
                     <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Částka</p>
-                    <p className="text-lg font-light text-[#0B1626]">{fmtCZK(booking.total_amount_cents)}</p>
+                    <p className="text-lg font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency)}</p>
                   </div>
                   <CopyButton value={amountStr} />
                 </div>

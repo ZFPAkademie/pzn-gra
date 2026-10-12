@@ -50,13 +50,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       calculatePrice(apartment.id, checkIn, checkOut),
     ]);
 
+    // Bez ceny (FDM nemá ceník pro některou noc) nelze rezervovat
     return NextResponse.json({
-      available: avail.available,
+      available: avail.available && !!price,
       nights: price?.nights ?? 0,
       minNights: price?.minNights ?? 2,
       totalCents: price?.totalCents ?? 0,
-      pricePerNightCents: price?.pricePerNightCents ?? apartment.base_price_cents,
-      currency: 'CZK',
+      pricePerNightCents: price?.pricePerNightCents ?? apartment.base_price_cents ?? 0,
+      currency: price?.currency ?? 'CZK',
     });
   }
 

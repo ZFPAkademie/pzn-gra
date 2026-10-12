@@ -20,6 +20,11 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   const maxGuestsStr = formData.get('max_guests') as string;
   const orientation = formData.get('orientation') as string;
   const description = formData.get('description') as string;
+  const fdmRoomUseStr = (formData.get('fdm_room_use_id') as string | null) ?? '';
+  const fdmRoomUseId = fdmRoomUseStr.trim() ? parseInt(fdmRoomUseStr, 10) : null;
+  if (fdmRoomUseStr.trim() && (fdmRoomUseId == null || isNaN(fdmRoomUseId) || fdmRoomUseId < 1)) {
+    return { ok: false, error: 'FDM typ pokoje musí být kladné číslo' };
+  }
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from('apartments').update({
@@ -32,9 +37,12 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
     max_guests: maxGuestsStr ? parseInt(maxGuestsStr, 10) : null,
     orientation: orientation || null,
     description: description || null,
+    fdm_room_use_id: fdmRoomUseId,
   }).eq('id', id);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    return { ok: false, error: error.message.includes('fdm_room_use_id') ? 'Tento FDM typ pokoje už má jiný apartmán' : error.message };
+  }
   revalidate(id);
   return { ok: true };
 }

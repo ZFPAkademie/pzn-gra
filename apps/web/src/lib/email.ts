@@ -8,7 +8,11 @@ const FROM = process.env.EMAIL_FROM ?? 'noreply@podzlatymnavrsim.cz';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'rezervace@podzlatymnavrsim.cz';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://pzn-gra.vercel.app';
 
-function fmtCZK(cents: number) {
+function fmtMoney(cents: number, currency: string = 'CZK') {
+  if (currency === 'EUR') {
+    const amount = cents / 100;
+    return amount.toLocaleString('cs-CZ', { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }) + ' €';
+  }
   return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
 }
 function fmtDate(d: string) {
@@ -82,13 +86,13 @@ export async function sendBookingReceivedEmail(params: {
   nights: number;
   guestsCount: number;
   totalAmountCents: number;
+  currency?: string;
   confirmationToken: string;
   bankIban: string;
   bankName: string;
   reference: string;
 }) {
   const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}`;
-  const amountCZK = (params.totalAmountCents / 100).toFixed(2);
 
   const html = layout(`
     <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">Rezervace přijata</h1>
@@ -104,7 +108,7 @@ export async function sendBookingReceivedEmail(params: {
           ${row('Odjezd', fmtDate(params.checkOut))}
           ${row('Délka pobytu', `${params.nights} nocí`)}
           ${row('Počet hostů', String(params.guestsCount))}
-          ${row('Celková cena', fmtCZK(params.totalAmountCents))}
+          ${row('Celková cena', fmtMoney(params.totalAmountCents, params.currency))}
           ${row('Reference', `<code style="font-size:13px;">${params.reference}</code>`)}
         </table>
       </td></tr>
@@ -114,7 +118,7 @@ export async function sendBookingReceivedEmail(params: {
     <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
       ${row('Příjemce', params.bankName)}
       ${row('IBAN', `<code style="font-size:13px;">${params.bankIban}</code>`)}
-      ${row('Částka', `<strong>${fmtCZK(params.totalAmountCents)}</strong>`)}
+      ${row('Částka', `<strong>${fmtMoney(params.totalAmountCents, params.currency)}</strong>`)}
       ${row('Zpráva', `<code style="font-size:13px;">${params.reference}</code>`)}
     </table>
 
@@ -151,7 +155,9 @@ export async function sendAdminNewBookingEmail(params: {
   checkOut: string;
   nights: number;
   totalAmountCents: number;
+  currency?: string;
   reference: string;
+  fdmNote?: string | null;
 }) {
   const adminUrl = `${BASE_URL}/admin/rezervace/${params.bookingId}`;
 
@@ -167,8 +173,9 @@ export async function sendAdminNewBookingEmail(params: {
       ${row('Příjezd', fmtDate(params.checkIn))}
       ${row('Odjezd', fmtDate(params.checkOut))}
       ${row('Nocí', String(params.nights))}
-      ${row('Částka', fmtCZK(params.totalAmountCents))}
+      ${row('Částka', fmtMoney(params.totalAmountCents, params.currency))}
       ${row('Reference', `<code>${params.reference}</code>`)}
+      ${params.fdmNote ? row('Front Desk Master', params.fdmNote) : ''}
     </table>
 
     ${btn(adminUrl, 'Otevřít v adminu')}

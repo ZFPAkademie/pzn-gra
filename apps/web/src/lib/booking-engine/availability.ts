@@ -1,5 +1,11 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 
+function nextDay(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 function eachDayInRange(startStr: string, endStr: string): string[] {
   const days: string[] = [];
   const current = new Date(startStr);
@@ -11,12 +17,53 @@ function eachDayInRange(startStr: string, endStr: string): string[] {
   return days;
 }
 
+/**
+ * Apartmán napojený na FDM: volné dny = fdm_calendar.available a ne closed.
+ * Vrací null, když apartmán na FDM napojen není (→ původní logika).
+ */
+async function fdmBlockedDays(
+  apartmentId: string,
+  fromInclusive: string,
+  toExclusive: string
+): Promise<Set<string> | null> {
+  const admin = createSupabaseAdminClient();
+  const { data: apt } = await admin
+    .from('apartments')
+    .select('fdm_room_use_id')
+    .eq('id', apartmentId)
+    .maybeSingle();
+  if (!apt?.fdm_room_use_id) return null;
+
+  const { data: days, error } = await admin
+    .from('fdm_calendar')
+    .select('date, available, closed')
+    .eq('apartment_id', apartmentId)
+    .gte('date', fromInclusive)
+    .lt('date', toExclusive);
+  if (error) {
+    console.error('[availability] fdm_calendar error:', error);
+    return null;
+  }
+
+  const known = new Map((days ?? []).map((d) => [d.date as string, !!d.available && !d.closed]));
+  const blocked = new Set<string>();
+  // Den, který v cache chybí (mimo horizont synchronizace), bereme jako obsazený — FDM je zdroj pravdy.
+  for (const day of eachDayInRange(fromInclusive, toExclusive)) {
+    if (known.get(day) !== true) blocked.add(day);
+  }
+  return blocked;
+}
+
 export async function checkAvailability(
   apartmentId: string,
   checkIn: string,
   checkOut: string
 ): Promise<{ available: boolean }> {
   const admin = createSupabaseAdminClient();
+
+  // FDM (master) — obsazeno podle synchronizovaného kalendáře
+  const fdmBlocked = await fdmBlockedDays(apartmentId, checkIn, checkOut);
+  if (fdmBlocked && fdmBlocked.size > 0) return { available: false };
 
   // Zkontroluj překrývající se rezervace (pending + confirmed)
   const { data: overlappingBookings, error } = await admin
@@ -61,6 +108,10 @@ export async function getMonthAvailability(
   const lastStr = lastDay.toISOString().slice(0, 10);
 
   const blockedSet = new Set<string>();
+
+  // FDM (master) — dny obsazené podle synchronizovaného kalendáře
+  const fdmBlocked = await fdmBlockedDays(apartmentId, firstStr, lastStr > firstStr ? nextDay(lastStr) : lastStr);
+  fdmBlocked?.forEach((d) => blockedSet.add(d));
 
   // Rezervace překrývající se s tímto měsícem
   const { data: bookings } = await admin

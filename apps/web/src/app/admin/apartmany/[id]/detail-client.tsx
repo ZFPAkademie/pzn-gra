@@ -37,6 +37,7 @@ interface Apartment {
   for_rent: boolean;
   in_rental_program: boolean;
   base_price_cents: number | null;
+  fdm_room_use_id: number | null;
   features: string[] | null;
 }
 
@@ -166,6 +167,11 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
               <label className="block text-xs text-slate-500 mb-1">Orientace</label>
               <input name="orientation" defaultValue={apt.orientation ?? ''} placeholder="jih, západ" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
             </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">FDM typ pokoje (RoomUseId)</label>
+              <input name="fdm_room_use_id" type="number" min="1" defaultValue={apt.fdm_room_use_id ?? ''} placeholder="např. 12" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+              <p className="text-[10px] text-slate-400 mt-1">Prázdné = apartmán není napojen na Front Desk Master.</p>
+            </div>
             <div className="col-span-2 sm:col-span-3">
               <label className="block text-xs text-slate-500 mb-1">Popis</label>
               <textarea name="description" rows={3} defaultValue={apt.description ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold resize-none" />
@@ -213,6 +219,10 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
             <div>
               <dt className="text-xs text-slate-400">Orientace</dt>
               <dd className="text-navy mt-0.5">{apt.orientation ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Front Desk Master</dt>
+              <dd className="text-navy mt-0.5">{apt.fdm_room_use_id != null ? `typ pokoje ${apt.fdm_room_use_id}` : 'nenapojeno'}</dd>
             </div>
           </dl>
           {apt.description && (

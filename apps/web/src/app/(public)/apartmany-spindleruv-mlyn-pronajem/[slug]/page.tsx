@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getApartmentBySlugDB, getSalesManager } from '@/lib/apartments';
+import { getFdmPriceFrom } from '@/lib/booking-engine/pricing';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { BookingWidget } from '@/components/features/booking-widget';
@@ -37,7 +38,14 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
   }
 
   const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
-  const hasBookingEngine = !!apt.id && !!apt.base_price_cents;
+  // Cena „od": Front Desk Master (EUR), jinak lokální base_price (CZK)
+  const fdmPriceFrom = apt.fdm_room_use_id ? await getFdmPriceFrom(apt.id) : null;
+  const priceFrom = fdmPriceFrom
+    ? { amount: Math.round(fdmPriceFrom.cents / 100), currency: fdmPriceFrom.currency }
+    : apt.base_price_cents
+      ? { amount: Math.round(apt.base_price_cents / 100), currency: 'CZK' as const }
+      : null;
+  const hasBookingEngine = !!apt.id && !!priceFrom;
   const alsoForSale = apt.for_sale;
 
   return (
@@ -165,7 +173,8 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                   apartmentId={apt.id}
                   apartmentSlug={params.slug}
                   maxGuests={apt.max_guests ?? 4}
-                  basePricePerNight={Math.round((apt.base_price_cents ?? 0) / 100)}
+                  basePricePerNight={priceFrom?.amount ?? 0}
+                  currency={priceFrom?.currency ?? 'CZK'}
                 />
               ) : (
                 <div className="bg-navy p-8">

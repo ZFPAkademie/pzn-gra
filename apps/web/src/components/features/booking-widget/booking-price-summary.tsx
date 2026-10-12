@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatMoney } from '@/lib/booking-engine/money';
 
 interface Props {
   apartmentSlug: string;
@@ -14,13 +15,6 @@ interface PriceData {
   totalCents: number;
   pricePerNightCents: number;
   currency: string;
-}
-
-function formatCZK(cents: number): string {
-  return (cents / 100).toLocaleString('cs-CZ', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }) + ' Kč';
 }
 
 export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props) {
@@ -90,14 +84,14 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
 
       <div className="space-y-2 text-sm text-navy/70 mb-3">
         <div className="flex justify-between">
-          <span>{formatCZK(data.pricePerNightCents)} × {data.nights} nocí</span>
-          <span>{formatCZK(data.totalCents)}</span>
+          <span>{formatMoney(data.pricePerNightCents, data.currency)} × {data.nights} nocí</span>
+          <span>{formatMoney(data.totalCents, data.currency)}</span>
         </div>
       </div>
 
       <div className="border-t border-navy/10 pt-3 flex justify-between items-baseline">
         <span className="text-sm text-navy/50">Celkem</span>
-        <span className="text-xl font-light text-navy">{formatCZK(data.totalCents)}</span>
+        <span className="text-xl font-light text-navy">{formatMoney(data.totalCents, data.currency)}</span>
       </div>
     </div>
   );
