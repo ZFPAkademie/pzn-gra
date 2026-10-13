@@ -5,6 +5,7 @@ import { BookingCalendar } from './booking-calendar';
 import { BookingPriceSummary } from './booking-price-summary';
 import { BookingForm } from './booking-form';
 import { useLanguage } from '@/components/providers/language-provider';
+import type { Locale } from '@/lib/i18n';
 
 type Step = 'calendar' | 'form';
 
@@ -18,6 +19,16 @@ interface Props {
   /** Měna ceny „od“ — CZK (lokální ceník) nebo EUR (Front Desk Master) */
   currency?: 'CZK' | 'EUR';
 }
+
+/** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
+function plPlural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const d = n % 10;
+  const dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? few : many;
+}
+
+const NUM_LOCALE: Record<Locale, string> = { cs: 'cs-CZ', en: 'en-GB', pl: 'pl-PL' };
 
 const TEXTS = {
   cs: {
@@ -48,10 +59,24 @@ const TEXTS = {
     nights: (n: number) => (n === 1 ? 'night' : 'nights'),
     change: 'Change',
   },
+  pl: {
+    minStay: (n: number) => `Minimalny pobyt to ${n} ${plPlural(n, 'noc', 'noce', 'nocy')}.`,
+    rentFrom: 'Wynajem od',
+    perNight: 'noc',
+    seasonal: 'Ceny mogą się różnić w zależności od sezonu',
+    pickArrival: 'Wybierz datę przyjazdu',
+    arrival: 'Przyjazd',
+    pickDeparture: 'wybierz datę wyjazdu',
+    cancel: 'Anuluj',
+    book: 'Zarezerwuj',
+    dates: 'Termin',
+    nights: (n: number) => plPlural(n, 'noc', 'noce', 'nocy'),
+    change: 'Zmień',
+  },
 };
 
-function fmtDate(d: string, locale: 'cs' | 'en' = 'cs') {
-  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short' });
+function fmtDate(d: string, locale: Locale = 'cs') {
+  return new Date(d + 'T12:00:00').toLocaleDateString(NUM_LOCALE[locale], { day: 'numeric', month: 'short' });
 }
 function nights(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
@@ -63,7 +88,7 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
   const [checkOut, setCheckOut] = useState<string | null>(null);
   const [error, setError]       = useState<string | null>(null);
   const { locale } = useLanguage();
-  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
+  const t = TEXTS[locale];
 
   function handleDates(ci: string, co: string | null) {
     setCheckIn(ci); setCheckOut(co); setError(null);
@@ -91,9 +116,9 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
         <p className="text-[#C9A24D] text-[10px] tracking-[0.18em] uppercase mb-2">{t.rentFrom}</p>
         <div className="flex items-baseline gap-2">
           <span className="text-[2.2rem] font-light text-white leading-none">
-            {basePricePerNight.toLocaleString(locale === 'cs' ? 'cs-CZ' : 'en-GB')}
+            {basePricePerNight.toLocaleString(NUM_LOCALE[locale])}
           </span>
-          <span className="text-white/40 text-sm">{currency === 'EUR' ? '€' : 'Kč'} / {t.perNight}</span>
+          <span className="text-white/40 text-sm">{currency === 'EUR' ? '€' : locale === 'pl' ? 'CZK' : 'Kč'} / {t.perNight}</span>
         </div>
         <p className="text-white/25 text-[11px] mt-1.5">{t.seasonal}</p>
       </div>

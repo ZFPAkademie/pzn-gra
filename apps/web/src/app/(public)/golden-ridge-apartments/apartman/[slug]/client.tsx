@@ -21,7 +21,7 @@ interface RentDetailCTAProps {
 export function RentDetailCTA({ apartment, locale }: RentDetailCTAProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const label = locale === 'cs' ? 'Poptat termín' : 'Enquire about dates';
+  const label = locale === 'cs' ? 'Poptat termín' : locale === 'pl' ? 'Zapytaj o termin' : 'Enquire about dates';
 
   return (
     <>

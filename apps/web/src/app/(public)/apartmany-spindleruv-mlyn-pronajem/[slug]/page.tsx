@@ -7,7 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getApartmentBySlugDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
-import { getRequestLocale } from '@/lib/i18n-server';
+import { getRequestLocaleFull } from '@/lib/i18n-server';
+import type { Locale } from '@/lib/i18n';
 import { getFdmPriceFrom } from '@/lib/booking-engine/pricing';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
@@ -20,24 +21,26 @@ interface Props {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = getRequestLocale();
+  const locale = getRequestLocaleFull();
   const raw = await getApartmentBySlugDB(params.slug);
-  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : 'Apartment not found' };
+  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : locale === 'pl' ? 'Nie znaleziono apartamentu' : 'Apartment not found' };
   const apt = localizeApartment(raw, locale);
 
   return {
-    title: `${apt.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
+    title: locale === 'pl'
+      ? `${apt.title} | Wynajem Szpindlerowy Młyn | Pod Zlatým návrším`
+      : `${apt.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
   };
 }
 
-/** Plocha místnosti z DB („6,25 m²“) — v EN desetinná tečka */
-function roomArea(value: string, locale: 'cs' | 'en'): string {
-  return locale === 'cs' ? value : value.replace(/(\d),(\d)/g, '$1.$2');
+/** Plocha místnosti z DB („6,25 m²“) — v EN desetinná tečka, CS a PL čárka */
+function roomArea(value: string, locale: Locale): string {
+  return locale === 'cs' || locale === 'pl' ? value : value.replace(/(\d),(\d)/g, '$1.$2');
 }
 
 export default async function RentalApartmentDetailPage({ params }: Props) {
-  const locale = getRequestLocale();
+  const locale = getRequestLocaleFull();
   const rawApt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
   const images = await getApartmentImages(params.slug);
@@ -47,7 +50,8 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
   }
   const apt = localizeApartment(rawApt, locale);
 
-  const t = locale === 'cs' ? {
+  const T = {
+    cs: {
     back: 'Zpět na přehled',
     alsoForSale: 'I k prodeji',
     maxGuests: (n: number | null) => `max. ${n} hostů`,
@@ -73,7 +77,8 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
     writeEmail: 'Napsat e-mail',
     otherText: 'Prohlédněte si další dostupné apartmány',
     allRentals: 'Všechny apartmány k pronájmu',
-  } : {
+  },
+    en: {
     back: 'Back to overview',
     alsoForSale: 'Also for sale',
     maxGuests: (n: number | null) => `up to ${n} ${n === 1 ? 'guest' : 'guests'}`,
@@ -99,9 +104,38 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
     writeEmail: 'Send an email',
     otherText: 'Browse our other available apartments',
     allRentals: 'All apartments for rent',
+  },
+    pl: {
+      back: 'Powrót do przeglądu',
+      alsoForSale: 'Również na sprzedaż',
+      maxGuests: (n: number | null) => `maks. ${n} ${n === 1 ? 'gość' : 'gości'}`,
+      area: 'Powierzchnia',
+      layout: 'Układ',
+      maxGuestsLabel: 'Maks. gości',
+      orientation: 'Orientacja',
+      about: 'O apartamencie',
+      rooms: 'Pomieszczenia',
+      hall: 'Przedpokój',
+      bathroom: 'Łazienka',
+      bedroom: 'Sypialnia',
+      livingKitchen: 'Salon z aneksem kuchennym',
+      features: 'Wyposażenie',
+      rentFrom: 'Wynajem od',
+      seasonal: 'Ceny mogą się różnić w zależności od sezonu',
+      enquire: 'Zapytaj o rezerwację',
+      orContact: 'Lub prosimy o bezpośredni kontakt:',
+      saleTitle: 'Ten apartament jest również na sprzedaż',
+      saleText: 'Dzięki wyposażeniu apartamentu mogą Państwo od razu, bez dodatkowych kosztów, czerpać zyski z jego wynajmu.',
+      managerTitle: manager.title === 'Manažer prodeje' ? 'Menedżer sprzedaży' : manager.title,
+      mailSubject: `Zainteresowanie zakupem: ${apt.title}`,
+      writeEmail: 'Napisz e-mail',
+      otherText: 'Zobacz inne dostępne apartamenty',
+      allRentals: 'Wszystkie apartamenty na wynajem',
+    },
   };
+  const t = T[locale];
 
-  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(locale === 'cs' ? 'cs-CZ' : 'en-GB') + ' m²' : '—';
+  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(locale === 'cs' ? 'cs-CZ' : locale === 'pl' ? 'pl-PL' : 'en-GB') + ' m²' : '—';
   // Cena „od": Front Desk Master (EUR), jinak lokální base_price (CZK)
   const fdmPriceFrom = apt.fdm_room_use_id ? await getFdmPriceFrom(apt.id) : null;
   const priceFrom = fdmPriceFrom

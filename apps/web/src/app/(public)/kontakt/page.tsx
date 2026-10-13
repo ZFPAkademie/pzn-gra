@@ -5,7 +5,7 @@
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { getLocaleFromCookie } from '@/lib/i18n';
+import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/i18n-server';
 import { ContactForm } from '@/components/features/contact-form';
 import { getSalesManager } from '@/lib/apartments';
@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ContactPage() {
   const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const locale = toBaseLocale(getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value));
 
   const t = locale === 'cs' ? {
     tagline: 'Jsme tu pro vás',

@@ -10,4 +10,5 @@ export const SALES_COMPANY = {
   dic: 'CZ28282906',
   registerCs: 'C 58497 vedená u Krajského soudu v Brně',
   registerEn: 'C 58497, Regional Court in Brno',
+  registerPl: 'C 58497, Sąd Krajowy w Brnie',
 } as const;

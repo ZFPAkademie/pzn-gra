@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { formatMoney } from '@/lib/booking-engine/money';
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY ?? 'placeholder');
@@ -8,9 +9,22 @@ const FROM = process.env.EMAIL_FROM ?? 'noreply@podzlatymnavrsim.cz';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'rezervace@podzlatymnavrsim.cz';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://pzn-gra.vercel.app';
 
-type EmailLocale = 'cs' | 'en';
+type EmailLocale = 'cs' | 'en' | 'pl';
+
+function toEmailLocale(locale: string | undefined): EmailLocale {
+  return locale === 'en' || locale === 'pl' ? locale : 'cs';
+}
+
+/** 1 noc · 2–4 noce (22–24 …) · 5+ nocy (12–14 …) */
+function plNights(n: number): string {
+  if (n === 1) return 'noc';
+  const d = n % 10, dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? 'noce' : 'nocy';
+}
 
 function fmtMoney(cents: number, currency: string = 'CZK', locale: EmailLocale = 'cs') {
+  // pl: 1250 € / 1500 CZK
+  if (locale === 'pl') return formatMoney(cents, currency, 'pl');
   if (locale === 'en') {
     const amount = cents / 100;
     return amount.toLocaleString('en-GB', {
@@ -27,7 +41,7 @@ function fmtMoney(cents: number, currency: string = 'CZK', locale: EmailLocale =
   return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
 }
 function fmtDate(d: string, locale: EmailLocale = 'cs') {
-  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'en' ? 'en-GB' : 'cs-CZ', {
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'en' ? 'en-GB' : locale === 'pl' ? 'pl-PL' : 'cs-CZ', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
 }
@@ -49,7 +63,7 @@ function layout(content: string, locale: EmailLocale = 'cs') {
         <!-- Header -->
         <tr><td style="background:#0B1626;padding:28px 40px;">
           <p style="margin:0;color:#C9A24D;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;">Pod Zlatým návrším</p>
-          <p style="margin:4px 0 0;color:rgba(255,255,255,0.4);font-size:11px;">${locale === 'en' ? 'Špindlerův Mlýn · Krkonoše (Giant Mountains)' : 'Špindlerův Mlýn · Krkonoše'}</p>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.4);font-size:11px;">${locale === 'en' ? 'Špindlerův Mlýn · Krkonoše (Giant Mountains)' : locale === 'pl' ? 'Szpindlerowy Młyn · Karkonosze' : 'Špindlerův Mlýn · Krkonoše'}</p>
         </td></tr>
 
         <!-- Content -->
@@ -60,7 +74,7 @@ function layout(content: string, locale: EmailLocale = 'cs') {
         <!-- Footer -->
         <tr><td style="padding:24px 40px;text-align:center;">
           <p style="margin:0;color:rgba(11,22,38,0.35);font-size:11px;">
-            Pod Zlatým návrším · Špindlerův Mlýn ·
+            Pod Zlatým návrším · ${locale === 'pl' ? 'Szpindlerowy Młyn' : 'Špindlerův Mlýn'} ·
             <a href="${BASE_URL}" style="color:#C9A24D;text-decoration:none;">podzlatymnavrsim.cz</a>
           </p>
         </td></tr>
@@ -105,11 +119,11 @@ export async function sendBookingReceivedEmail(params: {
   /** Jazyk rezervace (bookings.language) */
   locale?: EmailLocale;
 }) {
-  const locale: EmailLocale = params.locale === 'en' ? 'en' : 'cs';
+  const locale: EmailLocale = toEmailLocale(params.locale);
   // ?lang= nastaví jazyk celého webu (hlavička, patička) i v prohlížeči bez cookie
   const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}?lang=${locale}`;
-  const t = locale === 'cs'
-    ? {
+  const T = {
+    cs: {
         heading: 'Rezervace přijata',
         intro: `Děkujeme, ${params.guestName}. Vaši rezervaci jsme přijali a čekáme na platbu.`,
         checkIn: 'Příjezd',
@@ -128,8 +142,8 @@ export async function sendBookingReceivedEmail(params: {
         button: 'Otevřít rezervační kartu',
         questions: 'Máte otázky? Odpovíme na',
         subject: `Rezervace přijata — ${params.apartmentTitle}`,
-      }
-    : {
+      },
+    en: {
         heading: 'Reservation received',
         intro: `Thank you, ${params.guestName}. We have received your reservation and are awaiting your payment.`,
         checkIn: 'Arrival',
@@ -148,7 +162,29 @@ export async function sendBookingReceivedEmail(params: {
         button: 'Open reservation card',
         questions: 'Any questions? We will reply at',
         subject: `Reservation received — ${params.apartmentTitle}`,
-      };
+      },
+    pl: {
+        heading: 'Rezerwacja przyjęta',
+        intro: `Dziękujemy, ${params.guestName}. Przyjęliśmy Państwa rezerwację i oczekujemy na płatność.`,
+        checkIn: 'Przyjazd',
+        checkOut: 'Wyjazd',
+        stay: 'Długość pobytu',
+        nights: `${params.nights} ${plNights(params.nights)}`,
+        guests: 'Liczba gości',
+        total: 'Cena całkowita',
+        reference: 'Numer referencyjny',
+        paymentTitle: 'Instrukcje płatności',
+        recipient: 'Odbiorca',
+        amount: 'Kwota',
+        message: 'Tytuł przelewu',
+        note: `Po zaksięgowaniu płatności wyślemy Państwu potwierdzenie. Wszystkie informacje o rezerwacji,
+      kod QR do płatności oraz korespondencję z nami znajdą Państwo na swojej karcie rezerwacji.`,
+        button: 'Otwórz kartę rezerwacji',
+        questions: 'Mają Państwo pytania? Odpowiemy pod adresem',
+        subject: `Rezerwacja przyjęta — ${params.apartmentTitle}`,
+      },
+  };
+  const t = T[locale];
 
   const html = layout(`
     <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">${t.heading}</h1>
@@ -232,7 +268,7 @@ export async function sendAdminNewBookingEmail(params: {
       ${row('Nocí', String(params.nights))}
       ${row('Částka', fmtMoney(params.totalAmountCents, params.currency))}
       ${row('Reference', `<code>${params.reference}</code>`)}
-      ${row('Jazyk hosta', params.guestLanguage === 'en' ? 'EN' : 'CZ')}
+      ${row('Jazyk hosta', params.guestLanguage === 'en' ? 'EN' : params.guestLanguage === 'pl' ? 'PL' : 'CZ')}
       ${params.fdmNote ? row('Front Desk Master', params.fdmNote) : ''}
     </table>
 
@@ -260,11 +296,11 @@ export async function sendBookingConfirmedEmail(params: {
   /** Jazyk rezervace (bookings.language) */
   locale?: EmailLocale;
 }) {
-  const locale: EmailLocale = params.locale === 'en' ? 'en' : 'cs';
+  const locale: EmailLocale = toEmailLocale(params.locale);
   // ?lang= nastaví jazyk celého webu (hlavička, patička) i v prohlížeči bez cookie
   const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}?lang=${locale}`;
-  const t = locale === 'cs'
-    ? {
+  const T = {
+    cs: {
         badge: '✓ Potvrzeno',
         heading: 'Rezervace potvrzena',
         intro: `Platbu jsme přijali. Těšíme se na vás, ${params.guestName}!`,
@@ -279,8 +315,8 @@ export async function sendBookingConfirmedEmail(params: {
         button: 'Otevřít rezervační kartu',
         help: 'Potřebujete pomoc? Napište přímo na rezervační kartě nebo na',
         subject: `Potvrzení rezervace — ${params.apartmentTitle}`,
-      }
-    : {
+      },
+    en: {
         badge: '✓ Confirmed',
         heading: 'Reservation confirmed',
         intro: `We have received your payment. We look forward to welcoming you, ${params.guestName}!`,
@@ -295,7 +331,25 @@ export async function sendBookingConfirmedEmail(params: {
         button: 'Open reservation card',
         help: 'Need help? Write to us directly on your reservation card or at',
         subject: `Reservation confirmation — ${params.apartmentTitle}`,
-      };
+      },
+    pl: {
+        badge: '✓ Potwierdzono',
+        heading: 'Rezerwacja potwierdzona',
+        intro: `Otrzymaliśmy Państwa płatność. Cieszymy się na Państwa przyjazd, ${params.guestName}!`,
+        checkIn: 'Przyjazd',
+        checkOut: 'Wyjazd',
+        from: 'od 15:00',
+        until: 'do 10:00',
+        stay: 'Długość pobytu',
+        nights: `${params.nights} ${plNights(params.nights)}`,
+        note: `Na karcie rezerwacji znajdą Państwo wszystkie informacje potrzebne do przyjazdu —
+      kod do drzwi, Wi-Fi i wskazówki dotyczące parkowania (uzupełnimy je przed Państwa przyjazdem).`,
+        button: 'Otwórz kartę rezerwacji',
+        help: 'Potrzebują Państwo pomocy? Prosimy napisać bezpośrednio na karcie rezerwacji lub na adres',
+        subject: `Potwierdzenie rezerwacji — ${params.apartmentTitle}`,
+      },
+  };
+  const t = T[locale];
 
   const html = layout(`
     <div style="margin-bottom:24px;">

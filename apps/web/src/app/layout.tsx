@@ -8,7 +8,15 @@ import { getLocaleFromCookie, Locale } from '@/lib/i18n';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value) === 'en') {
+  const locale = getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value);
+  if (locale === 'pl') {
+    return {
+      title: 'Pod Zlatým návrším | Apartamenty w Szpindlerowym Młynie',
+      description: 'Apartamenty na wynajem w Szpindlerowym Młynie, 50 metrów od wyciągu Labská. Rezerwacja online. Golden Ridge Apartments.',
+      keywords: 'apartamenty Szpindlerowy Młyn, noclegi Szpindlerowy Młyn, apartamenty Karkonosze, Špindlerův Mlýn, Golden Ridge Apartments',
+    };
+  }
+  if (locale === 'en') {
     return {
       title: 'Pod Zlatým návrším | Luxury apartments in Špindlerův Mlýn',
       description: 'Luxury apartments in Špindlerův Mlýn - for sale and for rent. Golden Ridge Apartments.',

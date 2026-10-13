@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 import { getRequestLocale } from '@/lib/i18n-server';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getLocaleFromCookie } from '@/lib/i18n';
+import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { AlpineOrnament, MountainSilhouette, Stat, SectionLabel } from '@/components/ui/ornaments';
 import { getRentalApartmentsDB, getSaleApartmentsDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const locale = toBaseLocale(getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value));
 
   // Pronájem je od 13. 10. 2026 hlavní téma úvodní stránky; počty a ceny z DB / Front Desk Master
   const [rentalApartmentsRaw, saleApartments] = await Promise.all([getRentalApartmentsDB(), getSaleApartmentsDB()]);

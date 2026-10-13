@@ -18,7 +18,9 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
   const { locale } = useLanguage();
   const t = locale === 'cs'
     ? { prev: 'Previous image', next: 'Next image', thumb: 'thumbnail' }
-    : { prev: 'Previous image', next: 'Next image', thumb: 'thumbnail' };
+    : locale === 'pl'
+      ? { prev: 'Poprzednie zdjęcie', next: 'Następne zdjęcie', thumb: 'miniatura' }
+      : { prev: 'Previous image', next: 'Next image', thumb: 'thumbnail' };
 
   if (photos.length === 0) {
     return (

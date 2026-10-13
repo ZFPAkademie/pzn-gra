@@ -17,11 +17,18 @@ const ERR = {
     tooLong: 'The message is too long',
     cancelled: 'This reservation has been cancelled',
   },
+  pl: {
+    notFound: 'Nie znaleziono rezerwacji',
+    empty: 'Wiadomość nie może być pusta',
+    tooLong: 'Wiadomość jest zbyt długa',
+    cancelled: 'Rezerwacja została anulowana',
+  },
 };
 
 function errFor(language: string | null | undefined, req: NextRequest) {
-  if (language === 'en' || language === 'cs') return ERR[language];
-  return req.cookies.get('NEXT_LOCALE')?.value === 'en' ? ERR.en : ERR.cs;
+  if (language === 'en' || language === 'cs' || language === 'pl') return ERR[language];
+  const cookie = req.cookies.get('NEXT_LOCALE')?.value;
+  return cookie === 'en' ? ERR.en : cookie === 'pl' ? ERR.pl : ERR.cs;
 }
 
 // GET — načti zprávy pro rezervaci

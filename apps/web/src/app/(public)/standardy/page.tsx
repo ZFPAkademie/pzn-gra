@@ -5,7 +5,7 @@
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { getLocaleFromCookie } from '@/lib/i18n';
+import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function StandardsPage() {
   const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const locale = toBaseLocale(getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value));
 
   const t = locale === 'cs' ? {
     tagline: 'Kvalita v detailu',

@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { useLanguage } from '@/components/providers/language-provider';
 
+/** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
+function plPlural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const d = n % 10;
+  const dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? few : many;
+}
+
 const TEXTS = {
   cs: {
     gdprRequired: 'Pro pokračování je nutný souhlas se zpracováním osobních údajů.',
@@ -42,6 +50,25 @@ const TEXTS = {
     redirecting: 'Redirecting to payment...',
     submit: 'Send reservation',
   },
+  pl: {
+    gdprRequired: 'Aby kontynuować, należy wyrazić zgodę na przetwarzanie danych osobowych.',
+    createFailed: 'Nie udało się utworzyć rezerwacji. Prosimy spróbować ponownie.',
+    unexpected: 'Wystąpił nieoczekiwany błąd. Prosimy spróbować ponownie.',
+    firstName: 'Imię',
+    firstNamePh: 'Anna',
+    lastName: 'Nazwisko',
+    lastNamePh: 'Kowalska',
+    email: 'E-mail',
+    emailPh: 'anna@example.pl',
+    phone: 'Telefon',
+    phonePh: '+48 600 000 000',
+    guests: 'Liczba gości',
+    guestOption: (n: number) => `${n} ${plPlural(n, 'gość', 'gości', 'gości')}`,
+    consentBefore: 'Wyrażam zgodę na przetwarzanie moich danych osobowych w celu realizacji rezerwacji i komunikacji zgodnie z',
+    consentLink: 'polityką prywatności',
+    redirecting: 'Przekierowanie do płatności...',
+    submit: 'Wyślij rezerwację',
+  },
 };
 
 interface Props {
@@ -71,7 +98,7 @@ export function BookingForm({
   const [gdpr, setGdpr] = useState(false);
   const [loading, setLoading] = useState(false);
   const { locale } = useLanguage();
-  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
+  const t = TEXTS[locale];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

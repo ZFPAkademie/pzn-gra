@@ -22,22 +22,31 @@ export const dynamic = 'force-dynamic';
  */
 function resolveLocale(bookingLanguage: string | null | undefined): Locale {
   const cookieLocale = cookies().get('NEXT_LOCALE')?.value;
-  if (cookieLocale === 'cs' || cookieLocale === 'en') return cookieLocale;
-  return bookingLanguage === 'en' ? 'en' : 'cs';
+  if (cookieLocale === 'cs' || cookieLocale === 'en' || cookieLocale === 'pl') return cookieLocale;
+  return bookingLanguage === 'en' ? 'en' : bookingLanguage === 'pl' ? 'pl' : 'cs';
 }
 
-type BookingApt = { slug: string; title: string; title_en?: string | null };
+type BookingApt = { slug: string; title: string; title_en?: string | null; title_pl?: string | null };
 
 function aptTitle(apt: BookingApt | null, locale: Locale): string | undefined {
-  return (locale === 'en' ? apt?.title_en : null) ?? apt?.title;
+  return (locale === 'pl' ? apt?.title_pl ?? apt?.title_en : locale === 'en' ? apt?.title_en : null) ?? apt?.title;
 }
+
+/** 1 noc · 2–4 noce (22–24 …) · 5+ nocy (12–14 …) */
+function plPlural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const d = n % 10, dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? few : many;
+}
+
+const TOWN: Record<Locale, string> = { cs: 'Špindlerův Mlýn', en: 'Špindlerův Mlýn', pl: 'Szpindlerowy Młyn' };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const booking = await getBookingByToken(params.token);
   const apt = booking?.apartments as unknown as BookingApt | null;
   const locale = resolveLocale(booking?.language);
   const title = aptTitle(apt, locale);
-  const label = locale === 'cs' ? 'Rezervace' : 'Reservation';
+  const label = ({ cs: 'Rezervace', en: 'Reservation', pl: 'Rezerwacja' } as const)[locale];
   return {
     title: title ? `${label} — ${title} | Pod Zlatým návrším` : `${label} | Pod Zlatým návrším`,
     robots: { index: false },
@@ -48,11 +57,13 @@ function fmtAmount(cents: number, currency: string = 'CZK', locale: Locale = 'cs
   return formatMoney(cents, currency, locale);
 }
 function fmtDay(d: string, locale: Locale) {
-  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { weekday: 'long' });
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'cs' ? 'cs-CZ' : locale === 'pl' ? 'pl-PL' : 'en-GB', { weekday: 'long' });
 }
 function fmtShort(d: string, locale: Locale) {
   const date = new Date(d + 'T12:00:00');
   if (locale === 'en') return `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'long' })}`;
+  // pl: dopełniacz — 14 października
+  if (locale === 'pl') return date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
   return `${date.getDate()}. ${date.toLocaleDateString('cs-CZ', { month: 'long' })}`;
 }
 
@@ -71,22 +82,22 @@ export default async function BookingTokenPage({ params }: Props) {
   const staticAptCs = apt?.slug ? getRentalApartmentBySlug(apt.slug) : null;
   const heroImage = apt?.slug ? await getApartmentHeroImage(apt.slug) : null;
 
-  // EN: texty apartmánu z DB (_en sloupce, fallback čeština), čísla ze statických dat
+  // EN/PL: texty apartmánu z DB (_en/_pl sloupce, fallback EN → čeština), čísla ze statických dat
   let staticApt = staticAptCs;
-  if (locale === 'en' && staticAptCs) {
+  if ((locale === 'en' || locale === 'pl') && staticAptCs) {
     const dbApt = await getApartmentBySlugDB(staticAptCs.slug);
-    const loc = dbApt ? localizeApartment(dbApt, 'en') : null;
+    const loc = dbApt ? localizeApartment(dbApt, locale) : null;
     staticApt = {
       ...staticAptCs,
-      layout: layoutLabel(staticAptCs.layout, 'en'),
+      layout: layoutLabel(staticAptCs.layout, locale),
       totalArea: staticAptCs.totalArea.replace(',', '.'),
       description: loc?.description ?? staticAptCs.description,
       features: loc?.features?.length ? loc.features : staticAptCs.features,
     };
   }
 
-  const t = locale === 'cs'
-    ? {
+  const T = {
+    cs: {
         pending: 'Čeká na platbu',
         confirmed: 'Potvrzeno',
         cancelled: 'Zrušeno',
@@ -115,8 +126,8 @@ export default async function BookingTokenPage({ params }: Props) {
         layout: 'Dispozice',
         area: 'Plocha',
         maxGuests: 'Max. hostů',
-      }
-    : {
+      },
+    en: {
         pending: 'Awaiting payment',
         confirmed: 'Confirmed',
         cancelled: 'Cancelled',
@@ -145,7 +156,39 @@ export default async function BookingTokenPage({ params }: Props) {
         layout: 'Layout',
         area: 'Floor area',
         maxGuests: 'Max. guests',
-      };
+      },
+    pl: {
+        pending: 'Oczekuje na płatność',
+        confirmed: 'Potwierdzono',
+        cancelled: 'Anulowano',
+        yourApartment: 'Państwa apartament',
+        apartmentAlt: 'Apartament',
+        arrival: 'Przyjazd',
+        departure: 'Wyjazd',
+        arrivalTime: 'od 15:00',
+        departureTime: 'do 10:00',
+        nights: (n: number) => plPlural(n, 'noc', 'noce', 'nocy'),
+        guests: (n: number) => (n === 1 ? 'gość' : 'gości'),
+        payTitle: 'Prosimy zapłacić przelewem bankowym',
+        paySub: 'Potwierdzimy rezerwację w ciągu 24 godzin od otrzymania płatności',
+        recipient: 'Odbiorca',
+        amount: 'Kwota',
+        message: 'Tytuł przelewu',
+        qr: 'Płatność kodem QR',
+        afterPayment: 'Po wysłaniu płatności prześlemy potwierdzenie na adres',
+        questions: 'Mają Państwo pytania?',
+        paidTitle: 'Płatność otrzymana · Rezerwacja potwierdzona',
+        paidSub: 'Cieszymy się na Państwa przyjazd!',
+        doorCode: 'Kod do drzwi',
+        parking: 'Parking',
+        arrivalNote: 'Wskazówki dotyczące przyjazdu',
+        about: 'O apartamencie',
+        layout: 'Układ',
+        area: 'Powierzchnia',
+        maxGuests: 'Maks. gości',
+      },
+  };
+  const t = T[locale];
 
   const isPending   = booking.status === 'pending';
   const isConfirmed = booking.status === 'confirmed';
@@ -227,7 +270,7 @@ export default async function BookingTokenPage({ params }: Props) {
           </h1>
           {staticApt && (
             <p className="text-white/35 text-sm">
-              Špindlerův Mlýn · {staticApt.layout} · {staticApt.totalArea}
+              {TOWN[locale]} · {staticApt.layout} · {staticApt.totalArea}
             </p>
           )}
         </div>
@@ -462,7 +505,7 @@ export default async function BookingTokenPage({ params }: Props) {
         {/* FOOTER */}
         <div className="text-center py-3">
           <p className="text-[11px] text-[#0B1626]/25">
-            {reference} · Pod Zlatým návrším · Špindlerův Mlýn
+            {reference} · Pod Zlatým návrším · {TOWN[locale]}
           </p>
           <Link href="/" className="text-[11px] text-[#C9A24D]/50 hover:text-[#C9A24D] transition-colors mt-1 inline-block">
             podzlatymnavrsim.cz

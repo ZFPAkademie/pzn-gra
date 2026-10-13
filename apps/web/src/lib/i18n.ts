@@ -5,21 +5,34 @@
 
 import cs from '@/messages/cs.json';
 import en from '@/messages/en.json';
+import pl from '@/messages/pl.json';
 
-export type Locale = 'cs' | 'en';
+export type Locale = 'cs' | 'en' | 'pl';
+
+/**
+ * Jazyky celého webu. Polština (pl) je jen pro pronájem a rezervační proces —
+ * ostatní stránky dostanou přes toBaseLocale() angličtinu.
+ */
+export type BaseLocale = 'cs' | 'en';
+
+export function toBaseLocale(locale: Locale): BaseLocale {
+  return locale === 'cs' ? 'cs' : 'en';
+}
 
 export const defaultLocale: Locale = 'cs';
 
-export const locales: Locale[] = ['cs', 'en'];
+export const locales: Locale[] = ['cs', 'en', 'pl'];
 
 export const localeNames: Record<Locale, string> = {
   cs: 'Čeština',
   en: 'English',
+  pl: 'Polski',
 };
 
 const messages: Record<Locale, typeof cs> = {
   cs,
   en,
+  pl,
 };
 
 /**

@@ -9,12 +9,26 @@ import { getRentalApartmentsDB, localizeApartment, layoutLabel } from '@/lib/apa
 import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
 import { formatMoney } from '@/lib/booking-engine/money';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
-import { getRequestLocale } from '@/lib/i18n-server';
+import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
+/** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
+function plPlural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const d = n % 10;
+  const dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? few : many;
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = getRequestLocale();
+  const locale = getRequestLocaleFull();
+  if (locale === 'pl') {
+    return {
+      title: 'Apartamenty na wynajem | Pod Zlatým návrším | Szpindlerowy Młyn',
+      description: 'Luksusowe apartamenty na wynajem w Szpindlerowym Młynie, tuż przy wyciągu krzesełkowym. W pełni wyposażone, designerskie meble KARE.',
+    };
+  }
   if (locale === 'en') {
     return {
       title: 'Apartments for rent | Pod Zlatým návrším | Špindlerův Mlýn',
@@ -28,10 +42,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RentalApartmentsPage() {
-  const locale = getRequestLocale();
-  const numLocale = locale === 'cs' ? 'cs-CZ' : 'en-GB';
+  const locale = getRequestLocaleFull();
+  const numLocale = locale === 'cs' ? 'cs-CZ' : locale === 'pl' ? 'pl-PL' : 'en-GB';
   const apartments = (await getRentalApartmentsDB()).map((a) => localizeApartment(a, locale));
-  const t = locale === 'cs' ? {
+  const T = {
+    cs: {
     eyebrow: 'Pronájem',
     h1: 'Apartmány k pronájmu',
     lead: 'Luxusní apartmány ve Špindlerově Mlýně, přímo u lanovky Labská. Plně vybavené, designový nábytek KARE.',
@@ -55,7 +70,8 @@ export default async function RentalApartmentsPage() {
     ctaTitle: 'Chcete rezervovat?',
     ctaText: 'Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.',
     ctaButton: 'Kontaktovat nás',
-  } : {
+  },
+    en: {
     eyebrow: 'Rentals',
     h1: 'Apartments for rent',
     lead: 'Luxury apartments in Špindlerův Mlýn, right by the Labská chairlift. Fully equipped, KARE designer furniture.',
@@ -79,7 +95,34 @@ export default async function RentalApartmentsPage() {
     ctaTitle: 'Would you like to book?',
     ctaText: 'Contact us to make a reservation or for more information on availability.',
     ctaButton: 'Contact us',
+  },
+    pl: {
+      eyebrow: 'Wynajem',
+      h1: 'Apartamenty na wynajem',
+      lead: 'Luksusowe apartamenty w Szpindlerowym Młynie, tuż przy wyciągu krzesełkowym Labská. W pełni wyposażone, designerskie meble KARE.',
+      statApartments: (n: number) => plPlural(n, 'apartament', 'apartamenty', 'apartamentów'),
+      statArea: 'm² powierzchni',
+      statGuests: 'gości',
+      statLift: 'od wyciągu',
+      alsoForSale: 'Również na sprzedaż',
+      maxGuests: (n: number | null) => `maks. ${n} ${plPlural(n ?? 0, 'gość', 'gości', 'gości')}`,
+      from: 'od',
+      perNight: 'za noc',
+      priceOnRequest: 'Cena na zapytanie',
+      detail: 'Szczegóły',
+      featuresTitle: 'Każdy apartament oferuje',
+      features: [
+        { title: 'Designerskie meble', desc: 'KARE Design' },
+        { title: 'Pełne wyposażenie', desc: 'Zmywarka, piekarnik, ekspres do kawy' },
+        { title: 'Komfort', desc: 'TV, Wi-Fi, sejf' },
+        { title: 'Lokalizacja', desc: '50 m od wyciągu' },
+      ],
+      ctaTitle: 'Chcą Państwo zarezerwować?',
+      ctaText: 'Prosimy o kontakt w celu rezerwacji lub uzyskania informacji o dostępności.',
+      ctaButton: 'Kontakt',
+    },
   };
+  const t = T[locale];
   // Cena „od" z Front Desk Master pro napojené apartmány (klíč = slug)
   const fdmPrices = await getFdmPriceFromMany(apartments.filter((a) => a.fdm_room_use_id).map((a) => a.id));
   const priceFromBySlug: Record<string, { cents: number; currency: 'CZK' | 'EUR' } | undefined> = {};
@@ -192,7 +235,7 @@ export default async function RentalApartmentsPage() {
                         ) : apt.base_price_cents ? (
                           <>
                             <p className="text-2xl font-light text-navy">
-                              {Math.round(apt.base_price_cents / 100).toLocaleString(numLocale)} Kč
+                              {Math.round(apt.base_price_cents / 100).toLocaleString(numLocale)} {locale === 'pl' ? 'CZK' : 'Kč'}
                             </p>
                             <p className="text-xs text-navy/40">{t.perNight}</p>
                           </>

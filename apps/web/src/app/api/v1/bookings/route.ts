@@ -6,7 +6,7 @@ import { createBooking } from '@/lib/booking-engine/bookings';
 import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email';
 import { fdmGetAvailability, isFdmConfigured } from '@/lib/fdm/client';
 import { pushBookingToFdm } from '@/lib/fdm/push';
-import { getRequestLocale } from '@/lib/i18n-server';
+import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
@@ -30,10 +30,26 @@ const ERR = {
     createFailed: 'The reservation could not be created' as string | null,
     internal: 'Internal server error',
   },
+  pl: {
+    missingField: 'Brak wymaganego pola',
+    notFound: 'Nie znaleziono apartamentu',
+    noPrice: 'Nie można obliczyć ceny',
+    minNights: (n: number) => `Minimalna długość pobytu to ${n} ${plNights(n)}`,
+    notAvailable: 'Wybrane terminy nie są dostępne',
+    createFailed: 'Nie udało się utworzyć rezerwacji' as string | null,
+    internal: 'Wewnętrzny błąd serwera',
+  },
 };
 
+/** 1 noc · 2–4 noce (22–24 …) · 5+ nocy (12–14 …) */
+function plNights(n: number): string {
+  if (n === 1) return 'noc';
+  const d = n % 10, dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? 'noce' : 'nocy';
+}
+
 export async function POST(req: NextRequest) {
-  const locale = getRequestLocale();
+  const locale = getRequestLocaleFull();
   const e = ERR[locale];
   try {
     const body = await req.json();
@@ -46,7 +62,7 @@ export async function POST(req: NextRequest) {
     const admin = createSupabaseAdminClient();
     const { data: apartment } = await admin
       .from('apartments')
-      .select('id, title, title_en, slug, max_guests, base_price_cents, fdm_room_use_id')
+      .select('id, title, title_en, title_pl, slug, max_guests, base_price_cents, fdm_room_use_id')
       .eq('id', apartmentId)
       .eq('for_rent', true)
       .maybeSingle();
@@ -127,7 +143,10 @@ export async function POST(req: NextRequest) {
     sendBookingReceivedEmail({
       guestEmail: email,
       guestName: `${firstName} ${lastName}`,
-      apartmentTitle: (locale === 'en' ? apartment.title_en : null) ?? apartment.title ?? apartment.slug,
+      apartmentTitle:
+        (locale === 'pl' ? apartment.title_pl ?? apartment.title_en : locale === 'en' ? apartment.title_en : null) ??
+        apartment.title ??
+        apartment.slug,
       checkIn,
       checkOut,
       nights: price.nights,

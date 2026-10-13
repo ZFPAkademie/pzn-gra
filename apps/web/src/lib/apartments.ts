@@ -34,34 +34,50 @@ export interface ApartmentDB {
   orientation_en: string | null;
   description_en: string | null;
   features_en: string[] | null;
+  // Polské texty (014) — jen apartmány k pronájmu; NULL = angličtina, pak čeština
+  title_pl: string | null;
+  subtitle_pl: string | null;
+  orientation_pl: string | null;
+  description_pl: string | null;
+  features_pl: string[] | null;
 }
 
 const DB_SELECT =
-  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status, title_en, subtitle_en, orientation_en, description_en, features_en' as const;
+  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status, title_en, subtitle_en, orientation_en, description_en, features_en, title_pl, subtitle_pl, orientation_pl, description_pl, features_pl' as const;
 
 /**
- * Texty apartmánu v jazyce návštěvníka — pro 'en' přepíše title/subtitle/orientation/
- * description/features anglickou verzí, chybějící EN pole nechá česky.
+ * Texty apartmánu v jazyce návštěvníka — 'en' přepíše title/subtitle/orientation/description/features
+ * anglickou verzí, 'pl' polskou (chybějící PL pole → EN → CZ). Chybějící pole zůstanou česky.
  */
-export function localizeApartment<T extends ApartmentDB>(apt: T, locale: 'cs' | 'en'): T {
-  if (locale !== 'en') return apt;
+export function localizeApartment<T extends ApartmentDB>(apt: T, locale: 'cs' | 'en' | 'pl'): T {
+  if (locale === 'cs') return apt;
+  const pl = locale === 'pl';
+  const pick = <V,>(plVal: V | null | undefined, enVal: V | null | undefined, csVal: V): V =>
+    (pl ? plVal : null) ?? enVal ?? csVal;
   return {
     ...apt,
-    title: apt.title_en ?? apt.title,
-    subtitle: apt.subtitle_en ?? apt.subtitle,
-    orientation: apt.orientation_en ?? apt.orientation,
-    description: apt.description_en ?? apt.description,
-    features: apt.features_en?.length ? apt.features_en : apt.features,
+    title: pick(apt.title_pl, apt.title_en, apt.title),
+    subtitle: pick(apt.subtitle_pl, apt.subtitle_en, apt.subtitle),
+    orientation: pick(apt.orientation_pl, apt.orientation_en, apt.orientation),
+    description: pick(apt.description_pl, apt.description_en, apt.description),
+    features:
+      (pl && apt.features_pl?.length ? apt.features_pl : null) ??
+      (apt.features_en?.length ? apt.features_en : null) ??
+      apt.features,
   };
 }
 
-/** Dispozice pro zahraničního hosta: 1+kk → Studio (1+kk), 2+kk → One-bedroom (2+kk) */
-export function layoutLabel(layout: string | null | undefined, locale: 'cs' | 'en'): string {
+/** Dispozice pro zahraničního hosta: 1+kk → Studio (1+kk) / Kawalerka (1+kk), 2+kk → One-bedroom / Apartament z 1 sypialnią */
+export function layoutLabel(layout: string | null | undefined, locale: 'cs' | 'en' | 'pl'): string {
   if (!layout) return '';
-  if (locale !== 'en') return layout;
+  if (locale === 'cs') return layout;
   const m = layout.match(/^(\d)\s*\+\s*(kk|1)$/i);
   if (!m) return layout;
   const rooms = Number(m[1]) - (m[2].toLowerCase() === 'kk' ? 1 : 0);
+  if (locale === 'pl') {
+    const name = rooms <= 0 ? 'Kawalerka' : rooms === 1 ? 'Apartament z 1 sypialnią' : `Apartament z ${rooms} sypialniami`;
+    return `${name} (${layout})`;
+  }
   const name = rooms <= 0 ? 'Studio' : rooms === 1 ? 'One-bedroom' : rooms === 2 ? 'Two-bedroom' : `${rooms}-bedroom`;
   return `${name} (${layout})`;
 }

@@ -1,12 +1,14 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { getRequestLocale } from '@/lib/i18n-server';
+import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: getRequestLocale() === 'cs'
-      ? 'Platba zrušena | Pod Zlatým návrším'
-      : 'Payment cancelled | Pod Zlatým návrším',
+    title: {
+      cs: 'Platba zrušena | Pod Zlatým návrším',
+      en: 'Payment cancelled | Pod Zlatým návrším',
+      pl: 'Płatność anulowana | Pod Zlatým návrším',
+    }[getRequestLocaleFull()],
   };
 }
 
@@ -27,10 +29,18 @@ const TEXTS = {
     contact: 'Contact us',
     trouble: 'Having trouble with your payment? Write to us at',
   },
+  pl: {
+    label: 'Płatność przerwana',
+    heading: 'Rezerwacja nie została ukończona',
+    text: 'Płatność została przerwana lub anulowana. Państwa dane osobowe nie zostały zapisane i nie pobrano żadnej opłaty za rezerwację. Mogą Państwo wrócić i ponownie wybrać termin.',
+    retry: 'Wybierz termin ponownie',
+    contact: 'Skontaktuj się z nami',
+    trouble: 'Mają Państwo problem z płatnością? Prosimy napisać na adres',
+  },
 };
 
 export default function BookingCancelledPage() {
-  const t = TEXTS[getRequestLocale()];
+  const t = TEXTS[getRequestLocaleFull()];
   return (
     <>
       <section className="bg-[#0B1626] pt-32 pb-20">

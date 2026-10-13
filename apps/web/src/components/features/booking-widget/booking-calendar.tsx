@@ -14,11 +14,16 @@ const DAY_ABBR = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const MONTH_CS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const DAY_ABBR_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_ABBR_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
+const MONTH_PL = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 
 const TEXTS = {
   cs: { prev: 'Předchozí měsíc', next: 'Další měsíc', arrivalDeparture: 'Příjezd / Odjezd', stay: 'Pobyt' },
   en: { prev: 'Previous month', next: 'Next month', arrivalDeparture: 'Arrival / Departure', stay: 'Stay' },
+  pl: { prev: 'Poprzedni miesiąc', next: 'Następny miesiąc', arrivalDeparture: 'Przyjazd / Wyjazd', stay: 'Pobyt' },
 };
+const DAY_ABBR_BY_LOCALE = { cs: DAY_ABBR, en: DAY_ABBR_EN, pl: DAY_ABBR_PL };
+const MONTHS_BY_LOCALE = { cs: MONTH_CS, en: MONTH_EN, pl: MONTH_PL };
 
 function iso(y: number, m: number, d: number) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -33,9 +38,9 @@ function addM(y: number, m: number, n: number) {
 
 export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckOut, onSelectDates }: Props) {
   const { locale } = useLanguage();
-  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
-  const dayAbbr = locale === 'cs' ? DAY_ABBR : DAY_ABBR_EN;
-  const monthNames = locale === 'cs' ? MONTH_CS : MONTH_EN;
+  const t = TEXTS[locale];
+  const dayAbbr = DAY_ABBR_BY_LOCALE[locale];
+  const monthNames = MONTHS_BY_LOCALE[locale];
   const now = new Date(); now.setHours(0,0,0,0);
   const todayStr = iso(now.getFullYear(), now.getMonth()+1, now.getDate());
 

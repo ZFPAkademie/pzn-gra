@@ -9,7 +9,7 @@ import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getLocaleFromCookie } from '@/lib/i18n';
+import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { getSaleApartmentBySlug } from '@/lib/apartments';
 import { getApartmentImages, getApartmentHeroImage } from '@/data/apartment-images';
 import { AlpineOrnament } from '@/components/ui/ornaments';
@@ -19,7 +19,7 @@ import { getPodilTexts, getPodilApartmentView } from '../texts';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = getPodilTexts(getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value));
+  const t = getPodilTexts(toBaseLocale(getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value)));
   return { title: t.metaTitle, description: t.metaDescriptionShort };
 }
 
@@ -139,7 +139,7 @@ interface PageProps {
 
 export default async function PodilDynamicPage({ params }: PageProps) {
   const cookieStore = cookies();
-  const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const locale = toBaseLocale(getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value));
   const t = getPodilTexts(locale);
   
   // Parse available shares from URL

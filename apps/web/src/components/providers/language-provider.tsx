@@ -6,10 +6,12 @@
  */
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { Locale, defaultLocale, locales, createT } from '@/lib/i18n';
+import { Locale, BaseLocale, defaultLocale, locales, createT, toBaseLocale } from '@/lib/i18n';
 
 interface LanguageContextType {
   locale: Locale;
+  /** cs | en — komponenty bez polské verze (pl → en) */
+  baseLocale: BaseLocale;
   setLocale: (locale: Locale) => void;
   t: (key: string, params?: Record<string, string | number>) => string;
 }
@@ -54,7 +56,7 @@ export function LanguageProvider({ children, initialLocale = defaultLocale }: La
   );
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t }}>
+    <LanguageContext.Provider value={{ locale, baseLocale: toBaseLocale(locale), setLocale, t }}>
       {children}
     </LanguageContext.Provider>
   );

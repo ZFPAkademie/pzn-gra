@@ -1,12 +1,14 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { getRequestLocale } from '@/lib/i18n-server';
+import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: getRequestLocale() === 'cs'
-      ? 'Rezervace potvrzena | Pod Zlatým návrším'
-      : 'Reservation confirmed | Pod Zlatým návrším',
+    title: {
+      cs: 'Rezervace potvrzena | Pod Zlatým návrším',
+      en: 'Reservation confirmed | Pod Zlatým návrším',
+      pl: 'Rezerwacja potwierdzona | Pod Zlatým návrším',
+    }[getRequestLocaleFull()],
   };
 }
 
@@ -43,6 +45,22 @@ const TEXTS = {
     departureText: 'by 10:00 am — Please allow us time to prepare the apartment',
     back: 'Back to all apartments',
   },
+  pl: {
+    label: 'Płatność zakończona powodzeniem',
+    heading: 'Państwa rezerwacja jest potwierdzona',
+    next: 'Co dalej',
+    step1Title: 'Potwierdzenie e-mailem',
+    step1Text: 'W ciągu kilku minut otrzymają Państwo e-mail z potwierdzeniem rezerwacji na podany adres.',
+    step2Title: 'Wskazówki dotyczące przyjazdu',
+    step2Text: 'Przed przyjazdem otrzymają Państwo szczegółowe instrukcje dotyczące zameldowania, kod dostępu i informacje o parkingu.',
+    step3Title: 'Mają Państwo pytania?',
+    step3Text: 'Prosimy o kontakt w dowolnym momencie pod adresem',
+    arrival: 'Przyjazd',
+    arrivalText: 'od 15:00 — Apartament będzie przygotowany na Państwa przyjazd',
+    departure: 'Wyjazd',
+    departureText: 'do 10:00 — Prosimy o przestrzeganie tej godziny, abyśmy mogli przygotować apartament',
+    back: 'Powrót do przeglądu apartamentów',
+  },
 };
 
 export const dynamic = 'force-dynamic';
@@ -53,7 +71,7 @@ interface Props {
 
 export default function BookingSuccessPage({ searchParams }: Props) {
   const sessionId = searchParams.session_id;
-  const t = TEXTS[getRequestLocale()];
+  const t = TEXTS[getRequestLocaleFull()];
 
   return (
     <>

@@ -13,7 +13,7 @@ interface Message {
 interface Props {
   token: string;
   guestName: string;
-  locale?: 'cs' | 'en';
+  locale?: 'cs' | 'en' | 'pl';
 }
 
 const TEXTS = {
@@ -43,9 +43,22 @@ const TEXTS = {
     minAgo: (n: number) => `${n} min ago`,
     hoursAgo: (n: number) => `${n} h ago`,
   },
+  pl: {
+    title: 'Wiadomości',
+    subtitle: 'Korespondencja z zespołem recepcji',
+    loading: 'Ładowanie...',
+    emptyLine1: 'Mają Państwo pytanie dotyczące rezerwacji lub przyjazdu?',
+    emptyLine2: 'Prosimy do nas napisać — odpowiemy w ciągu kilku godzin.',
+    team: 'Zespół Pod Zlatým návrším',
+    placeholder: 'Treść wiadomości...',
+    send: 'Wyślij',
+    justNow: 'Przed chwilą',
+    minAgo: (n: number) => `${n} min temu`,
+    hoursAgo: (n: number) => `${n} godz. temu`,
+  },
 };
 
-function timeAgo(dateStr: string, locale: 'cs' | 'en'): string {
+function timeAgo(dateStr: string, locale: 'cs' | 'en' | 'pl'): string {
   const t = TEXTS[locale];
   const d = new Date(dateStr);
   const now = new Date();
@@ -53,7 +66,7 @@ function timeAgo(dateStr: string, locale: 'cs' | 'en'): string {
   if (diff < 60) return t.justNow;
   if (diff < 3600) return t.minAgo(Math.floor(diff / 60));
   if (diff < 86400) return t.hoursAgo(Math.floor(diff / 3600));
-  return d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : locale === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 export function MessagesThread({ token, guestName, locale = 'cs' }: Props) {

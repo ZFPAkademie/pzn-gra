@@ -23,6 +23,10 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   const title_en = (formData.get('title_en') as string | null)?.trim() ?? '';
   const orientation_en = (formData.get('orientation_en') as string | null)?.trim() ?? '';
   const description_en = (formData.get('description_en') as string | null)?.trim() ?? '';
+  const title_pl = (formData.get('title_pl') as string | null)?.trim() ?? '';
+  const orientation_pl = (formData.get('orientation_pl') as string | null)?.trim() ?? '';
+  const description_pl = (formData.get('description_pl') as string | null)?.trim() ?? '';
+  const hasPl = formData.has('title_pl');
   const fdmRoomUseStr = (formData.get('fdm_room_use_id') as string | null) ?? '';
   const fdmRoomUseId = fdmRoomUseStr.trim() ? parseInt(fdmRoomUseStr, 10) : null;
   if (fdmRoomUseStr.trim() && (fdmRoomUseId == null || isNaN(fdmRoomUseId) || fdmRoomUseId < 1)) {
@@ -43,6 +47,8 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
     title_en: title_en || null,
     orientation_en: orientation_en || null,
     description_en: description_en || null,
+    // PL pole jsou ve formuláři jen u apartmánů k pronájmu — jinak je neměnit
+    ...(hasPl ? { title_pl: title_pl || null, orientation_pl: orientation_pl || null, description_pl: description_pl || null } : {}),
     fdm_room_use_id: fdmRoomUseId,
   }).eq('id', id);
 
@@ -53,12 +59,12 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   return { ok: true };
 }
 
-export async function updateApartmentFeatures(id: string, features: string[], lang: 'cs' | 'en' = 'cs') {
+export async function updateApartmentFeatures(id: string, features: string[], lang: 'cs' | 'en' | 'pl' = 'cs') {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
 
   const supabase = createSupabaseAdminClient();
-  const column = lang === 'en' ? 'features_en' : 'features';
-  const { error } = await supabase.from('apartments').update({ [column]: features.length ? features : (lang === 'en' ? null : features) }).eq('id', id);
+  const column = lang === 'cs' ? 'features' : `features_${lang}`;
+  const { error } = await supabase.from('apartments').update({ [column]: features.length ? features : (lang === 'cs' ? features : null) }).eq('id', id);
 
   if (error) return { ok: false, error: error.message };
   revalidate(id);

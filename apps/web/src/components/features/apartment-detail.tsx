@@ -44,7 +44,7 @@ const amenityLabels: Record<string, { cs: string; en: string }> = {
 };
 
 export function ApartmentDetail({ apartment }: ApartmentDetailProps) {
-  const { locale, t } = useLanguage();
+  const { baseLocale: locale, t } = useLanguage();
 
   return (
     <>

@@ -1,0 +1,136 @@
+{
+  "common": {
+    "home": "Strona główna",
+    "contact": "Kontakt",
+    "sale": "Sprzedaż",
+    "rental": "Wynajem",
+    "about": "O projekcie",
+    "location": "Lokalizacja",
+    "standards": "Standardy",
+    "investment": "Inwestycja",
+    "suites": "Apartamenty",
+    "apartments": "Apartamenty",
+    "language": "Język",
+    "czech": "Čeština",
+    "english": "English",
+    "phone": "Telefon",
+    "email": "E-mail",
+    "address": "Adres",
+    "learnMore": "Dowiedz się więcej",
+    "viewAll": "Zobacz wszystkie",
+    "priceFrom": "od",
+    "perNight": "/ noc",
+    "guests": "gości",
+    "send": "Wyślij",
+    "loading": "Ładowanie...",
+    "error": "Błąd",
+    "success": "Gotowe"
+  },
+  "nav": {
+    "home": "Strona główna",
+    "about": "O projekcie",
+    "location": "Lokalizacja",
+    "standards": "Standardy",
+    "investment": "Okazja inwestycyjna",
+    "realEstateProduct": "Produkt nieruchomościowy",
+    "suites": "Apartamenty",
+    "rental": "Wynajem",
+    "sale": "Sprzedaż",
+    "contact": "Kontakt",
+    "saleApartments": "Apartamenty na sprzedaż",
+    "saleMenu": "Sprzedaż"
+  },
+  "home": {
+    "heroTitle": "Luksusowe apartamenty w Szpindlerowym Młynie",
+    "heroSubtitle": "Pod Zlatým návrším – ekskluzywne mieszkanie w sercu Karkonoszy",
+    "ctaSale": "Kup apartament",
+    "ctaSaleSubtitle": "Ostatnia szansa, by mieć swój kawałek gór",
+    "ctaRental": "Zarezerwuj pobyt",
+    "ctaRentalSubtitle": "Luksusowe zakwaterowanie na wypoczynek",
+    "whyUs": "Dlaczego Pod Zlatým návrším",
+    "whyUsDesc": "Połączenie luksusu, przyrody i dobrej inwestycji",
+    "feature1Title": "Doskonała lokalizacja",
+    "feature1Desc": "W samym centrum Szpindlerowego Młyna z widokiem na góry",
+    "feature2Title": "Wysoki standard",
+    "feature2Desc": "Wysokiej jakości materiały i nowoczesny design w każdym detalu",
+    "feature3Title": "Potencjał inwestycyjny",
+    "feature3Desc": "Stabilne przychody z wynajmu krótkoterminowego"
+  },
+  "rental": {
+    "title": "Wynajem apartamentów",
+    "subtitle": "Golden Ridge Apartments",
+    "availableCount": "Dostępne apartamenty: {{count}}",
+    "viewApartment": "Zobacz apartament",
+    "capacity": "Maks. {{count}} gości",
+    "amenities": "Wyposażenie",
+    "description": "Opis",
+    "gallery": "Galeria",
+    "bookNow": "Zarezerwuj",
+    "bookingComingSoon": "Rezerwacja wkrótce",
+    "priceFrom": "Cena od {{price}} € / noc"
+  },
+  "contact": {
+    "title": "Kontakt",
+    "subtitle": "Interesuje Cię apartament lub nocleg? Skontaktuj się z nami.",
+    "saleTitle": "Sprzedaż apartamentów",
+    "saleDesc": "Informacji o ostatnim dostępnym apartamencie udziela:",
+    "rentalTitle": "Wynajem",
+    "rentalDesc": "Rezerwacje i pytania dotyczące noclegu:",
+    "formTitle": "Napisz do nas",
+    "formName": "Imię i nazwisko",
+    "formEmail": "E-mail",
+    "formPhone": "Telefon",
+    "formMessage": "Wiadomość",
+    "formSubmit": "Wyślij wiadomość",
+    "formSuccess": "Dziękujemy! Wiadomość została wysłana.",
+    "formError": "Przepraszamy, coś poszło nie tak. Spróbuj ponownie."
+  },
+  "pages": {
+    "location": {
+      "title": "Lokalizacja",
+      "subtitle": "Szpindlerowy Młyn – perła Karkonoszy"
+    },
+    "investment": {
+      "title": "Okazja inwestycyjna",
+      "subtitle": "Twój kawałek gór",
+      "lastChance": "Ostatnia szansa",
+      "lastApartment": "Ostatni dostępny apartament"
+    },
+    "realEstateProduct": {
+      "title": "Produkt nieruchomościowy",
+      "subtitle": "Kup udział w apartamencie w Szpindlerowym Młynie",
+      "cta": "Zapytaj o udział"
+    },
+    "standards": {
+      "title": "Standardy",
+      "subtitle": "Jakość w każdym detalu"
+    },
+    "about": {
+      "title": "O projekcie",
+      "subtitle": "Pod Zlatým návrším"
+    },
+    "builder": {
+      "title": "Inwestor",
+      "subtitle": "Doświadczony deweloper z tradycją"
+    },
+    "suites": {
+      "title": "Apartamenty",
+      "subtitle": "Przegląd apartamentów"
+    }
+  },
+  "footer": {
+    "company": "Pod Zlatým návrším",
+    "tagline": "Luksusowe apartamenty w Szpindlerowym Młynie",
+    "description": "Projekt mieszkaniowy w sercu Karkonoszy. Luksusowe apartamenty na wynajem i na sprzedaż w Szpindlerowym Młynie.",
+    "navigation": "Nawigacja",
+    "quickLinks": "Szybkie linki",
+    "contact": "Kontakt",
+    "legal": "Informacje prawne",
+    "privacy": "Polityka prywatności",
+    "terms": "Regulamin",
+    "copyright": "© {{year}} Pod Zlatým návrším. Wszelkie prawa zastrzeżone.",
+    "saleContact": "Sprzedaż apartamentów",
+    "rentalContact": "Wynajem i rezerwacje",
+    "seller": "Sprzedający"
+  }
+}

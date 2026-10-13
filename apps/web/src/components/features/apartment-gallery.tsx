@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/language-provider';
 const TEXTS = {
   cs: { noPhotos: 'Fotografie nejsou k dispozici', photo: 'foto', thumb: 'náhled' },
   en: { noPhotos: 'No photos available', photo: 'photo', thumb: 'thumbnail' },
+  pl: { noPhotos: 'Zdjęcia nie są dostępne', photo: 'zdjęcie', thumb: 'miniatura' },
 };
 
 interface ApartmentGalleryProps {
@@ -22,7 +23,7 @@ export function ApartmentGallery({ images, title }: ApartmentGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const { locale } = useLanguage();
-  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
+  const t = TEXTS[locale];
 
   if (images.length === 0) {
     return (

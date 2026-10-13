@@ -3,8 +3,14 @@
  */
 
 import { cookies } from 'next/headers';
-import { getLocaleFromCookie, type Locale } from './i18n';
+import { getLocaleFromCookie, toBaseLocale, type BaseLocale, type Locale } from './i18n';
 
-export function getRequestLocale(): Locale {
+/** cs | en — stránky bez polské verze (polský návštěvník dostane angličtinu) */
+export function getRequestLocale(): BaseLocale {
+  return toBaseLocale(getRequestLocaleFull());
+}
+
+/** cs | en | pl — pronájem a rezervační proces */
+export function getRequestLocaleFull(): Locale {
   return getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value);
 }

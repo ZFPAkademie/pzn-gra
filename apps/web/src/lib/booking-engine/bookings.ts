@@ -16,7 +16,7 @@ export interface CreateBookingData {
   fdmLinked?: boolean;
   gdprConsent: boolean;
   /** Jazyk hosta (cookie NEXT_LOCALE při odeslání) — podle něj e-maily a karta rezervace */
-  language?: 'cs' | 'en';
+  language?: 'cs' | 'en' | 'pl';
 }
 
 export async function createBooking(
@@ -81,7 +81,8 @@ export async function getBookingByToken(token: string) {
         id,
         slug,
         title,
-        title_en
+        title_en,
+        title_pl
       )
     `)
     .eq('confirmation_token', token)

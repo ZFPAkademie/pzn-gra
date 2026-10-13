@@ -18,6 +18,14 @@ interface PriceData {
   currency: string;
 }
 
+/** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
+function plPlural(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const d = n % 10;
+  const dd = n % 100;
+  return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? few : many;
+}
+
 const TEXTS = {
   cs: {
     loadFailed: 'Nepodařilo se načíst cenu',
@@ -33,11 +41,18 @@ const TEXTS = {
     nights: (n: number) => (n === 1 ? 'night' : 'nights'),
     total: 'Total',
   },
+  pl: {
+    loadFailed: 'Nie udało się wczytać ceny',
+    unavailable: 'Wybrany termin nie jest dostępny. Prosimy wybrać inną datę.',
+    summary: 'Podsumowanie ceny',
+    nights: (n: number) => plPlural(n, 'noc', 'noce', 'nocy'),
+    total: 'Razem',
+  },
 };
 
 export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props) {
   const { locale } = useLanguage();
-  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
+  const t = TEXTS[locale];
   const [data, setData] = useState<PriceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +106,7 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
   const checkInDate = new Date(checkIn + 'T12:00:00');
   const checkOutDate = new Date(checkOut + 'T12:00:00');
   const formatDate = (d: Date) =>
-    d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short' });
+    d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : locale === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'short' });
 
   return (
     <div className="bg-stone border border-[#0B1626]/10 rounded-sm p-4">
