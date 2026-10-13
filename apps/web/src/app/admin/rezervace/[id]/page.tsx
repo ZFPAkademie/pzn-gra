@@ -85,7 +85,8 @@ export default async function AdminRezervaceDetailPage({
 
   const apt = booking.apartments as { title?: string; slug?: string } | null;
   const checkinInfo = (booking.checkin_info as Record<string, string>) || {};
-  const ref = 'REZ-' + booking.id.slice(0, 8).toUpperCase();
+  // Stejný kód jako u hosta, v e-mailech, platbě i FDM (odvozený z confirmation_token)
+  const ref = 'REZ-' + String(booking.confirmation_token ?? booking.id).slice(0, 8).toUpperCase();
 
   return (
     <div className="min-h-screen bg-stone">

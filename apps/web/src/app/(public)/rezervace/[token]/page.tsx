@@ -191,7 +191,8 @@ export default async function BookingTokenPage({ params }: Props) {
   const t = T[locale];
 
   const isPending   = booking.status === 'pending';
-  const isConfirmed = booking.status === 'confirmed';
+  // completed = pobyt proběhl, host má dál vidět potvrzení i pokyny k příjezdu
+  const isConfirmed = booking.status === 'confirmed' || booking.status === 'completed';
   const isCancelled = booking.status === 'cancelled';
 
   const reference   = `REZ-${params.token.slice(0, 8).toUpperCase()}`;

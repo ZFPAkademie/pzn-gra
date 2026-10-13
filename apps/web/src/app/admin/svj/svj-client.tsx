@@ -92,9 +92,9 @@ export function AddPostForm() {
             <button
               type="button"
               onClick={() => setIsPinned(!isPinned)}
-              className={`w-8 h-4 rounded-full transition-colors relative ${isPinned ? 'bg-gold' : 'bg-slate-200'}`}
+              className={`relative shrink-0 w-8 h-4 p-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-1 ${isPinned ? 'bg-gold' : 'bg-slate-200'}`}
             >
-              <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${isPinned ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              <span className={`absolute left-0 top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${isPinned ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
             </button>
             <span className="text-xs text-slate-500">Připnout nahoře</span>
           </label>

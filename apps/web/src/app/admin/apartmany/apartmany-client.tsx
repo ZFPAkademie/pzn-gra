@@ -57,13 +57,13 @@ export function FlagToggle({
       onClick={toggle}
       disabled={isPending}
       title={label}
-      className={`w-8 h-4 rounded-full transition-colors relative disabled:opacity-60 ${
+      className={`relative shrink-0 w-8 h-4 p-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-1 disabled:opacity-60 ${
         current ? 'bg-navy' : 'bg-slate-200'
       }`}
     >
       <span
-        className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${
-          current ? 'translate-x-4' : 'translate-x-0.5'
+        className={`absolute left-0 top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${
+          current ? 'translate-x-[18px]' : 'translate-x-0.5'
         }`}
       />
     </button>
