@@ -36,7 +36,9 @@
     "suites": "Suites",
     "rental": "Pronájem",
     "sale": "Prodej",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "saleApartments": "Apartmány na prodej",
+    "saleMenu": "Prodej"
   },
   "home": {
     "heroTitle": "Luxusní apartmány ve Špindlerově Mlýně",
@@ -126,6 +128,9 @@
     "legal": "Právní informace",
     "privacy": "Ochrana soukromí",
     "terms": "Obchodní podmínky",
-    "copyright": "© {{year}} Pod Zlatým návrším. Všechna práva vyhrazena."
+    "copyright": "© {{year}} Pod Zlatým návrším. Všechna práva vyhrazena.",
+    "saleContact": "Prodej apartmánů",
+    "rentalContact": "Pronájem a rezervace",
+    "seller": "Prodávající"
   }
 }

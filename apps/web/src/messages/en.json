@@ -36,7 +36,9 @@
     "suites": "Suites",
     "rental": "Rental",
     "sale": "Sale",
-    "contact": "Contact"
+    "contact": "Contact",
+    "saleApartments": "Apartments for sale",
+    "saleMenu": "Sale"
   },
   "home": {
     "heroTitle": "Luxury Apartments in Špindlerův Mlýn",
@@ -126,6 +128,9 @@
     "legal": "Legal",
     "privacy": "Privacy policy",
     "terms": "Terms of service",
-    "copyright": "© {{year}} Pod Zlatým návrším. All rights reserved."
+    "copyright": "© {{year}} Pod Zlatým návrším. All rights reserved.",
+    "saleContact": "Apartment sales",
+    "rentalContact": "Rental & bookings",
+    "seller": "Seller"
   }
 }

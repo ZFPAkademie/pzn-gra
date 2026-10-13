@@ -7,6 +7,8 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { ContactForm } from '@/components/features/contact-form';
+import { getSalesManager } from '@/lib/apartments';
+import { SALES_COMPANY } from '@/data/sales-company';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,14 +28,15 @@ export default async function ContactPage() {
     formTitle: 'Napište nám',
     
     saleTitle: 'Prodej apartmánů',
-    saleDesc: 'Pro informace o posledním dostupném apartmánu kontaktujte:',
-    saleEmail: 'prodej@podzlatymnavrsim.cz',
-    salePhone: '+420 XXX XXX XXX',
+    saleDesc: 'Pro informace o apartmánech na prodej kontaktujte:',
+    sellerLabel: 'Prodávající',
+    sellerRegister: `Zapsaná v obchodním rejstříku, sp. zn. ${SALES_COMPANY.registerCs}`,
     
     rentalTitle: 'Pronájem',
     rentalDesc: 'Pro rezervace a dotazy k ubytování:',
     rentalEmail: 'rezervace@podzlatymnavrsim.cz',
-    rentalPhone: '+420 XXX XXX XXX',
+    // Telefon pro pronájem zatím nemáme potvrzený — prázdný = nezobrazuje se (dřív „+420 XXX XXX XXX")
+    rentalPhone: '',
     
     address: 'Adresa',
     addressLine1: 'Pod Zlatým návrším',
@@ -49,14 +52,14 @@ export default async function ContactPage() {
     formTitle: 'Write to us',
     
     saleTitle: 'Apartment sales',
-    saleDesc: 'For information about the last available apartment contact:',
-    saleEmail: 'sales@podzlatymnavrsim.cz',
-    salePhone: '+420 XXX XXX XXX',
+    saleDesc: 'For information about apartments for sale contact:',
+    sellerLabel: 'Seller',
+    sellerRegister: `Registered in the Commercial Register, file ${SALES_COMPANY.registerEn}`,
     
     rentalTitle: 'Rental',
     rentalDesc: 'For reservations and accommodation inquiries:',
     rentalEmail: 'booking@podzlatymnavrsim.cz',
-    rentalPhone: '+420 XXX XXX XXX',
+    rentalPhone: '',
     
     address: 'Address',
     addressLine1: 'Pod Zlatým návrším',
@@ -66,6 +69,9 @@ export default async function ContactPage() {
     hours: 'Office hours',
     hoursValue: 'Mon–Fri: 9:00–17:00',
   };
+
+  const manager = getSalesManager();
+  const managerTitle = locale === 'cs' ? manager.title : 'Sales manager';
 
   return (
     <>
@@ -96,10 +102,23 @@ export default async function ContactPage() {
                 <h2 className="text-navy font-medium mb-4">{t.saleTitle}</h2>
                 <p className="text-sm text-navy/50 mb-4">{t.saleDesc}</p>
                 <div className="space-y-2">
-                  <a href={`mailto:${t.saleEmail}`} className="block text-navy hover:text-gold transition-colors">
-                    {t.saleEmail}
+                  <p className="text-navy">
+                    {manager.name}
+                    <span className="text-navy/50 text-sm ml-2">{managerTitle}</span>
+                  </p>
+                  <a href={`tel:${manager.phone.replace(/\s/g, '')}`} className="block text-navy hover:text-gold transition-colors">
+                    {manager.phone}
                   </a>
-                  <p className="text-navy">{t.salePhone}</p>
+                  <a href={`mailto:${manager.email}`} className="block text-navy hover:text-gold transition-colors">
+                    {manager.email}
+                  </a>
+                </div>
+                <div className="mt-6 text-sm text-navy/60 leading-relaxed">
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.sellerLabel}</p>
+                  <p className="text-navy">{SALES_COMPANY.name}</p>
+                  <p>{SALES_COMPANY.address}</p>
+                  <p>IČ {SALES_COMPANY.ico} · DIČ {SALES_COMPANY.dic}</p>
+                  <p>{t.sellerRegister}</p>
                 </div>
               </div>
               
@@ -111,7 +130,7 @@ export default async function ContactPage() {
                   <a href={`mailto:${t.rentalEmail}`} className="block text-navy hover:text-gold transition-colors">
                     {t.rentalEmail}
                   </a>
-                  <p className="text-navy">{t.rentalPhone}</p>
+                  {t.rentalPhone && <p className="text-navy">{t.rentalPhone}</p>}
                 </div>
               </div>
               

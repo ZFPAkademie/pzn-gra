@@ -7,9 +7,13 @@
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/language-provider';
 import { AlpineOrnament } from '@/components/ui/ornaments';
+import { SALES_COMPANY } from '@/data/sales-company';
+import apartmentsData from '@/data/apartments.canonical.json';
+
+const salesManager = apartmentsData.salesManager;
 
 export function Footer() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const year = new Date().getFullYear();
 
   return (
@@ -41,20 +45,20 @@ export function Footer() {
               {t('footer.navigation')}
             </p>
             <nav className="space-y-3">
-              <Link href="/o-projektu" className="block text-white/60 hover:text-gold transition-colors text-sm">
-                {t('nav.about')}
-              </Link>
-              <Link href="/suites" className="block text-white/60 hover:text-gold transition-colors text-sm">
-                {t('nav.sale')}
-              </Link>
               <Link href="/apartmany-spindleruv-mlyn-pronajem" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.rental')}
               </Link>
-              <Link href="/kalkulacka" className="block text-white/60 hover:text-gold transition-colors text-sm">
-                {t('nav.investment')}
-              </Link>
               <Link href="/lokalita" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.location')}
+              </Link>
+              <Link href="/suites" className="block text-white/60 hover:text-gold transition-colors text-sm">
+                {t('nav.saleApartments')}
+              </Link>
+              <Link href="/o-projektu" className="block text-white/60 hover:text-gold transition-colors text-sm">
+                {t('nav.about')}
+              </Link>
+              <Link href="/kalkulacka" className="block text-white/60 hover:text-gold transition-colors text-sm">
+                {t('nav.investment')}
               </Link>
               <Link href="/kontakt" className="block text-white/60 hover:text-gold transition-colors text-sm">
                 {t('nav.contact')}
@@ -72,14 +76,31 @@ export function Footer() {
               <p className="text-white/60">Špindlerův Mlýn</p>
               <p className="text-white/60">543 51</p>
             </div>
+
+            <p className="text-white/40 text-sm uppercase tracking-widest mt-10 mb-4">
+              {t('footer.saleContact')}
+            </p>
+            <div className="space-y-2 text-sm">
+              <p className="text-white/80">{salesManager.name}</p>
+              <a href={`tel:${salesManager.phone.replace(/\s/g, '')}`} className="block text-white/60 hover:text-gold transition-colors">
+                {salesManager.phone}
+              </a>
+              <a href={`mailto:${salesManager.email}`} className="block text-white/60 hover:text-gold transition-colors">
+                {salesManager.email}
+              </a>
+            </div>
           </div>
         </div>
         
         {/* Bottom */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/30 text-sm">
-            © {year} Pod Zlatým návrším
-          </p>
+          <div className="text-white/30 text-sm space-y-1 text-center md:text-left">
+            <p>© {year} Pod Zlatým návrším</p>
+            <p className="text-xs text-white/25">
+              {t('footer.seller')}: {SALES_COMPANY.name}, {SALES_COMPANY.address}, IČ {SALES_COMPANY.ico}, DIČ {SALES_COMPANY.dic},{' '}
+              {locale === 'cs' ? `sp. zn. ${SALES_COMPANY.registerCs}` : SALES_COMPANY.registerEn}
+            </p>
+          </div>
           <div className="flex items-center space-x-6 text-sm">
             <Link href="#" className="text-white/30 hover:text-white/60 transition-colors">
               {t('footer.privacy')}

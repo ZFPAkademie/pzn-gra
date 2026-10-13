@@ -9,28 +9,58 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { AlpineOrnament, MountainSilhouette, Stat, SectionLabel } from '@/components/ui/ornaments';
+import { getRentalApartmentsDB, getSaleApartmentsDB, getSalesManager } from '@/lib/apartments';
+import { getHeroImagesBySlugs } from '@/data/apartment-images';
+import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
+import { formatMoney } from '@/lib/booking-engine/money';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Apartmány na prodej Špindlerův Mlýn | Pod Zlatým návrším',
-  description: 'Poslední 3 rezidenční apartmány ve Špindlerově Mlýně. Dokonalá kombinace relaxace na horách a investiční jistoty.',
+  title: 'Apartmány Špindlerův Mlýn k pronájmu u lanovky | Pod Zlatým návrším',
+  description: 'Designové apartmány k pronájmu ve Špindlerově Mlýně, 50 metrů od lanovky Labská. Rezervace online. Poslední apartmány také na prodej.',
 };
 
 export default async function HomePage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
 
+  // Pronájem je od 13. 10. 2026 hlavní téma úvodní stránky; počty a ceny z DB / Front Desk Master
+  const [rentalApartments, saleApartments] = await Promise.all([getRentalApartmentsDB(), getSaleApartmentsDB()]);
+  const [heroImages, fdmPrices] = await Promise.all([
+    getHeroImagesBySlugs(rentalApartments.map((a) => a.slug)),
+    getFdmPriceFromMany(rentalApartments.filter((a) => a.fdm_room_use_id).map((a) => a.id)),
+  ]);
+  const rentalCount = rentalApartments.length;
+  const saleCount = saleApartments.length;
+  const manager = getSalesManager();
+  const aptWord = (n: number) =>
+    locale === 'cs' ? (n === 1 ? 'apartmán' : n >= 2 && n <= 4 ? 'apartmány' : 'apartmánů') : n === 1 ? 'apartment' : 'apartments';
+
   const t = locale === 'cs' ? {
-    heroClaim: 'Dokonalá kombinace relaxace na horách a investiční jistoty.',
-    heroTitle1: 'Poslední 3 rezidenční apartmány ve',
+    // Hero — pronájem
+    heroClaim: 'Ubytování u lanovky Labská',
+    heroTitle1: 'Apartmány k pronájmu ve',
     heroTitle2: 'Špindlerově Mlýně',
-    heroText: 'Na kopci nad Labskou přehradou, obklopené stromy, světlem a tichem, čekají už jen poslední 3 apartmány na své majitele.',
-    cta: 'Prohlédnout apartmány',
-    ctaSecondary: 'Rezervovat pobyt',
-    
+    heroText: 'Na kopci nad Labskou přehradou, obklopené stromy, světlem a tichem. Plně vybavené apartmány na víkend i delší pobyt, 50 metrů od lanovky.',
+    cta: 'Rezervovat pobyt',
+    ctaSecondary: 'Apartmány na prodej',
+
+    // Prodej — původní hero, přesunuto do sekce Prodej
+    saleClaim: 'Dokonalá kombinace relaxace na horách a investiční jistoty.',
+    saleTitle1: `Poslední ${saleCount} rezidenční ${aptWord(saleCount)} ve`,
+    saleTitle2: 'Špindlerově Mlýně',
+    saleText: `Na kopci nad Labskou přehradou, obklopené stromy, světlem a tichem, čekají už jen poslední ${saleCount} ${aptWord(saleCount)} na své majitele.`,
+    saleCta: 'Prohlédnout apartmány na prodej',
+    saleAbout: 'O projektu',
+    saleContactLabel: 'Prodej apartmánů',
+
     section1Title: 'Apartmány ve Špindlu na pár nocí?',
-    section1Text: 'Naše apartmány patří k tomu nejlepšímu, co ve Špindlerově Mlýně najdete. K pronájmu na víkend nebo pár nocí máme 7 apartmánů. Plně vybavené, navržené ve spolupráci s KARE Design.',
+    section1Text: `Naše apartmány patří k tomu nejlepšímu, co ve Špindlerově Mlýně najdete. K pronájmu na víkend nebo pár nocí máme ${rentalCount} ${aptWord(rentalCount)}. Plně vybavené, navržené ve spolupráci s KARE Design.`,
+    priceFrom: 'od',
+    perNight: 'za noc',
+    priceOnRequest: 'Cena na dotaz',
+    guests: 'hostů',
     section1Link: 'Zobrazit apartmány k pronájmu',
     
     section2Title: 'Dlouhodobá investice i rychlý výnos',
@@ -65,21 +95,35 @@ export default async function HomePage() {
     rekreaceLink: 'Prohlédnout apartmány',
     
     stats: {
-      apartments: 'Apartmány k prodeji',
+      apartments: 'Apartmánů k pronájmu',
       distance: 'Od lanovky',
       slope: 'Délka sjezdovky',
       completed: 'Kolaudováno',
     },
   } : {
-    heroClaim: 'The perfect combination of mountain relaxation and investment security.',
-    heroTitle1: 'Last 3 residential apartments in',
+    // Hero — rental
+    heroClaim: 'Stay by the Labská chairlift',
+    heroTitle1: 'Apartments for rent in',
     heroTitle2: 'Špindlerův Mlýn',
-    heroText: 'On a hill above the Labská dam, surrounded by trees, light and silence, the last 3 apartments await their owners.',
-    cta: 'View apartments',
-    ctaSecondary: 'Book a stay',
-    
+    heroText: 'On a hill above the Labská dam, surrounded by trees, light and silence. Fully equipped apartments for a weekend or a longer stay, 50 metres from the chairlift.',
+    cta: 'Book a stay',
+    ctaSecondary: 'Apartments for sale',
+
+    // Sale — former hero, moved to the Sale section
+    saleClaim: 'The perfect combination of mountain relaxation and investment security.',
+    saleTitle1: `Last ${saleCount} residential ${aptWord(saleCount)} in`,
+    saleTitle2: 'Špindlerův Mlýn',
+    saleText: `On a hill above the Labská dam, surrounded by trees, light and silence, the last ${saleCount} ${aptWord(saleCount)} await their owners.`,
+    saleCta: 'View apartments for sale',
+    saleAbout: 'About the project',
+    saleContactLabel: 'Apartment sales',
+
     section1Title: 'Apartments in Špindl for a few nights?',
-    section1Text: 'Our apartments are among the best you can find in Špindlerův Mlýn. We have 7 apartments for weekend or short-term rental. Fully equipped, designed in collaboration with KARE Design.',
+    section1Text: `Our apartments are among the best you can find in Špindlerův Mlýn. We have ${rentalCount} ${aptWord(rentalCount)} for weekend or short-term rental. Fully equipped, designed in collaboration with KARE Design.`,
+    priceFrom: 'from',
+    perNight: 'per night',
+    priceOnRequest: 'Price on request',
+    guests: 'guests',
     section1Link: 'View rental apartments',
     
     section2Title: 'Long-term investment & quick returns',
@@ -114,7 +158,7 @@ export default async function HomePage() {
     rekreaceLink: 'View apartments',
     
     stats: {
-      apartments: 'Apartments for sale',
+      apartments: 'Apartments for rent',
       distance: 'From the lift',
       slope: 'Slope length',
       completed: 'Completed',
@@ -167,13 +211,13 @@ export default async function HomePage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/suites"
+                href="/apartmany-spindleruv-mlyn-pronajem"
                 className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-[0.2em] uppercase hover:bg-white transition-colors duration-500"
               >
                 {t.cta}
               </Link>
               <Link 
-                href="/apartmany-spindleruv-mlyn-pronajem"
+                href="/suites"
                 className="inline-block px-10 py-4 border border-white/30 text-white text-sm tracking-[0.2em] uppercase hover:bg-white/10 hover:border-gold transition-all duration-500"
               >
                 {t.ctaSecondary}
@@ -203,7 +247,7 @@ export default async function HomePage() {
       <section className="py-16 bg-cream border-b border-navy/10">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            <Stat value="3" label={t.stats.apartments} />
+            <Stat value={String(rentalCount)} label={t.stats.apartments} />
             <Stat value="50" unit="m" label={t.stats.distance} />
             <Stat value="1 770" unit="m" label={t.stats.slope} />
             <Stat value="XI/23" label={t.stats.completed} />
@@ -254,12 +298,154 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* PRONÁJEM — karty apartmánů s cenou z Front Desk Master */}
+      <section className="pb-32 bg-cream">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {rentalApartments.map((apt) => {
+              const img = heroImages[apt.slug] ?? null;
+              const price = fdmPrices[apt.id];
+              return (
+                <Link
+                  key={apt.slug}
+                  href={`/apartmany-spindleruv-mlyn-pronajem/${apt.slug}`}
+                  className="group block bg-white border border-navy/5"
+                >
+                  <div className="relative aspect-[4/3] bg-stone overflow-hidden">
+                    {img ? (
+                      <Image
+                        src={img}
+                        alt={apt.title ?? ''}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-navy/10" />
+                    )}
+                  </div>
+                  <div className="p-5 flex items-end justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-light text-navy group-hover:text-gold transition-colors">{apt.title}</h3>
+                      <p className="text-xs text-navy/50 mt-1">
+                        {apt.layout}
+                        {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString('cs-CZ')} m²` : ''}
+                        {apt.max_guests ? ` · ${apt.max_guests} ${t.guests}` : ''}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {price ? (
+                        <>
+                          <p className="text-lg font-light text-navy">
+                            {t.priceFrom} {formatMoney(price.cents, price.currency)}
+                          </p>
+                          <p className="text-[11px] text-navy/40">{t.perNight}</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-navy/50">{t.priceOnRequest}</p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="text-center mt-12">
+            <Link
+              href="/apartmany-spindleruv-mlyn-pronajem"
+              className="inline-block px-10 py-4 bg-navy text-white text-sm tracking-[0.2em] uppercase hover:bg-gold hover:text-navy transition-colors duration-500"
+            >
+              {t.cta}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 3 - Lokalita */}
+      <section className="py-32 bg-navy text-white relative overflow-hidden">
+        <MountainSilhouette className="absolute bottom-0 left-0 right-0 h-48 text-white/5" />
+        
+        <div className="absolute top-8 left-8 w-16 h-16 text-gold/20 hidden md:block">
+          <AlpineOrnament variant="corner" className="w-full h-full" />
+        </div>
+        <div className="absolute bottom-8 right-8 w-16 h-16 text-gold/20 rotate-180 hidden md:block">
+          <AlpineOrnament variant="corner" className="w-full h-full" />
+        </div>
+        
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <SectionLabel light>02 · Lokalita</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6 tracking-wide">
+            {t.section3Title}
+          </h2>
+          <p className="text-white/60 leading-relaxed mb-10 text-lg max-w-2xl mx-auto">
+            {t.section3Text}
+          </p>
+          
+          <div className="flex items-center justify-center gap-6 mb-10">
+            <div className="w-16 h-px bg-gradient-to-r from-transparent to-gold/30" />
+            <AlpineOrnament variant="diamond" className="w-4 h-4 text-gold/50" />
+            <div className="w-16 h-px bg-gradient-to-l from-transparent to-gold/30" />
+          </div>
+          
+          <Link 
+            href="/lokalita"
+            className="inline-flex items-center text-gold font-medium tracking-wide border-b border-gold/50 pb-1 hover:border-gold transition-colors"
+          >
+            {t.section3Link}
+            <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      {/* PRODEJ — původní hero (poslední apartmány na prodej) + kontakt prodeje */}
+      <section className="py-32 bg-stone border-t border-navy/10">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <SectionLabel>03 · Prodej</SectionLabel>
+          <p className="text-sm tracking-[0.3em] uppercase text-gold mt-6 mb-6">
+            {t.saleClaim}
+          </p>
+          <h2 className="mb-8">
+            <span className="block text-3xl md:text-4xl font-light text-navy tracking-wide leading-[1.2]">
+              {t.saleTitle1}
+            </span>
+            <span className="block text-3xl md:text-4xl font-light text-gold italic tracking-wide mt-2">
+              {t.saleTitle2}
+            </span>
+          </h2>
+          <p className="text-lg text-navy/60 max-w-2xl mx-auto mb-10 leading-relaxed">
+            {t.saleText}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
+            <Link
+              href="/suites"
+              className="inline-block px-10 py-4 bg-navy text-white text-sm tracking-[0.2em] uppercase hover:bg-gold hover:text-navy transition-colors duration-500"
+            >
+              {t.saleCta}
+            </Link>
+            <Link
+              href="/o-projektu"
+              className="inline-block px-10 py-4 border border-navy/30 text-navy text-sm tracking-[0.2em] uppercase hover:border-gold hover:text-gold transition-colors duration-500"
+            >
+              {t.saleAbout}
+            </Link>
+          </div>
+          <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-sm text-navy/60">
+            <span className="text-xs uppercase tracking-widest text-navy/40">{t.saleContactLabel}</span>
+            <span className="text-navy">{manager.name}</span>
+            <a href={`tel:${manager.phone.replace(/\s/g, '')}`} className="hover:text-gold transition-colors">{manager.phone}</a>
+            <a href={`mailto:${manager.email}`} className="hover:text-gold transition-colors">{manager.email}</a>
+          </div>
+        </div>
+      </section>
+
       {/* SECTION 2 - Investice */}
       <section className="py-32 bg-stone">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="order-2 md:order-1">
-              <SectionLabel>02 · Investice</SectionLabel>
+              <SectionLabel>04 · Investiční příležitost</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-6 tracking-wide">
                 {t.section2Title}
               </h2>
@@ -294,44 +480,6 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* SECTION 3 - Lokalita */}
-      <section className="py-32 bg-navy text-white relative overflow-hidden">
-        <MountainSilhouette className="absolute bottom-0 left-0 right-0 h-48 text-white/5" />
-        
-        <div className="absolute top-8 left-8 w-16 h-16 text-gold/20 hidden md:block">
-          <AlpineOrnament variant="corner" className="w-full h-full" />
-        </div>
-        <div className="absolute bottom-8 right-8 w-16 h-16 text-gold/20 rotate-180 hidden md:block">
-          <AlpineOrnament variant="corner" className="w-full h-full" />
-        </div>
-        
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <SectionLabel light>03 · Lokalita</SectionLabel>
-          <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6 tracking-wide">
-            {t.section3Title}
-          </h2>
-          <p className="text-white/60 leading-relaxed mb-10 text-lg max-w-2xl mx-auto">
-            {t.section3Text}
-          </p>
-          
-          <div className="flex items-center justify-center gap-6 mb-10">
-            <div className="w-16 h-px bg-gradient-to-r from-transparent to-gold/30" />
-            <AlpineOrnament variant="diamond" className="w-4 h-4 text-gold/50" />
-            <div className="w-16 h-px bg-gradient-to-l from-transparent to-gold/30" />
-          </div>
-          
-          <Link 
-            href="/lokalita"
-            className="inline-flex items-center text-gold font-medium tracking-wide border-b border-gold/50 pb-1 hover:border-gold transition-colors"
-          >
-            {t.section3Link}
-            <svg className="w-4 h-4 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-            </svg>
-          </Link>
         </div>
       </section>
 
