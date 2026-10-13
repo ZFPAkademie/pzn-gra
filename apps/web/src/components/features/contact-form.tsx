@@ -30,7 +30,7 @@ export function ContactForm({ locale }: ContactFormProps) {
     message: 'Message',
     submit: 'Send',
     sending: 'Sending...',
-    success: 'Thank you for your message. We will get back to you soon.',
+    success: 'Thank you for your message. We will be in touch as soon as possible.',
     error: 'Something went wrong. Please try again.',
   };
 

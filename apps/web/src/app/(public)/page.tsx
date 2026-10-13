@@ -5,28 +5,38 @@
 
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { getRequestLocale } from '@/lib/i18n-server';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getLocaleFromCookie } from '@/lib/i18n';
 import { AlpineOrnament, MountainSilhouette, Stat, SectionLabel } from '@/components/ui/ornaments';
-import { getRentalApartmentsDB, getSaleApartmentsDB, getSalesManager } from '@/lib/apartments';
+import { getRentalApartmentsDB, getSaleApartmentsDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
 import { formatMoney } from '@/lib/booking-engine/money';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Apartmány Špindlerův Mlýn k pronájmu u lanovky | Pod Zlatým návrším',
-  description: 'Designové apartmány k pronájmu ve Špindlerově Mlýně, 50 metrů od lanovky Labská. Rezervace online. Poslední apartmány také na prodej.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getRequestLocale() === 'en') {
+    return {
+      title: 'Apartments for rent in Špindlerův Mlýn by the chairlift | Pod Zlatým návrším',
+      description: 'Design apartments for rent in Špindlerův Mlýn, 50 metres from the Labská chairlift. Book online. The last apartments are also for sale.',
+    };
+  }
+  return {
+    title: 'Apartmány Špindlerův Mlýn k pronájmu u lanovky | Pod Zlatým návrším',
+    description: 'Designové apartmány k pronájmu ve Špindlerově Mlýně, 50 metrů od lanovky Labská. Rezervace online. Poslední apartmány také na prodej.',
+  };
+}
 
 export default async function HomePage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
 
   // Pronájem je od 13. 10. 2026 hlavní téma úvodní stránky; počty a ceny z DB / Front Desk Master
-  const [rentalApartments, saleApartments] = await Promise.all([getRentalApartmentsDB(), getSaleApartmentsDB()]);
+  const [rentalApartmentsRaw, saleApartments] = await Promise.all([getRentalApartmentsDB(), getSaleApartmentsDB()]);
+  const rentalApartments = rentalApartmentsRaw.map((a) => localizeApartment(a, locale));
   const [heroImages, fdmPrices] = await Promise.all([
     getHeroImagesBySlugs(rentalApartments.map((a) => a.slug)),
     getFdmPriceFromMany(rentalApartments.filter((a) => a.fdm_room_use_id).map((a) => a.id)),
@@ -100,6 +110,14 @@ export default async function HomePage() {
       slope: 'Délka sjezdovky',
       completed: 'Kolaudováno',
     },
+
+    labelRental: '01 · Pronájem',
+    labelLocation: '02 · Lokalita',
+    labelSale: '03 · Prodej',
+    labelInvestment: '04 · Investiční příležitost',
+    altHero: 'Pod Zlatým návrším - Krkonoše',
+    altBuilding: 'Apartmány Pod Zlatým návrším',
+    altLift: 'Apartmány u lanovky',
   } : {
     // Hero — rental
     heroClaim: 'Stay by the Labská chairlift',
@@ -126,34 +144,34 @@ export default async function HomePage() {
     guests: 'guests',
     section1Link: 'View rental apartments',
     
-    section2Title: 'Long-term investment & quick returns',
-    section2Text: 'This year inflation will be around 2.5%. Interest rates around 4%. Real estate prices in Krkonoše are growing by up to 10% annually. Since the available apartments are furnished, they can be used and rented immediately.',
+    section2Title: 'Long-term investment and a quick return',
+    section2Text: 'This year inflation will be around 2.5%. Interest rates around 4%. Property prices in the Krkonoše (Giant Mountains) are rising by as much as 10% a year. Because the available apartments are furnished, they can be used and rented out straight away – no waiting, no hassle.',
     section2Link: 'Investment calculator',
     
-    section3Title: 'Paradise for skiers and hikers',
-    section3Text: 'The apartment buildings are located 50 meters from the chairlift and the red Labská ski slope with a length of 1,770 meters.',
-    section3Link: 'About location',
+    section3Title: 'A paradise for skiers and hikers',
+    section3Text: 'The apartment buildings are located 50 metres from the Labská chairlift and the red Labská slope, which is 1,770 metres long. The whole ski area will be linked with Hromovka and Svatý Petr.',
+    section3Link: 'About the location',
     
-    section4Title: 'Choose your purpose',
-    section4Text: 'Pod Zlatým návrším is a unique investment opportunity that will not be repeated. Secure a stable return, the certainty of a beautiful vacation, or both.',
+    section4Title: 'Choose the purpose of your purchase',
+    section4Text: 'Pod Zlatým návrším is a unique investment opportunity that will not be repeated. Secure a stable return, the certainty of a beautiful holiday, or both.',
     
     investiceTitle: 'Investment',
     investiceBenefits: [
-      'Investment earns even in your absence',
-      'Rental covers at least regular fees',
-      'We help with rental and service',
-      'Great investment for companies as a benefit',
-      'You won\'t find many similar projects in Krkonoše',
+      'The investment earns even while you are away',
+      'Rental income covers at least the regular fees',
+      'We help with both rental and service',
+      'A great investment for companies as an employee benefit',
+      'You will not find many similar projects in Krkonoše',
     ],
     investiceLink: 'Calculate returns',
     
     rekreaceTitle: 'Recreation',
     rekreaceBenefits: [
-      'Operator provides service and cleaning',
-      'Krkonoše offers active and passive relaxation',
-      'Ideal for large families',
-      'Mountain relaxation anytime',
-      'Investment in you and your family',
+      'The operator takes care of service and cleaning',
+      'Krkonoše offers both active and restful leisure',
+      'Ideal for a large family',
+      'Relaxing in the mountains whenever you like',
+      'An investment in you and your family',
     ],
     rekreaceLink: 'View apartments',
     
@@ -163,6 +181,14 @@ export default async function HomePage() {
       slope: 'Slope length',
       completed: 'Completed',
     },
+
+    labelRental: '01 · Rentals',
+    labelLocation: '02 · Location',
+    labelSale: '03 · Sales',
+    labelInvestment: '04 · Investment opportunity',
+    altHero: 'Pod Zlatým návrším - the Krkonoše (Giant Mountains)',
+    altBuilding: 'Pod Zlatým návrším apartments',
+    altLift: 'Apartments by the chairlift',
   };
 
   return (
@@ -172,7 +198,7 @@ export default async function HomePage() {
         <div className="absolute inset-0">
           <Image
             src="/images/hero.jpg"
-            alt="Pod Zlatým návrším - Krkonoše"
+            alt={t.altHero}
             fill
             className="object-cover"
             priority
@@ -249,7 +275,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             <Stat value={String(rentalCount)} label={t.stats.apartments} />
             <Stat value="50" unit="m" label={t.stats.distance} />
-            <Stat value="1 770" unit="m" label={t.stats.slope} />
+            <Stat value={locale === 'en' ? '1,770' : '1 770'} unit="m" label={t.stats.slope} />
             <Stat value="XI/23" label={t.stats.completed} />
           </div>
         </div>
@@ -269,7 +295,7 @@ export default async function HomePage() {
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
                   src="/images/building-front.jpg"
-                  alt="Apartmány Pod Zlatým návrším"
+                  alt={t.altBuilding}
                   fill
                   className="object-cover"
                 />
@@ -277,7 +303,7 @@ export default async function HomePage() {
             </div>
             
             <div>
-              <SectionLabel>01 · Pronájem</SectionLabel>
+              <SectionLabel>{t.labelRental}</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-6 tracking-wide">
                 {t.section1Title}
               </h2>
@@ -328,8 +354,8 @@ export default async function HomePage() {
                     <div>
                       <h3 className="text-lg font-light text-navy group-hover:text-gold transition-colors">{apt.title}</h3>
                       <p className="text-xs text-navy/50 mt-1">
-                        {apt.layout}
-                        {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString('cs-CZ')} m²` : ''}
+                        {layoutLabel(apt.layout, locale)}
+                        {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString(locale === 'en' ? 'en-GB' : 'cs-CZ')} m²` : ''}
                         {apt.max_guests ? ` · ${apt.max_guests} ${t.guests}` : ''}
                       </p>
                     </div>
@@ -337,7 +363,7 @@ export default async function HomePage() {
                       {price ? (
                         <>
                           <p className="text-lg font-light text-navy">
-                            {t.priceFrom} {formatMoney(price.cents, price.currency)}
+                            {t.priceFrom} {formatMoney(price.cents, price.currency, locale)}
                           </p>
                           <p className="text-[11px] text-navy/40">{t.perNight}</p>
                         </>
@@ -373,7 +399,7 @@ export default async function HomePage() {
         </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <SectionLabel light>02 · Lokalita</SectionLabel>
+          <SectionLabel light>{t.labelLocation}</SectionLabel>
           <h2 className="text-3xl md:text-4xl font-light mt-4 mb-6 tracking-wide">
             {t.section3Title}
           </h2>
@@ -402,7 +428,7 @@ export default async function HomePage() {
       {/* PRODEJ — původní hero (poslední apartmány na prodej) + kontakt prodeje */}
       <section className="py-32 bg-stone border-t border-navy/10">
         <div className="max-w-5xl mx-auto px-6 text-center">
-          <SectionLabel>03 · Prodej</SectionLabel>
+          <SectionLabel>{t.labelSale}</SectionLabel>
           <p className="text-sm tracking-[0.3em] uppercase text-gold mt-6 mb-6">
             {t.saleClaim}
           </p>
@@ -445,7 +471,7 @@ export default async function HomePage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="order-2 md:order-1">
-              <SectionLabel>04 · Investiční příležitost</SectionLabel>
+              <SectionLabel>{t.labelInvestment}</SectionLabel>
               <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-6 tracking-wide">
                 {t.section2Title}
               </h2>
@@ -473,7 +499,7 @@ export default async function HomePage() {
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
                   src="/images/building-lift.jpg"
-                  alt="Apartmány u lanovky"
+                  alt={t.altLift}
                   fill
                   className="object-cover"
                 />

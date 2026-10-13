@@ -6,7 +6,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getApartmentBySlugDB, getSalesManager } from '@/lib/apartments';
+import { getApartmentBySlugDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
+import { getRequestLocale } from '@/lib/i18n-server';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { SaleInfoBoxes, RealEstateProductBadge } from '@/components/features/sale-info-boxes';
@@ -18,25 +19,41 @@ interface Props {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const apt = await getApartmentBySlugDB(params.slug);
-  if (!apt) return { title: 'Apartmán nenalezen' };
+  const locale = getRequestLocale();
+  const raw = await getApartmentBySlugDB(params.slug);
+  if (!raw) return { title: locale === 'en' ? 'Apartment not found' : 'Apartmán nenalezen' };
+  const apt = localizeApartment(raw, locale);
 
   return {
-    title: `${apt.title} | Na prodej | Pod Zlatým návrším`,
+    title: `${apt.title} | ${locale === 'en' ? 'For sale' : 'Na prodej'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
   };
 }
 
+/** Podlaží: CZ „2. NP“, EN britsky (1. NP = ground floor, 2. NP = 1st floor) */
+function floorLabel(floor: number, locale: 'cs' | 'en'): string {
+  if (locale !== 'en') return `${floor}. NP`;
+  if (floor === 1) return 'Ground floor';
+  const n = floor - 1;
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th';
+  return `${n}${suffix} floor`;
+}
+
 export default async function SaleApartmentDetailPage({ params }: Props) {
-  const apt = await getApartmentBySlugDB(params.slug);
+  const locale = getRequestLocale();
+  const en = locale === 'en';
+  const raw = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
   const images = await getApartmentImages(params.slug);
 
-  if (!apt || !apt.for_sale) {
+  if (!raw || !raw.for_sale) {
     notFound();
   }
 
-  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+  const apt = localizeApartment(raw, locale);
+  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(en ? 'en-GB' : 'cs-CZ') + ' m²' : '—';
+  // Plochy místností jsou v DB jako text „6,25 m²“ — pro EN desetinná tečka
+  const roomArea = (v: string) => (en ? v.replace(/(\d),(\d)/g, '$1.$2') : v);
 
   return (
     <>
@@ -50,12 +67,12 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
-            Zpět na přehled
+            {en ? 'Back to overview' : 'Zpět na přehled'}
           </Link>
 
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
-              Na prodej
+              {en ? 'For sale' : 'Na prodej'}
             </span>
           </div>
 
@@ -79,31 +96,31 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
               </div>
 
               {/* Info Boxes - Standards & Investment */}
-              <SaleInfoBoxes showRealEstateProduct={false} />
+              <SaleInfoBoxes showRealEstateProduct={false} locale={locale} />
 
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Celková plocha</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Total area' : 'Celková plocha'}</p>
                   <p className="text-2xl font-light text-navy">{totalArea}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Dispozice</p>
-                  <p className="text-2xl font-light text-navy">{apt.layout ?? '—'}</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Layout' : 'Dispozice'}</p>
+                  <p className="text-2xl font-light text-navy">{apt.layout != null ? layoutLabel(apt.layout, locale) : '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Patro</p>
-                  <p className="text-2xl font-light text-navy">{apt.floor != null ? `${apt.floor}. NP` : '—'}</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Floor' : 'Patro'}</p>
+                  <p className="text-2xl font-light text-navy">{apt.floor != null ? floorLabel(apt.floor, locale) : '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Orientace</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Aspect' : 'Orientace'}</p>
                   <p className="text-2xl font-light text-navy">{apt.orientation ?? '—'}</p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-16">
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">O apartmánu</h2>
+                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{en ? 'About the apartment' : 'O apartmánu'}</h2>
                 <p className="text-navy/70 leading-relaxed text-lg whitespace-pre-line">
                   {apt.description}
                 </p>
@@ -112,25 +129,25 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
               {/* Room breakdown */}
               {apt.rooms && (
                 <div className="mb-16">
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{en ? 'Room breakdown' : 'Členění'}</h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
-                      <p className="text-xl text-navy">{apt.rooms.hall}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Entrance hall' : 'Vstupní hala'}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.hall)}</p>
                     </div>
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
-                      <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Bathroom' : 'Koupelna'}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.bathroom)}</p>
                     </div>
                     {apt.rooms.bedroom && (
                       <div className="bg-stone p-6">
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
-                        <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Bedroom' : 'Ložnice'}</p>
+                        <p className="text-xl text-navy">{roomArea(apt.rooms.bedroom)}</p>
                       </div>
                     )}
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
-                      <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{en ? 'Living room with kitchen' : 'Pokoj s kuchyní'}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.livingKitchen)}</p>
                     </div>
                   </div>
                 </div>
@@ -139,7 +156,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
               {/* Features */}
               {apt.features && apt.features.length > 0 && (
                 <div>
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{en ? 'Features' : 'Vybavení'}</h2>
                   <div className="flex flex-wrap gap-3">
                     {apt.features.map((feature, i) => (
                       <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
@@ -154,8 +171,8 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
             {/* Right: Contact Card */}
             <div className="lg:col-span-1">
               <div className="bg-navy p-8 sticky top-28">
-                <p className="text-gold text-sm tracking-widest uppercase mb-4">Cena</p>
-                <p className="text-3xl font-light text-white mb-8">Na dotaz</p>
+                <p className="text-gold text-sm tracking-widest uppercase mb-4">{en ? 'Price' : 'Cena'}</p>
+                <p className="text-3xl font-light text-white mb-8">{en ? 'On request' : 'Na dotaz'}</p>
 
                 <div className="border-t border-white/10 pt-8 mb-8">
                   <div className="flex items-center mb-6">
@@ -170,7 +187,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
                     </div>
                     <div>
                       <p className="text-white font-medium">{manager.name}</p>
-                      <p className="text-white/50 text-sm">{manager.title}</p>
+                      <p className="text-white/50 text-sm">{en ? 'Sales Manager' : manager.title}</p>
                     </div>
                   </div>
 
@@ -185,19 +202,19 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
                       {manager.phone}
                     </a>
                     <a
-                      href={`mailto:${manager.email}?subject=Zájem o ${apt.title}`}
+                      href={`mailto:${manager.email}?subject=${en ? 'Enquiry about' : 'Zájem o'} ${apt.title}`}
                       className="flex items-center justify-center w-full py-4 border border-white/20 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                       </svg>
-                      Napsat e-mail
+                      {en ? 'Send an email' : 'Napsat e-mail'}
                     </a>
                   </div>
                 </div>
 
                 <p className="text-white/30 text-xs text-center">
-                  Rádi vám zodpovíme všechny dotazy a domluvíme prohlídku.
+                  {en ? 'We will be happy to answer all your questions and arrange a viewing.' : 'Rádi vám zodpovíme všechny dotazy a domluvíme prohlídku.'}
                 </p>
               </div>
             </div>
@@ -209,13 +226,13 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
       <section className="py-16 bg-stone border-t border-navy/10">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-navy/50 mb-6">
-            Prohlédněte si další dostupné apartmány
+            {en ? 'Take a look at the other available apartments' : 'Prohlédněte si další dostupné apartmány'}
           </p>
           <Link
             href="/suites"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            Všechny apartmány na prodej
+            {en ? 'All apartments for sale' : 'Všechny apartmány na prodej'}
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>

@@ -6,6 +6,47 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createLead, LeadInput } from '@/lib/leads-service';
+import { getRequestLocale } from '@/lib/i18n-server';
+
+// Hlášky vracené návštěvníkovi — jazyk podle cookie NEXT_LOCALE
+const MESSAGES = {
+  cs: {
+    tooManyRequests: 'Příliš mnoho požadavků. Zkuste to prosím později.',
+    typeEmailRequired: 'Vyplňte prosím e-mail.',
+    invalidType: 'Neplatný typ poptávky.',
+    internal: 'Poptávku se nepodařilo odeslat. Zkuste to prosím znovu.',
+    thankYou: 'Děkujeme za poptávku. Ozveme se vám co nejdříve.',
+  },
+  en: {
+    tooManyRequests: 'Too many requests. Please try again later.',
+    typeEmailRequired: 'Type and email are required',
+    invalidType: 'Invalid enquiry type',
+    internal: 'Internal server error',
+    thankYou: 'Thank you for your enquiry. We will be in touch soon.',
+  },
+} as const;
+
+// Chyby z leads-service (anglicky) → hláška pro návštěvníka
+const SERVICE_ERRORS_CS: Record<string, string> = {
+  'First name is required': 'Vyplňte prosím jméno.',
+  'Last name is required': 'Vyplňte prosím příjmení.',
+  'Email is required': 'Vyplňte prosím e-mail.',
+  'GDPR consent is required': 'Je potřeba souhlas se zpracováním osobních údajů.',
+  'Terms acceptance is required': 'Je potřeba souhlas s obchodními podmínkami.',
+  'Invalid email format': 'Neplatný formát e-mailu.',
+  'Failed to submit inquiry': 'Poptávku se nepodařilo odeslat. Zkuste to prosím znovu.',
+  'Internal server error': 'Poptávku se nepodařilo odeslat. Zkuste to prosím znovu.',
+};
+
+const SERVICE_ERRORS_EN: Record<string, string> = {
+  'Failed to submit inquiry': 'Failed to submit enquiry',
+};
+
+function serviceError(error: string | undefined, locale: 'cs' | 'en'): string | undefined {
+  if (!error) return error;
+  const map = locale === 'cs' ? SERVICE_ERRORS_CS : SERVICE_ERRORS_EN;
+  return map[error] ?? error;
+}
 
 // Rate limiting (simple in-memory)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -82,6 +123,8 @@ Jazyk: ${lead.metadata?.locale || 'cs'}
 }
 
 export async function POST(request: NextRequest) {
+  const locale = getRequestLocale();
+  const msg = MESSAGES[locale];
   try {
     // Get IP for rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
@@ -91,7 +134,7 @@ export async function POST(request: NextRequest) {
     // Check rate limit
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
+        { error: msg.tooManyRequests },
         { status: 429 }
       );
     }
@@ -111,7 +154,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!body.type || !body.email) {
       return NextResponse.json(
-        { error: 'Type and email are required' },
+        { error: msg.typeEmailRequired },
         { status: 400 }
       );
     }
@@ -120,7 +163,7 @@ export async function POST(request: NextRequest) {
     const validTypes = ['rent_inquiry', 'sale_inquiry', 'investment_inquiry', 'investment_share_request', 'general_inquiry'];
     if (!validTypes.includes(body.type)) {
       return NextResponse.json(
-        { error: 'Invalid inquiry type' },
+        { error: msg.invalidType },
         { status: 400 }
       );
     }
@@ -151,7 +194,7 @@ export async function POST(request: NextRequest) {
     
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error },
+        { error: serviceError(result.error, locale) },
         { status: 400 }
       );
     }
@@ -172,7 +215,7 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         lead_id: result.lead_id,
-        message: 'Thank you for your inquiry. We will contact you soon.'
+        message: msg.thankYou
       },
       { status: 201 }
     );
@@ -180,7 +223,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Leads API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: msg.internal },
       { status: 500 }
     );
   }

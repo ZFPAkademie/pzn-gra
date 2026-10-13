@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface Props {
   apartmentSlug: string;
@@ -11,6 +12,13 @@ interface Props {
 
 const DAY_ABBR = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const MONTH_CS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+const DAY_ABBR_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const MONTH_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const TEXTS = {
+  cs: { prev: 'Předchozí měsíc', next: 'Další měsíc', arrivalDeparture: 'Příjezd / Odjezd', stay: 'Pobyt' },
+  en: { prev: 'Previous month', next: 'Next month', arrivalDeparture: 'Arrival / Departure', stay: 'Stay' },
+};
 
 function iso(y: number, m: number, d: number) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -24,6 +32,10 @@ function addM(y: number, m: number, n: number) {
 }
 
 export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckOut, onSelectDates }: Props) {
+  const { locale } = useLanguage();
+  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
+  const dayAbbr = locale === 'cs' ? DAY_ABBR : DAY_ABBR_EN;
+  const monthNames = locale === 'cs' ? MONTH_CS : MONTH_EN;
   const now = new Date(); now.setHours(0,0,0,0);
   const todayStr = iso(now.getFullYear(), now.getMonth()+1, now.getDate());
 
@@ -76,16 +88,16 @@ export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckO
     <div className="overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <button onClick={back} disabled={!canBack()} aria-label="Předchozí měsíc"
+        <button onClick={back} disabled={!canBack()} aria-label={t.prev}
           className="w-9 h-9 flex items-center justify-center rounded-full text-[#0B1626]/40 hover:text-[#0B1626] hover:bg-[#0B1626]/6 disabled:opacity-20 disabled:cursor-not-allowed transition-all">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <span className="text-[13px] font-semibold text-[#0B1626] tracking-wide">
-          {MONTH_CS[month-1].toUpperCase()} {year}
+          {monthNames[month-1].toUpperCase()} {year}
         </span>
-        <button onClick={fwd} aria-label="Další měsíc"
+        <button onClick={fwd} aria-label={t.next}
           className="w-9 h-9 flex items-center justify-center rounded-full text-[#0B1626]/40 hover:text-[#0B1626] hover:bg-[#0B1626]/6 transition-all">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
@@ -95,7 +107,7 @@ export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckO
 
       {/* Day labels */}
       <div className="grid grid-cols-7 mb-2">
-        {DAY_ABBR.map(d => (
+        {dayAbbr.map(d => (
           <div key={d} className="text-center text-[11px] font-medium text-[#0B1626]/30 tracking-wider py-1">
             {d}
           </div>
@@ -174,11 +186,11 @@ export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckO
       <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[#0B1626]/8">
         <span className="flex items-center gap-1.5 text-[10px] text-[#0B1626]/35 uppercase tracking-wide">
           <span className="w-3.5 h-3.5 rounded-full bg-[#0B1626] shrink-0" />
-          Příjezd / Odjezd
+          {t.arrivalDeparture}
         </span>
         <span className="flex items-center gap-1.5 text-[10px] text-[#0B1626]/35 uppercase tracking-wide">
           <span className="w-5 h-2.5 rounded-sm bg-[#C9A24D]/30 shrink-0" />
-          Pobyt
+          {t.stay}
         </span>
       </div>
     </div>

@@ -32,13 +32,13 @@
     "location": "Location",
     "standards": "Standards",
     "investment": "Investment opportunity",
-    "realEstateProduct": "Real Estate Shares",
+    "realEstateProduct": "Real estate product",
     "suites": "Suites",
-    "rental": "Rental",
-    "sale": "Sale",
+    "rental": "Rentals",
+    "sale": "Sales",
     "contact": "Contact",
     "saleApartments": "Apartments for sale",
-    "saleMenu": "Sale"
+    "saleMenu": "Sales"
   },
   "home": {
     "heroTitle": "Luxury Apartments in Špindlerův Mlýn",
@@ -50,7 +50,7 @@
     "whyUs": "Why Pod Zlatým návrším",
     "whyUsDesc": "A combination of luxury, nature, and great investment",
     "feature1Title": "Premium location",
-    "feature1Desc": "Right in the center of Špindlerův Mlýn with mountain views",
+    "feature1Desc": "Right in the centre of Špindlerův Mlýn with mountain views",
     "feature2Title": "High standards",
     "feature2Desc": "Quality materials and modern design in every detail",
     "feature3Title": "Investment potential",
@@ -97,7 +97,7 @@
       "lastApartment": "Last available apartment"
     },
     "realEstateProduct": {
-      "title": "Real Estate Shares",
+      "title": "Real estate product",
       "subtitle": "Buy a share in an apartment in Špindl",
       "cta": "Get share offer"
     },
@@ -121,13 +121,13 @@
   "footer": {
     "company": "Pod Zlatým návrším",
     "tagline": "Luxury apartments in Špindlerův Mlýn",
-    "description": "Residential project in the heart of the Giant Mountains. Luxury apartments for rent and sale in Špindlerův Mlýn.",
+    "description": "A residential project in the heart of the Krkonoše (Giant Mountains). Luxury apartments for rent and for sale in Špindlerův Mlýn.",
     "navigation": "Navigation",
     "quickLinks": "Quick links",
     "contact": "Contact",
     "legal": "Legal",
     "privacy": "Privacy policy",
-    "terms": "Terms of service",
+    "terms": "Terms and conditions",
     "copyright": "© {{year}} Pod Zlatým návrším. All rights reserved.",
     "saleContact": "Apartment sales",
     "rentalContact": "Rental & bookings",

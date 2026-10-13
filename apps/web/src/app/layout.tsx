@@ -7,11 +7,20 @@ import { getLocaleFromCookie, Locale } from '@/lib/i18n';
 // Force dynamic rendering (uses cookies for locale)
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Pod Zlatým návrším | Luxusní apartmány Špindlerův Mlýn',
-  description: 'Luxusní apartmány ve Špindlerově Mlýně - prodej a pronájem. Golden Ridge Apartments.',
-  keywords: 'apartmány Špindl, apartmány Špindlerův Mlýn, luxusní ubytování Krkonoše, Golden Ridge Apartments',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value) === 'en') {
+    return {
+      title: 'Pod Zlatým návrším | Luxury apartments in Špindlerův Mlýn',
+      description: 'Luxury apartments in Špindlerův Mlýn - for sale and for rent. Golden Ridge Apartments.',
+      keywords: 'apartments Špindl, apartments Špindlerův Mlýn, luxury accommodation Krkonoše, Giant Mountains, Golden Ridge Apartments',
+    };
+  }
+  return {
+    title: 'Pod Zlatým návrším | Luxusní apartmány Špindlerův Mlýn',
+    description: 'Luxusní apartmány ve Špindlerově Mlýně - prodej a pronájem. Golden Ridge Apartments.',
+    keywords: 'apartmány Špindl, apartmány Špindlerův Mlýn, luxusní ubytování Krkonoše, Golden Ridge Apartments',
+  };
+}
 
 export default function RootLayout({
   children,

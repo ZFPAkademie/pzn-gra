@@ -6,20 +6,42 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getSaleApartmentsDB, getSalesManager } from '@/lib/apartments';
+import { getSaleApartmentsDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Zkolaudované apartmány v Krkonoších prodej | Pod Zlatým návrším',
-  description: 'Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené nábytkem KARE Design a připravené k okamžitému využití i pronájmu.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = getRequestLocale();
+  if (locale === 'en') {
+    return {
+      title: 'Completed apartments for sale in the Krkonoše (Giant Mountains) | Pod Zlatým návrším',
+      description: 'Choose from the last available apartments in Špindlerův Mlýn – some come fully furnished with KARE Design furniture, ready to use or let straight away.',
+    };
+  }
+  return {
+    title: 'Zkolaudované apartmány v Krkonoších prodej | Pod Zlatým návrším',
+    description: 'Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené nábytkem KARE Design a připravené k okamžitému využití i pronájmu.',
+  };
+}
+
+/** Podlaží: CZ „2. NP“, EN britsky (1. NP = ground floor, 2. NP = 1st floor) */
+function floorLabel(floor: number, locale: 'cs' | 'en'): string {
+  if (locale !== 'en') return `${floor}. NP`;
+  if (floor === 1) return 'Ground floor';
+  const n = floor - 1;
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th';
+  return `${n}${suffix} floor`;
+}
 
 export default async function SuitesPage() {
-  const apartments = await getSaleApartmentsDB();
+  const locale = getRequestLocale();
+  const en = locale === 'en';
+  const apartments = (await getSaleApartmentsDB()).map((a) => localizeApartment(a, locale));
   const heroImages = await getHeroImagesBySlugs(apartments.map((a) => a.slug));
   const manager = getSalesManager();
+  const count = apartments.length;
 
   return (
     <>
@@ -27,17 +49,26 @@ export default async function SuitesPage() {
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
-            Poslední {apartments.length} apartmány
+            {en ? (count === 1 ? 'The last apartment' : `The last ${count} apartments`) : <>Poslední {apartments.length} apartmány</>}
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight">
-            Zkolaudované apartmány Pod Zlatým návrším
+            {en ? 'Completed apartments at Pod Zlatým návrším' : 'Zkolaudované apartmány Pod Zlatým návrším'}
           </h1>
+          {en ? (
+            <p className="text-xl text-white/60 max-w-3xl leading-relaxed">
+              Choose from the last available apartments in Špindlerův Mlýn – some come fully furnished with
+              KARE Design furniture, ready to use or let straight away. All three available apartments are
+              furnished. Every apartment offers mountain views, privacy and a location just a few dozen
+              metres from the Labská slope.
+            </p>
+          ) : (
           <p className="text-xl text-white/60 max-w-3xl leading-relaxed">
             Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené
             nábytkem KARE Design a připravené k okamžitému využití i pronájmu. Vybavené jsou všechny tři
             dostupné apartmány. Všechny apartmány mají výhled na hory, soukromí a polohu jen pár desítek
             metrů od sjezdovky Labská.
           </p>
+          )}
         </div>
       </section>
 
@@ -60,12 +91,21 @@ export default async function SuitesPage() {
       {/* Doplňující info */}
       <section className="py-16 bg-gold">
         <div className="max-w-6xl mx-auto px-6">
+          {en ? (
+            <p className="text-navy/80 max-w-4xl leading-relaxed">
+              On offer are the last apartments (studios and one-bedroom apartments, 1+kk and 2+kk) in two
+              residential buildings. Each building has its own ski room and bike storage. A garage or
+              outdoor parking space can be purchased with the apartments. The standard specification
+              includes wooden floors, underfloor heating and a quality fitted kitchen.
+            </p>
+          ) : (
           <p className="text-navy/80 max-w-4xl leading-relaxed">
             V nabídce jsou poslední apartmány (1+kk a 2+kk) ve dvou rezidenčních domech.
             Každý dům má vlastní lyžárnu a kolárnu. K apartmánům je možné dokoupit garážové
             nebo venkovní stání. Standard zahrnuje dřevěné podlahy, podlahové vytápění a
             kvalitní kuchyňskou linku.
           </p>
+          )}
         </div>
       </section>
 
@@ -73,13 +113,13 @@ export default async function SuitesPage() {
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-sm text-navy/40 uppercase tracking-widest mb-12">
-            {apartments.length} apartmány k prodeji
+            {en ? `${count} ${count === 1 ? 'apartment' : 'apartments'} for sale` : <>{apartments.length} apartmány k prodeji</>}
           </p>
 
           <div className="space-y-16">
             {apartments.map((apt, index) => {
               const heroImage = heroImages[apt.slug] ?? null;
-              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(en ? 'en-GB' : 'cs-CZ') + ' m²' : '—';
               return (
                 <Link
                   key={apt.slug}
@@ -101,7 +141,7 @@ export default async function SuitesPage() {
                       )}
                       <div className="absolute top-6 left-6">
                         <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
-                          Na prodej
+                          {en ? 'For sale' : 'Na prodej'}
                         </span>
                       </div>
                     </div>
@@ -114,27 +154,27 @@ export default async function SuitesPage() {
 
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
-                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Plocha</p>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">{en ? 'Area' : 'Plocha'}</p>
                           <p className="text-navy">{totalArea}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Dispozice</p>
-                          <p className="text-navy">{apt.layout}</p>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">{en ? 'Layout' : 'Dispozice'}</p>
+                          <p className="text-navy">{layoutLabel(apt.layout, locale)}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Patro</p>
-                          <p className="text-navy">{apt.floor != null ? `${apt.floor}. NP` : '—'}</p>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">{en ? 'Floor' : 'Patro'}</p>
+                          <p className="text-navy">{apt.floor != null ? floorLabel(apt.floor, locale) : '—'}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">Orientace</p>
+                          <p className="text-xs text-navy/40 uppercase tracking-widest mb-1">{en ? 'Aspect' : 'Orientace'}</p>
                           <p className="text-navy">{apt.orientation}</p>
                         </div>
                       </div>
 
-                      <p className="text-lg font-medium text-gold mb-6">Cena na dotaz</p>
+                      <p className="text-lg font-medium text-gold mb-6">{en ? 'Price on request' : 'Cena na dotaz'}</p>
 
                       <span className="inline-flex items-center text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
-                        Zobrazit detail
+                        {en ? 'View details' : 'Zobrazit detail'}
                         <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                         </svg>
@@ -152,17 +192,25 @@ export default async function SuitesPage() {
       <section className="py-24 bg-stone">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">
-            Okolí apartmánů Pod Zlatým návrším
+            {en ? 'Around the Pod Zlatým návrším apartments' : 'Okolí apartmánů Pod Zlatým návrším'}
           </h2>
+          {en ? (
+            <p className="text-navy/60 max-w-2xl mx-auto mb-12">
+              The Špindlerův Mlýn ski resort is one of the best-known and most visited winter sports resorts
+              in the Czech Republic. The apartment buildings are 50 metres from the Labská chairlift and the
+              red Labská slope.
+            </p>
+          ) : (
           <p className="text-navy/60 max-w-2xl mx-auto mb-12">
             Skiareál Špindlerův Mlýn se řadí k nejznámějším a nejnavštěvovanějším střediskům zimních sportů v ČR.
             Apartmánové domy se nacházejí 50 metrů od sedačkové lanovky a červené sjezdovky Labská.
           </p>
+          )}
           <Link
             href="/lokalita"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            Více o lokalitě
+            {en ? 'More about the location' : 'Více o lokalitě'}
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>
@@ -175,14 +223,21 @@ export default async function SuitesPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="text-center md:text-left">
-              <p className="text-gold text-sm tracking-widest uppercase mb-6">Váš kontakt</p>
+              <p className="text-gold text-sm tracking-widest uppercase mb-6">{en ? 'Your contact' : 'Váš kontakt'}</p>
               <h2 className="text-3xl font-light text-white mb-8">
-                Máte zájem o koupi?
+                {en ? 'Interested in buying?' : 'Máte zájem o koupi?'}
               </h2>
+              {en ? (
+                <p className="text-white/50 mb-8">
+                  Contact our sales manager for a no-obligation consultation and a viewing of the apartments.
+                  You can rent your chosen apartment first to try it out.
+                </p>
+              ) : (
               <p className="text-white/50 mb-8">
                 Kontaktujte našeho manažera prodeje pro nezávaznou konzultaci a prohlídku apartmánů.
                 Vybraný apartmán si můžete nejdřív pronajmout na zkoušku.
               </p>
+              )}
 
               <div className="space-y-4">
                 <a
@@ -219,7 +274,7 @@ export default async function SuitesPage() {
                 </div>
                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-cream px-6 py-3 text-center">
                   <p className="text-navy font-medium">{manager.name}</p>
-                  <p className="text-xs text-navy/50">{manager.title}</p>
+                  <p className="text-xs text-navy/50">{en ? 'Sales Manager' : manager.title}</p>
                 </div>
               </div>
             </div>
@@ -232,24 +287,24 @@ export default async function SuitesPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-8 text-center">
             <div>
-              <p className="text-navy/50 mb-4">Spočítejte si výnos z investice</p>
+              <p className="text-navy/50 mb-4">{en ? 'Calculate the return on your investment' : 'Spočítejte si výnos z investice'}</p>
               <Link
                 href="/kalkulacka"
                 className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
               >
-                Investiční kalkulačka
+                {en ? 'Investment calculator' : 'Investiční kalkulačka'}
                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>
               </Link>
             </div>
             <div>
-              <p className="text-navy/50 mb-4">Preferujete podílové vlastnictví?</p>
+              <p className="text-navy/50 mb-4">{en ? 'Prefer shared ownership?' : 'Preferujete podílové vlastnictví?'}</p>
               <Link
                 href="/nemovitostni-produkt"
                 className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
               >
-                Nemovitostní produkt
+                {en ? 'Real estate product' : 'Nemovitostní produkt'}
                 <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>

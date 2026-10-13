@@ -6,6 +6,12 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { useLanguage } from '@/components/providers/language-provider';
+
+const TEXTS = {
+  cs: { noPhotos: 'Fotografie nejsou k dispozici', photo: 'foto', thumb: 'náhled' },
+  en: { noPhotos: 'No photos available', photo: 'photo', thumb: 'thumbnail' },
+};
 
 interface ApartmentGalleryProps {
   images: string[];
@@ -15,11 +21,13 @@ interface ApartmentGalleryProps {
 export function ApartmentGallery({ images, title }: ApartmentGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const { locale } = useLanguage();
+  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
 
   if (images.length === 0) {
     return (
       <div className="relative aspect-video bg-stone flex items-center justify-center">
-        <p className="text-navy/40">Fotografie nejsou k dispozici</p>
+        <p className="text-navy/40">{t.noPhotos}</p>
       </div>
     );
   }
@@ -35,7 +43,7 @@ export function ApartmentGallery({ images, title }: ApartmentGalleryProps) {
         >
           <Image
             src={images[selectedIndex]}
-            alt={`${title} - foto ${selectedIndex + 1}`}
+            alt={`${title} - ${t.photo} ${selectedIndex + 1}`}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 768px) 100vw, 66vw"
@@ -60,7 +68,7 @@ export function ApartmentGallery({ images, title }: ApartmentGalleryProps) {
               >
                 <Image
                   src={img}
-                  alt={`${title} - náhled ${i + 1}`}
+                  alt={`${title} - ${t.thumb} ${i + 1}`}
                   fill
                   className="object-cover"
                   sizes="100px"
@@ -122,7 +130,7 @@ export function ApartmentGallery({ images, title }: ApartmentGalleryProps) {
           >
             <Image
               src={images[selectedIndex]}
-              alt={`${title} - foto ${selectedIndex + 1}`}
+              alt={`${title} - ${t.photo} ${selectedIndex + 1}`}
               fill
               className="object-contain"
               sizes="100vw"

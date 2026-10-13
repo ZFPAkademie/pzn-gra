@@ -39,6 +39,10 @@ interface Apartment {
   base_price_cents: number | null;
   fdm_room_use_id: number | null;
   features: string[] | null;
+  title_en: string | null;
+  orientation_en: string | null;
+  description_en: string | null;
+  features_en: string[] | null;
 }
 
 interface PricingRule {
@@ -176,6 +180,21 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
               <label className="block text-xs text-slate-500 mb-1">Popis</label>
               <textarea name="description" rows={3} defaultValue={apt.description ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold resize-none" />
             </div>
+            <div className="col-span-2 sm:col-span-3 pt-2 border-t border-stone text-xs text-slate-400">
+              Anglická verze webu — prázdné pole = zobrazí se česky
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Název (EN)</label>
+              <input name="title_en" defaultValue={apt.title_en ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-500 mb-1">Orientace (EN)</label>
+              <input name="orientation_en" defaultValue={apt.orientation_en ?? ''} placeholder="south, west" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+            </div>
+            <div className="col-span-2 sm:col-span-3">
+              <label className="block text-xs text-slate-500 mb-1">Popis (EN)</label>
+              <textarea name="description_en" rows={3} defaultValue={apt.description_en ?? ''} className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold resize-none" />
+            </div>
           </div>
           {error && <p className="text-red-600 text-xs">{error}</p>}
           <div className="flex gap-3">
@@ -231,6 +250,18 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
               <dd className="text-sm text-slate-600 leading-relaxed">{apt.description}</dd>
             </div>
           )}
+          <div className="pt-3 border-t border-stone">
+            <dt className="text-xs text-slate-400 mb-1">Anglická verze</dt>
+            {apt.title_en || apt.description_en ? (
+              <dd className="text-sm text-slate-600 leading-relaxed">
+                <span className="text-navy">{apt.title_en ?? '—'}</span>
+                {apt.orientation_en && <span className="text-slate-400"> · {apt.orientation_en}</span>}
+                {apt.description_en && <span className="block mt-1">{apt.description_en}</span>}
+              </dd>
+            ) : (
+              <dd className="text-sm text-slate-400">Nevyplněno — web v angličtině zobrazí český text</dd>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -239,8 +270,8 @@ export function BasicInfoSection({ apt }: { apt: Apartment }) {
 
 // ─── Features / tagy ─────────────────────────────────────────────
 
-export function FeaturesSection({ apt }: { apt: Apartment }) {
-  const [tags, setTags] = useState<string[]>(apt.features ?? []);
+export function FeaturesSection({ apt, lang = 'cs' }: { apt: Apartment; lang?: 'cs' | 'en' }) {
+  const [tags, setTags] = useState<string[]>((lang === 'en' ? apt.features_en : apt.features) ?? []);
   const [newTag, setNewTag] = useState('');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
@@ -248,13 +279,13 @@ export function FeaturesSection({ apt }: { apt: Apartment }) {
   function save(next: string[]) {
     setError('');
     startTransition(async () => {
-      const res = await updateApartmentFeatures(apt.id, next);
+      const res = await updateApartmentFeatures(apt.id, next, lang);
       if (!res.ok) { setError(res.error ?? 'Chyba'); }
     });
   }
 
   function handleAdd() {
-    const tag = newTag.trim().toLowerCase();
+    const tag = lang === 'en' ? newTag.trim() : newTag.trim().toLowerCase();
     if (!tag || tags.includes(tag)) { setNewTag(''); return; }
     const next = [...tags, tag];
     setTags(next);
@@ -274,7 +305,9 @@ export function FeaturesSection({ apt }: { apt: Apartment }) {
 
   return (
     <div className="bg-white border border-stone p-6 mb-6">
-      <div className="text-sm font-medium text-navy mb-4 pb-3 border-b border-stone">Vybavení a vlastnosti</div>
+      <div className="text-sm font-medium text-navy mb-4 pb-3 border-b border-stone">
+        {lang === 'en' ? 'Vybavení a vlastnosti (EN)' : 'Vybavení a vlastnosti'}
+      </div>
       <div className="flex flex-wrap gap-2 mb-4">
         {tags.map(tag => (
           <span key={tag} className="flex items-center gap-1 bg-stone text-navy text-xs px-2.5 py-1">
@@ -288,7 +321,11 @@ export function FeaturesSection({ apt }: { apt: Apartment }) {
             </button>
           </span>
         ))}
-        {tags.length === 0 && <span className="text-xs text-slate-400">Žádné vlastnosti</span>}
+        {tags.length === 0 && (
+          <span className="text-xs text-slate-400">
+            {lang === 'en' ? 'Nevyplněno — web v angličtině zobrazí české vlastnosti' : 'Žádné vlastnosti'}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <input

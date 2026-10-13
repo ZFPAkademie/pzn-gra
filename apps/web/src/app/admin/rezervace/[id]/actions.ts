@@ -34,21 +34,23 @@ export async function updateBookingStatus(
   if (status === 'confirmed') {
     const { data: booking } = await supabase
       .from('bookings')
-      .select('guest_email, guest_first_name, guest_last_name, check_in, check_out, nights, confirmation_token, apartments(title, slug)')
+      .select('guest_email, guest_first_name, guest_last_name, check_in, check_out, nights, confirmation_token, language, apartments(title, title_en, slug)')
       .eq('id', id)
       .maybeSingle();
 
     if (booking) {
-      const apt = booking.apartments as { title?: string; slug?: string } | null;
+      const apt = booking.apartments as { title?: string; title_en?: string | null; slug?: string } | null;
+      const locale = booking.language === 'en' ? 'en' : 'cs';
       sendBookingConfirmedEmail({
         guestEmail: booking.guest_email,
         guestName: `${booking.guest_first_name} ${booking.guest_last_name}`,
-        apartmentTitle: apt?.title ?? apt?.slug ?? '',
+        apartmentTitle: (locale === 'en' ? apt?.title_en : null) ?? apt?.title ?? apt?.slug ?? '',
         checkIn: booking.check_in,
         checkOut: booking.check_out,
         nights: booking.nights,
         confirmationToken: booking.confirmation_token,
         reference: `REZ-${booking.confirmation_token.slice(0, 8).toUpperCase()}`,
+        locale,
       });
     }
   }

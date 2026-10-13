@@ -7,6 +7,21 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getRequestLocale } from '@/lib/i18n-server';
+
+// Hlášky vracené návštěvníkovi — jazyk podle cookie NEXT_LOCALE
+const MESSAGES = {
+  cs: {
+    validation: 'Zkontrolujte prosím vyplněné údaje.',
+    submitted: 'Poptávka byla odeslána.',
+    internal: 'Zprávu se nepodařilo odeslat. Zkuste to prosím znovu.',
+  },
+  en: {
+    validation: 'Validation failed',
+    submitted: 'Enquiry submitted',
+    internal: 'Internal server error',
+  },
+} as const;
 
 // Validation schema
 const contactSchema = z.object({
@@ -18,6 +33,7 @@ const contactSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const msg = MESSAGES[getRequestLocale()];
   try {
     const body = await request.json();
 
@@ -25,7 +41,7 @@ export async function POST(request: NextRequest) {
     const result = contactSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: result.error.errors },
+        { error: msg.validation, details: result.error.errors },
         { status: 400 }
       );
     }
@@ -51,13 +67,13 @@ export async function POST(request: NextRequest) {
     // 3. Send confirmation email to the user
 
     return NextResponse.json(
-      { success: true, message: 'Inquiry submitted' },
+      { success: true, message: msg.submitted },
       { status: 201 }
     );
   } catch (error) {
     console.error('Contact API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: msg.internal },
       { status: 500 }
     );
   }

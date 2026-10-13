@@ -52,7 +52,7 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
   ] = await Promise.all([
     supabase
       .from('apartments')
-      .select('id, slug, title, subtitle, unit, building, layout, area_m2, floor, max_guests, orientation, description, rooms, status, for_sale, for_rent, in_rental_program, base_price_cents, fdm_room_use_id, features')
+      .select('id, slug, title, subtitle, unit, building, layout, area_m2, floor, max_guests, orientation, description, rooms, status, for_sale, for_rent, in_rental_program, base_price_cents, fdm_room_use_id, features, title_en, orientation_en, description_en, features_en')
       .eq('id', id)
       .maybeSingle(),
     supabase
@@ -82,6 +82,7 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
   if (!apt) notFound();
 
   const features: string[] = Array.isArray(apt.features) ? (apt.features as string[]) : [];
+  const features_en: string[] = Array.isArray(apt.features_en) ? (apt.features_en as string[]) : [];
 
   return (
     <div className="min-h-screen bg-stone">
@@ -125,9 +126,11 @@ export default async function AdminApartmanDetailPage({ params }: PageProps) {
         </div>
 
         {/* Sekce */}
-        <BasicInfoSection apt={{ ...apt, features }} />
+        <BasicInfoSection apt={{ ...apt, features, features_en }} />
 
-        <FeaturesSection apt={{ ...apt, features }} />
+        <FeaturesSection apt={{ ...apt, features, features_en }} />
+
+        <FeaturesSection apt={{ ...apt, features, features_en }} lang="en" />
 
         <PhotosSection
           apartmentId={id}

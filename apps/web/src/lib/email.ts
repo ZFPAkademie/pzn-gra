@@ -8,23 +8,34 @@ const FROM = process.env.EMAIL_FROM ?? 'noreply@podzlatymnavrsim.cz';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'rezervace@podzlatymnavrsim.cz';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://pzn-gra.vercel.app';
 
-function fmtMoney(cents: number, currency: string = 'CZK') {
+type EmailLocale = 'cs' | 'en';
+
+function fmtMoney(cents: number, currency: string = 'CZK', locale: EmailLocale = 'cs') {
+  if (locale === 'en') {
+    const amount = cents / 100;
+    return amount.toLocaleString('en-GB', {
+      style: 'currency',
+      currency: currency === 'EUR' ? 'EUR' : 'CZK',
+      minimumFractionDigits: currency === 'EUR' && !Number.isInteger(amount) ? 2 : 0,
+      maximumFractionDigits: currency === 'EUR' ? 2 : 0,
+    });
+  }
   if (currency === 'EUR') {
     const amount = cents / 100;
     return amount.toLocaleString('cs-CZ', { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }) + ' €';
   }
   return (cents / 100).toLocaleString('cs-CZ') + ' Kč';
 }
-function fmtDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', {
+function fmtDate(d: string, locale: EmailLocale = 'cs') {
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'en' ? 'en-GB' : 'cs-CZ', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
 }
 
 // ─── Shared layout ────────────────────────────────────────────────
-function layout(content: string) {
+function layout(content: string, locale: EmailLocale = 'cs') {
   return `<!DOCTYPE html>
-<html lang="cs">
+<html lang="${locale}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -38,7 +49,7 @@ function layout(content: string) {
         <!-- Header -->
         <tr><td style="background:#0B1626;padding:28px 40px;">
           <p style="margin:0;color:#C9A24D;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;">Pod Zlatým návrším</p>
-          <p style="margin:4px 0 0;color:rgba(255,255,255,0.4);font-size:11px;">Špindlerův Mlýn · Krkonoše</p>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.4);font-size:11px;">${locale === 'en' ? 'Špindlerův Mlýn · Krkonoše (Giant Mountains)' : 'Špindlerův Mlýn · Krkonoše'}</p>
         </td></tr>
 
         <!-- Content -->
@@ -91,55 +102,99 @@ export async function sendBookingReceivedEmail(params: {
   bankIban: string;
   bankName: string;
   reference: string;
+  /** Jazyk rezervace (bookings.language) */
+  locale?: EmailLocale;
 }) {
-  const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}`;
+  const locale: EmailLocale = params.locale === 'en' ? 'en' : 'cs';
+  // ?lang= nastaví jazyk celého webu (hlavička, patička) i v prohlížeči bez cookie
+  const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}?lang=${locale}`;
+  const t = locale === 'cs'
+    ? {
+        heading: 'Rezervace přijata',
+        intro: `Děkujeme, ${params.guestName}. Vaši rezervaci jsme přijali a čekáme na platbu.`,
+        checkIn: 'Příjezd',
+        checkOut: 'Odjezd',
+        stay: 'Délka pobytu',
+        nights: `${params.nights} nocí`,
+        guests: 'Počet hostů',
+        total: 'Celková cena',
+        reference: 'Reference',
+        paymentTitle: 'Platební instrukce',
+        recipient: 'Příjemce',
+        amount: 'Částka',
+        message: 'Zpráva',
+        note: `Po přijetí platby vám zašleme potvrzení. Veškeré informace o rezervaci,
+      QR kód pro platbu a komunikaci s námi najdete na vaší rezervační kartě.`,
+        button: 'Otevřít rezervační kartu',
+        questions: 'Máte otázky? Odpovíme na',
+        subject: `Rezervace přijata — ${params.apartmentTitle}`,
+      }
+    : {
+        heading: 'Reservation received',
+        intro: `Thank you, ${params.guestName}. We have received your reservation and are awaiting your payment.`,
+        checkIn: 'Arrival',
+        checkOut: 'Departure',
+        stay: 'Length of stay',
+        nights: `${params.nights} ${params.nights === 1 ? 'night' : 'nights'}`,
+        guests: 'Guests',
+        total: 'Total price',
+        reference: 'Reference',
+        paymentTitle: 'Payment instructions',
+        recipient: 'Beneficiary',
+        amount: 'Amount',
+        message: 'Payment reference',
+        note: `We will send you a confirmation once your payment has been received. All details of your reservation,
+      the payment QR code and your messages with us can be found on your reservation card.`,
+        button: 'Open reservation card',
+        questions: 'Any questions? We will reply at',
+        subject: `Reservation received — ${params.apartmentTitle}`,
+      };
 
   const html = layout(`
-    <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">Rezervace přijata</h1>
+    <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">${t.heading}</h1>
     <p style="margin:0 0 28px;color:rgba(11,22,38,0.5);font-size:14px;">
-      Děkujeme, ${params.guestName}. Vaši rezervaci jsme přijali a čekáme na platbu.
+      ${t.intro}
     </p>
 
     <table cellpadding="0" cellspacing="0" width="100%" style="background:#F4F6F8;border:1px solid rgba(11,22,38,0.08);padding:0;margin-bottom:28px;">
       <tr><td style="padding:20px 24px;">
         <p style="margin:0 0 16px;font-size:10px;color:rgba(11,22,38,0.4);text-transform:uppercase;letter-spacing:0.1em;">${params.apartmentTitle}</p>
         <table cellpadding="0" cellspacing="0" width="100%">
-          ${row('Příjezd', fmtDate(params.checkIn))}
-          ${row('Odjezd', fmtDate(params.checkOut))}
-          ${row('Délka pobytu', `${params.nights} nocí`)}
-          ${row('Počet hostů', String(params.guestsCount))}
-          ${row('Celková cena', fmtMoney(params.totalAmountCents, params.currency))}
-          ${row('Reference', `<code style="font-size:13px;">${params.reference}</code>`)}
+          ${row(t.checkIn, fmtDate(params.checkIn, locale))}
+          ${row(t.checkOut, fmtDate(params.checkOut, locale))}
+          ${row(t.stay, t.nights)}
+          ${row(t.guests, String(params.guestsCount))}
+          ${row(t.total, fmtMoney(params.totalAmountCents, params.currency, locale))}
+          ${row(t.reference, `<code style="font-size:13px;">${params.reference}</code>`)}
         </table>
       </td></tr>
     </table>
 
-    <h2 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#0B1626;text-transform:uppercase;letter-spacing:0.08em;">Platební instrukce</h2>
+    <h2 style="margin:0 0 16px;font-size:14px;font-weight:600;color:#0B1626;text-transform:uppercase;letter-spacing:0.08em;">${t.paymentTitle}</h2>
     <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
-      ${row('Příjemce', params.bankName)}
+      ${row(t.recipient, params.bankName)}
       ${row('IBAN', `<code style="font-size:13px;">${params.bankIban}</code>`)}
-      ${row('Částka', `<strong>${fmtMoney(params.totalAmountCents, params.currency)}</strong>`)}
-      ${row('Zpráva', `<code style="font-size:13px;">${params.reference}</code>`)}
+      ${row(t.amount, `<strong>${fmtMoney(params.totalAmountCents, params.currency, locale)}</strong>`)}
+      ${row(t.message, `<code style="font-size:13px;">${params.reference}</code>`)}
     </table>
 
     <p style="margin:0 0 24px;color:rgba(11,22,38,0.5);font-size:13px;line-height:1.6;">
-      Po přijetí platby vám zašleme potvrzení. Veškeré informace o rezervaci,
-      QR kód pro platbu a komunikaci s námi najdete na vaší rezervační kartě.
+      ${t.note}
     </p>
 
-    ${btn(cardUrl, 'Otevřít rezervační kartu')}
+    ${btn(cardUrl, t.button)}
 
     ${divider()}
     <p style="margin:0;color:rgba(11,22,38,0.35);font-size:11px;">
-      Máte otázky? Odpovíme na
+      ${t.questions}
       <a href="mailto:rezervace@podzlatymnavrsim.cz" style="color:#C9A24D;">rezervace@podzlatymnavrsim.cz</a>
     </p>
-  `);
+  `, locale);
 
   return sendSafe({
     from: FROM,
     to: params.guestEmail,
-    subject: `Rezervace přijata — ${params.apartmentTitle}`,
+    subject: t.subject,
     html,
   });
 }
@@ -158,6 +213,8 @@ export async function sendAdminNewBookingEmail(params: {
   currency?: string;
   reference: string;
   fdmNote?: string | null;
+  /** Jazyk hosta (bookings.language) — admin e-mail zůstává česky */
+  guestLanguage?: EmailLocale;
 }) {
   const adminUrl = `${BASE_URL}/admin/rezervace/${params.bookingId}`;
 
@@ -175,6 +232,7 @@ export async function sendAdminNewBookingEmail(params: {
       ${row('Nocí', String(params.nights))}
       ${row('Částka', fmtMoney(params.totalAmountCents, params.currency))}
       ${row('Reference', `<code>${params.reference}</code>`)}
+      ${row('Jazyk hosta', params.guestLanguage === 'en' ? 'EN' : 'CZ')}
       ${params.fdmNote ? row('Front Desk Master', params.fdmNote) : ''}
     </table>
 
@@ -199,17 +257,54 @@ export async function sendBookingConfirmedEmail(params: {
   nights: number;
   confirmationToken: string;
   reference: string;
+  /** Jazyk rezervace (bookings.language) */
+  locale?: EmailLocale;
 }) {
-  const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}`;
+  const locale: EmailLocale = params.locale === 'en' ? 'en' : 'cs';
+  // ?lang= nastaví jazyk celého webu (hlavička, patička) i v prohlížeči bez cookie
+  const cardUrl = `${BASE_URL}/rezervace/${params.confirmationToken}?lang=${locale}`;
+  const t = locale === 'cs'
+    ? {
+        badge: '✓ Potvrzeno',
+        heading: 'Rezervace potvrzena',
+        intro: `Platbu jsme přijali. Těšíme se na vás, ${params.guestName}!`,
+        checkIn: 'Příjezd',
+        checkOut: 'Odjezd',
+        from: 'od 15:00',
+        until: 'do 10:00',
+        stay: 'Délka pobytu',
+        nights: `${params.nights} nocí`,
+        note: `Na vaší rezervační kartě najdete všechny informace k příjezdu —
+      kód ke dveřím, Wi-Fi a pokyny k parkování (doplníme před vaším příjezdem).`,
+        button: 'Otevřít rezervační kartu',
+        help: 'Potřebujete pomoc? Napište přímo na rezervační kartě nebo na',
+        subject: `Potvrzení rezervace — ${params.apartmentTitle}`,
+      }
+    : {
+        badge: '✓ Confirmed',
+        heading: 'Reservation confirmed',
+        intro: `We have received your payment. We look forward to welcoming you, ${params.guestName}!`,
+        checkIn: 'Arrival',
+        checkOut: 'Departure',
+        from: 'from 3:00 pm',
+        until: 'by 10:00 am',
+        stay: 'Length of stay',
+        nights: `${params.nights} ${params.nights === 1 ? 'night' : 'nights'}`,
+        note: `Your reservation card contains all the information you need for your arrival —
+      the door code, Wi-Fi and parking instructions (we will add these before you arrive).`,
+        button: 'Open reservation card',
+        help: 'Need help? Write to us directly on your reservation card or at',
+        subject: `Reservation confirmation — ${params.apartmentTitle}`,
+      };
 
   const html = layout(`
     <div style="margin-bottom:24px;">
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);padding:8px 16px;margin-bottom:20px;">
-        <span style="color:#16a34a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">✓ Potvrzeno</span>
+        <span style="color:#16a34a;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">${t.badge}</span>
       </div>
-      <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">Rezervace potvrzena</h1>
+      <h1 style="margin:0 0 8px;font-size:26px;font-weight:300;color:#0B1626;">${t.heading}</h1>
       <p style="margin:0 0 28px;color:rgba(11,22,38,0.5);font-size:14px;">
-        Platbu jsme přijali. Těšíme se na vás, ${params.guestName}!
+        ${t.intro}
       </p>
     </div>
 
@@ -217,31 +312,30 @@ export async function sendBookingConfirmedEmail(params: {
       <tr><td style="padding:20px 24px;">
         <p style="margin:0 0 16px;font-size:10px;color:rgba(11,22,38,0.4);text-transform:uppercase;letter-spacing:0.1em;">${params.apartmentTitle}</p>
         <table cellpadding="0" cellspacing="0" width="100%">
-          ${row('Příjezd', `${fmtDate(params.checkIn)} <span style="color:rgba(11,22,38,0.4);font-size:12px;">od 15:00</span>`)}
-          ${row('Odjezd', `${fmtDate(params.checkOut)} <span style="color:rgba(11,22,38,0.4);font-size:12px;">do 10:00</span>`)}
-          ${row('Délka pobytu', `${params.nights} nocí`)}
+          ${row(t.checkIn, `${fmtDate(params.checkIn, locale)} <span style="color:rgba(11,22,38,0.4);font-size:12px;">${t.from}</span>`)}
+          ${row(t.checkOut, `${fmtDate(params.checkOut, locale)} <span style="color:rgba(11,22,38,0.4);font-size:12px;">${t.until}</span>`)}
+          ${row(t.stay, t.nights)}
         </table>
       </td></tr>
     </table>
 
     <p style="margin:0 0 24px;color:rgba(11,22,38,0.6);font-size:14px;line-height:1.6;">
-      Na vaší rezervační kartě najdete všechny informace k příjezdu —
-      kód ke dveřím, Wi-Fi a pokyny k parkování (doplníme před vaším příjezdem).
+      ${t.note}
     </p>
 
-    ${btn(cardUrl, 'Otevřít rezervační kartu')}
+    ${btn(cardUrl, t.button)}
 
     ${divider()}
     <p style="margin:0;color:rgba(11,22,38,0.35);font-size:11px;">
-      Potřebujete pomoc? Napište přímo na rezervační kartě nebo na
+      ${t.help}
       <a href="mailto:rezervace@podzlatymnavrsim.cz" style="color:#C9A24D;">rezervace@podzlatymnavrsim.cz</a>
     </p>
-  `);
+  `, locale);
 
   return sendSafe({
     from: FROM,
     to: params.guestEmail,
-    subject: `Potvrzení rezervace — ${params.apartmentTitle}`,
+    subject: t.subject,
     html,
   });
 }

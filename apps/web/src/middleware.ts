@@ -5,6 +5,7 @@
  * - /portal/login → pass-through (veřejná stránka)
  * - /portal/* → chráněno Supabase auth, redirect na /portal/login
  * - Vše ostatní → pass-through (veřejný web, API)
+ * - ?lang=cs|en → cookie NEXT_LOCALE + redirect bez parametru
  */
 
 import { createServerClient } from '@supabase/ssr';
@@ -13,6 +14,16 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ?lang=en|cs — nastaví jazyk webu (odkazy z e-mailů hostům, sdílené EN odkazy) a přesměruje na čistou URL
+  const lang = request.nextUrl.searchParams.get('lang');
+  if (lang === 'cs' || lang === 'en') {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete('lang');
+    const redirect = NextResponse.redirect(clean);
+    redirect.cookies.set('NEXT_LOCALE', lang, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    return redirect;
+  }
 
   // Admin používá vlastní cookie auth — Supabase session refresh zde nepotřebujeme
   if (pathname.startsWith('/admin') || pathname.startsWith('/auth/callback')) {

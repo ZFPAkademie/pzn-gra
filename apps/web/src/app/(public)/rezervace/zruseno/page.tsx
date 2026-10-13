@@ -1,11 +1,36 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getRequestLocale } from '@/lib/i18n-server';
 
-export const metadata: Metadata = {
-  title: 'Platba zrušena | Pod Zlatým návrším',
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getRequestLocale() === 'cs'
+      ? 'Platba zrušena | Pod Zlatým návrším'
+      : 'Payment cancelled | Pod Zlatým návrším',
+  };
+}
+
+const TEXTS = {
+  cs: {
+    label: 'Platba přerušena',
+    heading: 'Rezervace nebyla dokončena',
+    text: 'Platba byla přerušena nebo zrušena. Vaše osobní údaje nebyly uloženy a za rezervaci nebylo nic účtováno. Můžete se vrátit a vybrat termín znovu.',
+    retry: 'Vybrat termín znovu',
+    contact: 'Kontaktovat nás',
+    trouble: 'Máte potíže s platbou? Napište nám na',
+  },
+  en: {
+    label: 'Payment interrupted',
+    heading: 'Your reservation was not completed',
+    text: 'The payment was interrupted or cancelled. Your personal details have not been stored and nothing has been charged for the reservation. You can go back and choose your dates again.',
+    retry: 'Choose dates again',
+    contact: 'Contact us',
+    trouble: 'Having trouble with your payment? Write to us at',
+  },
 };
 
 export default function BookingCancelledPage() {
+  const t = TEXTS[getRequestLocale()];
   return (
     <>
       <section className="bg-[#0B1626] pt-32 pb-20">
@@ -15,9 +40,9 @@ export default function BookingCancelledPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <p className="text-white/30 text-xs tracking-widest uppercase mb-4">Platba přerušena</p>
+          <p className="text-white/30 text-xs tracking-widest uppercase mb-4">{t.label}</p>
           <h1 className="text-3xl md:text-4xl font-light text-white">
-            Rezervace nebyla dokončena
+            {t.heading}
           </h1>
         </div>
       </section>
@@ -27,8 +52,7 @@ export default function BookingCancelledPage() {
 
           <div className="bg-white border border-[#0B1626]/10 rounded-sm p-8">
             <p className="text-navy/70 text-sm leading-relaxed mb-6">
-              Platba byla přerušena nebo zrušena. Vaše osobní údaje nebyly uloženy a za
-              rezervaci nebylo nic účtováno. Můžete se vrátit a vybrat termín znovu.
+              {t.text}
             </p>
 
             <div className="space-y-3">
@@ -36,19 +60,19 @@ export default function BookingCancelledPage() {
                 href="/apartmany-spindleruv-mlyn-pronajem"
                 className="flex items-center justify-center w-full py-4 bg-[#C9A24D] text-[#0B1626] text-sm uppercase tracking-wider hover:bg-[#b8913c] transition-colors"
               >
-                Vybrat termín znovu
+                {t.retry}
               </Link>
               <Link
                 href="/kontakt"
                 className="flex items-center justify-center w-full py-4 border border-navy/20 text-navy text-sm uppercase tracking-wider hover:bg-navy/5 transition-colors"
               >
-                Kontaktovat nás
+                {t.contact}
               </Link>
             </div>
           </div>
 
           <p className="text-xs text-navy/40 text-center">
-            Máte potíže s platbou? Napište nám na{' '}
+            {t.trouble}{' '}
             <a href="mailto:rezervace@podzlatymnavrsim.cz" className="underline">
               rezervace@podzlatymnavrsim.cz
             </a>

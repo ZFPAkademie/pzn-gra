@@ -13,7 +13,8 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
-import { getApartmentBySlugDB } from '@/lib/apartments';
+import { getRequestLocale } from '@/lib/i18n-server';
+import { getApartmentBySlugDB, localizeApartment, layoutLabel } from '@/lib/apartments';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +23,12 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const apartment = await getApartmentBySlugDB(params.slug);
-  if (!apartment) return { title: 'Apartmán nenalezen' };
+  const locale = getRequestLocale();
+  const raw = await getApartmentBySlugDB(params.slug);
+  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : 'Apartment not found' };
+  const apartment = localizeApartment(raw, locale);
   return {
-    title: `${apartment.title} | Pronájem | Pod Zlatým návrším`,
+    title: `${apartment.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
     description: apartment.description ?? undefined,
   };
 }
@@ -34,34 +37,38 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
 
-  const apartment = await getApartmentBySlugDB(params.slug);
-  if (!apartment || !apartment.for_rent) notFound();
+  const rawApartment = await getApartmentBySlugDB(params.slug);
+  if (!rawApartment || !rawApartment.for_rent) notFound();
+  const apartment = localizeApartment(rawApartment, locale);
 
   const t = locale === 'cs' ? {
     back: 'Zpět na přehled',
     area: 'Plocha',
     rooms: 'Místnosti',
     capacity: 'Kapacita',
-    persons: 'osob',
+    persons: (_n: number) => 'osob',
     priceFrom: 'Cena od',
     perNight: 'za noc',
     amenities: 'Vybavení',
     cta: 'Poptat termín',
     ctaSubtext: 'Odpovíme do 24 hodin',
+    descriptionFallback: 'Luxusní apartmán s výhledem na hory. Plně vybavený pro komfortní pobyt v Krkonoších.',
   } : {
     back: 'Back to overview',
-    area: 'Area',
-    rooms: 'Rooms',
+    area: 'Floor area',
+    rooms: 'Layout',
     capacity: 'Capacity',
-    persons: 'persons',
+    persons: (n: number) => (n === 1 ? 'guest' : 'guests'),
     priceFrom: 'Price from',
     perNight: 'per night',
     amenities: 'Amenities',
-    cta: 'Inquire availability',
+    cta: 'Enquire about availability',
     ctaSubtext: 'We respond within 24 hours',
+    descriptionFallback: 'A luxury apartment with mountain views. Fully equipped for a comfortable stay in the Krkonoše (Giant Mountains).',
   };
+  const numLocale = locale === 'cs' ? 'cs-CZ' : 'en-GB';
 
-  const totalArea = apartment.area_m2 ? apartment.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+  const totalArea = apartment.area_m2 ? apartment.area_m2.toLocaleString(numLocale) + ' m²' : '—';
   const priceFrom = apartment.base_price_cents ? Math.round(apartment.base_price_cents / 100) : null;
 
   return (
@@ -91,7 +98,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
               {apartment.title}
             </h1>
             <p className="text-white/60 text-lg">
-              {totalArea} · {apartment.layout}
+              {totalArea} · {layoutLabel(apartment.layout, locale)}
             </p>
           </div>
         </div>
@@ -108,7 +115,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
               {/* Description */}
               <div>
                 <p className="text-lg text-navy/70 leading-relaxed">
-                  {apartment.description ?? 'Luxusní apartmán s výhledem na hory. Plně vybavený pro komfortní pobyt v Krkonoších.'}
+                  {apartment.description ?? t.descriptionFallback}
                 </p>
               </div>
 
@@ -120,11 +127,11 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <p className="text-sm text-navy/40 mb-2">{t.rooms}</p>
-                  <p className="text-2xl font-light text-navy">{apartment.layout ?? '—'}</p>
+                  <p className="text-2xl font-light text-navy">{apartment.layout != null ? layoutLabel(apartment.layout, locale) : '—'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-navy/40 mb-2">{t.capacity}</p>
-                  <p className="text-2xl font-light text-navy">{apartment.max_guests ?? 4} {t.persons}</p>
+                  <p className="text-2xl font-light text-navy">{apartment.max_guests ?? 4} {t.persons(apartment.max_guests ?? 4)}</p>
                 </div>
               </div>
 
@@ -150,7 +157,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
                   <div className="mb-8">
                     <p className="text-sm text-navy/40 mb-2">{t.priceFrom}</p>
                     <p className="text-3xl font-light text-navy">
-                      {priceFrom.toLocaleString('cs-CZ')} Kč
+                      {priceFrom.toLocaleString(numLocale)} Kč
                       <span className="text-lg text-navy/50 ml-2">{t.perNight}</span>
                     </p>
                   </div>

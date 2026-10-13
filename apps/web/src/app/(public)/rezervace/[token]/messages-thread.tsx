@@ -13,19 +13,51 @@ interface Message {
 interface Props {
   token: string;
   guestName: string;
+  locale?: 'cs' | 'en';
 }
 
-function timeAgo(dateStr: string): string {
+const TEXTS = {
+  cs: {
+    title: 'Zprávy',
+    subtitle: 'Komunikace s recepčním týmem',
+    loading: 'Načítám...',
+    emptyLine1: 'Máte dotaz k rezervaci nebo příjezdu?',
+    emptyLine2: 'Napište nám — odpovíme do pár hodin.',
+    team: 'Tým Pod Zlatým návrším',
+    placeholder: 'Napište zprávu...',
+    send: 'Odeslat',
+    justNow: 'Právě teď',
+    minAgo: (n: number) => `Před ${n} min`,
+    hoursAgo: (n: number) => `Před ${n} hod`,
+  },
+  en: {
+    title: 'Messages',
+    subtitle: 'Conversation with our reception team',
+    loading: 'Loading...',
+    emptyLine1: 'Do you have a question about your reservation or arrival?',
+    emptyLine2: 'Write to us — we will reply within a few hours.',
+    team: 'Pod Zlatým návrším team',
+    placeholder: 'Write a message...',
+    send: 'Send',
+    justNow: 'Just now',
+    minAgo: (n: number) => `${n} min ago`,
+    hoursAgo: (n: number) => `${n} h ago`,
+  },
+};
+
+function timeAgo(dateStr: string, locale: 'cs' | 'en'): string {
+  const t = TEXTS[locale];
   const d = new Date(dateStr);
   const now = new Date();
   const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (diff < 60) return 'Právě teď';
-  if (diff < 3600) return `Před ${Math.floor(diff / 60)} min`;
-  if (diff < 86400) return `Před ${Math.floor(diff / 3600)} hod`;
-  return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  if (diff < 60) return t.justNow;
+  if (diff < 3600) return t.minAgo(Math.floor(diff / 60));
+  if (diff < 86400) return t.hoursAgo(Math.floor(diff / 3600));
+  return d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-export function MessagesThread({ token, guestName }: Props) {
+export function MessagesThread({ token, guestName, locale = 'cs' }: Props) {
+  const t = TEXTS[locale];
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -84,19 +116,19 @@ export function MessagesThread({ token, guestName }: Props) {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-medium text-[#0B1626]">Zprávy</p>
-          <p className="text-[11px] text-[#0B1626]/40">Komunikace s recepčním týmem</p>
+          <p className="text-sm font-medium text-[#0B1626]">{t.title}</p>
+          <p className="text-[11px] text-[#0B1626]/40">{t.subtitle}</p>
         </div>
       </div>
 
       {/* Thread */}
       <div ref={threadRef} className="px-4 py-4 space-y-3 min-h-[120px] max-h-[320px] overflow-y-auto">
         {!loaded && (
-          <p className="text-center text-[11px] text-[#0B1626]/30 py-4">Načítám...</p>
+          <p className="text-center text-[11px] text-[#0B1626]/30 py-4">{t.loading}</p>
         )}
         {loaded && messages.length === 0 && (
           <p className="text-center text-[12px] text-[#0B1626]/35 py-6 leading-relaxed">
-            Máte dotaz k rezervaci nebo příjezdu?<br />Napište nám — odpovíme do pár hodin.
+            {t.emptyLine1}<br />{t.emptyLine2}
           </p>
         )}
 
@@ -127,7 +159,7 @@ export function MessagesThread({ token, guestName }: Props) {
                   {msg.content}
                 </div>
                 <p className={`text-[10px] text-[#0B1626]/30 mt-1 ${isAdmin ? 'text-left' : 'text-right'}`}>
-                  {isAdmin ? 'Tým Pod Zlatým návrším' : (msg.sender_name ?? guestName)} · {timeAgo(msg.created_at)}
+                  {isAdmin ? t.team : (msg.sender_name ?? guestName)} · {timeAgo(msg.created_at, locale)}
                 </p>
               </div>
             </div>
@@ -141,7 +173,7 @@ export function MessagesThread({ token, guestName }: Props) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e as unknown as React.FormEvent); } }}
-          placeholder="Napište zprávu..."
+          placeholder={t.placeholder}
           rows={1}
           className="flex-1 px-4 py-3.5 text-sm text-[#0B1626] placeholder:text-[#0B1626]/30 resize-none focus:outline-none bg-transparent"
           style={{ minHeight: '48px', maxHeight: '120px' }}
@@ -150,7 +182,7 @@ export function MessagesThread({ token, guestName }: Props) {
           type="submit"
           disabled={!input.trim() || sending}
           className="px-4 py-3.5 text-[#C9A24D] hover:text-[#b8913c] disabled:opacity-30 transition-colors flex-shrink-0"
-          aria-label="Odeslat"
+          aria-label={t.send}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

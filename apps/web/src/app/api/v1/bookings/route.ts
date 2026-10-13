@@ -6,46 +6,70 @@ import { createBooking } from '@/lib/booking-engine/bookings';
 import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email';
 import { fdmGetAvailability, isFdmConfigured } from '@/lib/fdm/client';
 import { pushBookingToFdm } from '@/lib/fdm/push';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
 
+const ERR = {
+  cs: {
+    missingField: 'Chybí povinné pole',
+    notFound: 'Apartmán nenalezen',
+    noPrice: 'Nelze vypočítat cenu',
+    minNights: (n: number) => `Minimální délka pobytu jsou ${n} ${n === 1 ? 'noc' : n < 5 ? 'noci' : 'nocí'}`,
+    notAvailable: 'Vybrané termíny nejsou volné',
+    createFailed: null as string | null,
+    internal: 'Interní chyba serveru',
+  },
+  en: {
+    missingField: 'A required field is missing',
+    notFound: 'Apartment not found',
+    noPrice: 'The price could not be calculated',
+    minNights: (n: number) => `The minimum stay is ${n} ${n === 1 ? 'night' : 'nights'}`,
+    notAvailable: 'The selected dates are not available',
+    createFailed: 'The reservation could not be created' as string | null,
+    internal: 'Internal server error',
+  },
+};
+
 export async function POST(req: NextRequest) {
+  const locale = getRequestLocale();
+  const e = ERR[locale];
   try {
     const body = await req.json();
     const { apartmentId, checkIn, checkOut, guests, firstName, lastName, email, phone, gdprConsent } = body;
 
     if (!apartmentId || !checkIn || !checkOut || !firstName || !lastName || !email || !gdprConsent) {
-      return NextResponse.json({ error: 'Chybí povinné pole' }, { status: 400 });
+      return NextResponse.json({ error: e.missingField }, { status: 400 });
     }
 
     const admin = createSupabaseAdminClient();
     const { data: apartment } = await admin
       .from('apartments')
-      .select('id, title, slug, max_guests, base_price_cents, fdm_room_use_id')
+      .select('id, title, title_en, slug, max_guests, base_price_cents, fdm_room_use_id')
       .eq('id', apartmentId)
       .eq('for_rent', true)
       .maybeSingle();
 
     if (!apartment) {
-      return NextResponse.json({ error: 'Apartmán nenalezen' }, { status: 404 });
+      return NextResponse.json({ error: e.notFound }, { status: 404 });
     }
 
     const price = await calculatePrice(apartmentId, checkIn, checkOut);
     if (!price) {
-      return NextResponse.json({ error: 'Nelze vypočítat cenu' }, { status: 500 });
+      return NextResponse.json({ error: e.noPrice }, { status: 500 });
     }
 
     if (price.nights < price.minNights) {
       return NextResponse.json(
-        { error: `Minimální délka pobytu jsou ${price.minNights} ${price.minNights === 1 ? 'noc' : price.minNights < 5 ? 'noci' : 'nocí'}` },
+        { error: e.minNights(price.minNights) },
         { status: 400 }
       );
     }
 
     const avail = await checkAvailability(apartmentId, checkIn, checkOut);
     if (!avail.available) {
-      return NextResponse.json({ error: 'Vybrané termíny nejsou volné' }, { status: 409 });
+      return NextResponse.json({ error: e.notAvailable }, { status: 409 });
     }
 
     // FDM je master: před zápisem ještě živá kontrola dostupnosti (soft fail → platí cache)
@@ -59,7 +83,7 @@ export async function POST(req: NextRequest) {
           (d) => d.roomUseId === apartment.fdm_room_use_id && d.date >= checkIn && d.date < checkOut && d.available < 1
         );
         if (taken) {
-          return NextResponse.json({ error: 'Vybrané termíny nejsou volné' }, { status: 409 });
+          return NextResponse.json({ error: e.notAvailable }, { status: 409 });
         }
       } else {
         console.warn('[bookings] FDM živá kontrola selhala, platí cache:', live.error);
@@ -80,10 +104,11 @@ export async function POST(req: NextRequest) {
       currency: price.currency,
       fdmLinked,
       gdprConsent,
+      language: locale,
     });
 
     if (!booking.ok) {
-      return NextResponse.json({ error: booking.error }, { status: 500 });
+      return NextResponse.json({ error: e.createFailed ?? booking.error }, { status: 500 });
     }
 
     console.log('[bookings] Rezervace vytvořena:', booking.bookingId, booking.confirmationToken);
@@ -102,7 +127,7 @@ export async function POST(req: NextRequest) {
     sendBookingReceivedEmail({
       guestEmail: email,
       guestName: `${firstName} ${lastName}`,
-      apartmentTitle: apartment.title ?? apartment.slug,
+      apartmentTitle: (locale === 'en' ? apartment.title_en : null) ?? apartment.title ?? apartment.slug,
       checkIn,
       checkOut,
       nights: price.nights,
@@ -113,6 +138,7 @@ export async function POST(req: NextRequest) {
       bankIban: BANK_IBAN,
       bankName: BANK_NAME,
       reference,
+      locale,
     });
 
     sendAdminNewBookingEmail({
@@ -128,6 +154,7 @@ export async function POST(req: NextRequest) {
       currency: price.currency,
       reference,
       fdmNote,
+      guestLanguage: locale,
     });
 
     return NextResponse.json({
@@ -136,6 +163,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('[bookings] POST error:', err);
-    return NextResponse.json({ error: 'Interní chyba serveru' }, { status: 500 });
+    return NextResponse.json({ error: e.internal }, { status: 500 });
   }
 }

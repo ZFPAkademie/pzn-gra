@@ -12,13 +12,14 @@ import { getSaleApartmentBySlug } from '@/lib/apartments';
 import { getApartmentImages, getApartmentHeroImage } from '@/data/apartment-images';
 import { AlpineOrnament, SectionLabel } from '@/components/ui/ornaments';
 import { ShareRequestForm } from './client';
+import { getPodilTexts, getPodilApartmentView } from './texts';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Družstevní podíl na apartmánu | Pod Zlatým návrším',
-  description: 'Získejte družstevní podíl na horském apartmánu ve Špindlerově Mlýně. Podíl na výnosech z pronájmu, možnost vlastního využití se slevou.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getPodilTexts(getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value));
+  return { title: t.metaTitle, description: t.metaDescription };
+}
 
 // Alpine decorative SVG icons
 const icons = {
@@ -78,18 +79,20 @@ const icons = {
 };
 
 // Benefits data - PŮVODNÍ OBSAH
-const benefits = [
-  { icon: 'shield', title: 'Anonymita vlastnictví', description: 'Registr vlastníků družstevních podílů není veřejný.' },
-  { icon: 'scroll', title: 'Jednoduchost a rychlost', description: 'Podpis jedné smlouvy' },
-  { icon: 'coins', title: 'Výnos z nájmu', description: 'Orientačně 2–5 % ročně s potenciálem růstu v čase, vypláceno pololetně' },
-  { icon: 'grid', title: '50 podílů na apartmán', description: 'Možnost koupě libovolného počtu' },
-  { icon: 'mountain', title: 'Růst hodnoty nemovitostí', description: 'Ceny bytů v Královéhradeckém kraji rostly v letech 2015–2025 v průměru o 11 % ročně, v roce 2023 ale meziročně klesly.¹' },
-  { icon: 'percent', title: 'Podíl na zisku', description: 'Z turistického pronájmu' },
-  { icon: 'home', title: '20% sleva na ubytování', description: 'Pro držitele podílu' },
-  { icon: 'layers', title: 'Diverzifikace majetku', description: 'O podíl na reálné nemovitosti' },
+// Ikony výhod — texty v texts.tsx (stejné pořadí)
+const benefitIcons = [
+  'shield',
+  'scroll',
+  'coins',
+  'grid',
+  'mountain',
+  'percent',
+  'home',
+  'layers',
 ];
 
 // Process steps - PŮVODNÍ OBSAH
+// Ikony kroků — texty v texts.tsx (stejné pořadí)
 const steps = [
   { 
     icon: (
@@ -98,8 +101,6 @@ const steps = [
         <path d="M24 14v10l7 7" strokeLinecap="round" />
       </svg>
     ),
-    title: 'Nezávazná konzultace', 
-    description: 'Zjistíte vše potřebné o produktu a odpovíme na vaše dotazy.' 
   },
   { 
     icon: (
@@ -108,8 +109,6 @@ const steps = [
         <path d="M16 16h16M16 24h16M16 32h8" strokeLinecap="round" />
       </svg>
     ),
-    title: 'Výběr počtu podílů', 
-    description: 'Vyberete si konkrétní počet podílů, které chcete získat.' 
   },
   { 
     icon: (
@@ -119,8 +118,6 @@ const steps = [
         <path d="M20 20l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: 'Podpis jedné smlouvy', 
-    description: 'Jednoduché smluvní řešení bez zbytečné administrativy.' 
   },
   { 
     icon: (
@@ -131,8 +128,6 @@ const steps = [
         <path d="M16 42h16" strokeLinecap="round" />
       </svg>
     ),
-    title: 'Správa a výplata výnosů', 
-    description: 'O vše se postaráme. Výnosy vyplácíme pololetně.' 
   },
 ];
 
@@ -162,6 +157,7 @@ async function getAvailableShares(): Promise<number> {
 export default async function PodilPage() {
   const cookieStore = cookies();
   const locale = getLocaleFromCookie(cookieStore.get('NEXT_LOCALE')?.value);
+  const t = getPodilTexts(locale);
   const AVAILABLE_SHARES = await getAvailableShares();
 
   // Get apartment 7 data (but don't mention the number)
@@ -171,8 +167,10 @@ export default async function PodilPage() {
   const carouselImages = allImages.filter(img => img !== heroImage).slice(0, 6);
 
   if (!apartment) {
-    return <div>Apartmán nenalezen</div>;
+    return <div>{t.notFound}</div>;
   }
+
+  const apt = getPodilApartmentView(apartment, locale);
 
   const soldShares = TOTAL_SHARES - AVAILABLE_SHARES;
   const soldPercentage = (soldShares / TOTAL_SHARES) * 100;
@@ -185,16 +183,13 @@ export default async function PodilPage() {
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
-            Družstevní podíl
+            {t.heroLabel}
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6 leading-tight">
-            Kupte si podíl na apartmánu ve Špindlu
+            {t.heroTitle}
           </h1>
           <p className="text-xl text-white/60 max-w-2xl mb-10 leading-relaxed">
-            Získejte <strong className="text-white">družstevní podíl</strong> na horském apartmánu 
-            ve Špindlerově Mlýně. Nemovitost v prémiové lokalitě, <strong className="text-white">podíl 
-            na výnosech z pronájmu</strong>, možnost <strong className="text-white">vlastního využití 
-            se slevou</strong> a jednoduché smluvní řešení.
+            {t.heroText}
           </p>
         </div>
       </section>
@@ -205,7 +200,7 @@ export default async function PodilPage() {
       <section className="py-20 bg-stone">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-10">
-            Prohlídka projektu
+            {t.videoTitle}
           </h2>
           <div className="relative aspect-video">
             <iframe
@@ -226,7 +221,7 @@ export default async function PodilPage() {
       <section className="py-20 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-12">
-            Pro koho je tento produkt
+            {t.audienceTitle}
           </h2>
           <div className="grid md:grid-cols-3 gap-12 max-w-4xl mx-auto">
             {/* Investoři */}
@@ -239,7 +234,7 @@ export default async function PodilPage() {
                 </svg>
               </div>
               <p className="text-navy/70 leading-relaxed">
-                Pro investory hledající <strong className="text-navy">nemovitostní expozici</strong> bez nutnosti koupě celé jednotky.
+                {t.audienceInvestors}
               </p>
             </div>
             {/* Diverzifikace */}
@@ -251,7 +246,7 @@ export default async function PodilPage() {
                 </svg>
               </div>
               <p className="text-navy/70 leading-relaxed">
-                Pro zájemce o <strong className="text-navy">diverzifikaci portfolia</strong>.
+                {t.audienceDiversification}
               </p>
             </div>
             {/* Využití */}
@@ -263,7 +258,7 @@ export default async function PodilPage() {
                 </svg>
               </div>
               <p className="text-navy/70 leading-relaxed">
-                Pro ty, kteří chtějí hory nejen vlastnit, ale i <strong className="text-navy">využívat</strong>.
+                {t.audienceUse}
               </p>
             </div>
           </div>
@@ -276,14 +271,14 @@ export default async function PodilPage() {
       <section className="py-24 bg-stone">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
-            Hlavní výhody
+            {t.benefitsTitle}
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            {benefits.map((benefit, index) => (
+            {t.benefits.map((benefit, index) => (
               <div key={index} className="py-6 border-b border-navy/10">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
-                    {icons[benefit.icon as keyof typeof icons]}
+                    {icons[benefitIcons[index] as keyof typeof icons]}
                   </div>
                   <div>
                     <h3 className="text-navy font-medium mb-2">{benefit.title}</h3>
@@ -296,17 +291,11 @@ export default async function PodilPage() {
 
           {/* LEGAL NOTE - přesunuto sem z konce stránky */}
           <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto mt-12">
-            Uvedené výnosy a zhodnocení jsou orientační a mohou se lišit v závislosti na obsazenosti a tržních podmínkách.
-            Družstevní podíl nezakládá přímé vlastnictví nemovitosti.
+            {t.legalNote}
           </p>
           {/* Zdroj a varování k růstu hodnoty nemovitostí (požadavek právní compliance, 10/2026) */}
           <p className="text-xs text-navy/40 text-center max-w-3xl mx-auto mt-4 leading-relaxed">
-            ¹ Zdroj: Český statistický úřad, Ceny nemovitostí 2023–2025 (kód 014016-26, vydáno 15. 7. 2026),
-            tabulka 2-6b Indexy cen bytů, průměr 2015 = 100, Královéhradecký kraj; realizované kupní ceny
-            z katastru nemovitostí. Průměrná cena bytů ve Špindlerově Mlýně dosáhla podle analýzy Deloitte
-            v letech 2023 a 2024 téměř 190 000 Kč/m² (Aktuálně.cz 28. 1. 2024, Echo24 2. 8. 2025).
-            Údaje se týkají minulosti. Minulý vývoj cen není spolehlivým ukazatelem budoucího vývoje
-            ani zárukou budoucího zhodnocení. Hodnota nemovitosti i podílu může klesat. Nejde o investiční doporučení.
+            {t.sourceNote}
           </p>
         </div>
       </section>
@@ -317,7 +306,7 @@ export default async function PodilPage() {
       <section className="py-24 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
-            Jak to funguje
+            {t.stepsTitle}
           </h2>
           <div className="grid md:grid-cols-4 gap-12 max-w-5xl mx-auto">
             {steps.map((step, index) => (
@@ -325,8 +314,8 @@ export default async function PodilPage() {
                 <div className="flex justify-center mb-6">
                   {step.icon}
                 </div>
-                <h3 className="text-navy font-medium mb-3">{step.title}</h3>
-                <p className="text-sm text-navy/50 leading-relaxed">{step.description}</p>
+                <h3 className="text-navy font-medium mb-3">{t.steps[index].title}</h3>
+                <p className="text-sm text-navy/50 leading-relaxed">{t.steps[index].description}</p>
               </div>
             ))}
           </div>
@@ -340,10 +329,10 @@ export default async function PodilPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <p className="text-gold text-sm tracking-[0.2em] uppercase mb-4">
-              Nabízený apartmán
+              {t.apartmentLabel}
             </p>
             <h2 className="text-3xl md:text-4xl font-light text-white">
-              Apartmán ve Špindlerově Mlýně
+              {t.apartmentTitle}
             </h2>
           </div>
 
@@ -352,7 +341,7 @@ export default async function PodilPage() {
             {heroImage && (
               <Image
                 src={heroImage}
-                alt="Apartmán ve Špindlerově Mlýně"
+                alt={t.heroImageAlt}
                 fill
                 className="object-cover"
                 sizes="100vw"
@@ -366,7 +355,7 @@ export default async function PodilPage() {
               <div key={index} className="relative aspect-square overflow-hidden">
                 <Image
                   src={img}
-                  alt={`Apartmán - foto ${index + 1}`}
+                  alt={t.photoAlt(index + 1)}
                   fill
                   className="object-cover hover:scale-110 transition-transform duration-500"
                   sizes="(max-width: 768px) 33vw, 16vw"
@@ -379,12 +368,12 @@ export default async function PodilPage() {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Description */}
             <div className="bg-white/5 backdrop-blur border border-white/10 p-8">
-              <h3 className="text-white font-medium mb-4">O apartmánu</h3>
+              <h3 className="text-white font-medium mb-4">{t.aboutTitle}</h3>
               <p className="text-white/60 leading-relaxed mb-6">
-                {apartment.description}
+                {apt.description}
               </p>
               <div className="flex flex-wrap gap-2">
-                {apartment.features.map((feature, index) => (
+                {apt.features.map((feature, index) => (
                   <span 
                     key={index}
                     className="px-3 py-1 bg-white/10 text-white/80 text-sm"
@@ -397,35 +386,35 @@ export default async function PodilPage() {
             
             {/* Specs */}
             <div className="bg-white/5 backdrop-blur border border-white/10 p-8">
-              <h3 className="text-white font-medium mb-4">Specifikace</h3>
+              <h3 className="text-white font-medium mb-4">{t.specsTitle}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Dispozice</span>
-                  <span className="text-white">{apartment.layout}</span>
+                  <span className="text-white/50">{t.specLayout}</span>
+                  <span className="text-white">{apt.layout}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Celková plocha</span>
-                  <span className="text-white">{apartment.totalArea}</span>
+                  <span className="text-white/50">{t.specTotalArea}</span>
+                  <span className="text-white">{apt.totalArea}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Patro</span>
-                  <span className="text-white">{apartment.floor}. NP</span>
+                  <span className="text-white/50">{t.specFloor}</span>
+                  <span className="text-white">{apt.floor}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Orientace</span>
-                  <span className="text-white">{apartment.orientation}</span>
+                  <span className="text-white/50">{t.specOrientation}</span>
+                  <span className="text-white">{apt.orientation}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Předsíň</span>
-                  <span className="text-white">{apartment.rooms.hall}</span>
+                  <span className="text-white/50">{t.specHall}</span>
+                  <span className="text-white">{apt.hall}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-white/50">Koupelna</span>
-                  <span className="text-white">{apartment.rooms.bathroom}</span>
+                  <span className="text-white/50">{t.specBathroom}</span>
+                  <span className="text-white">{apt.bathroom}</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-white/50">Obývací pokoj s kuchyní</span>
-                  <span className="text-white">{apartment.rooms.livingKitchen}</span>
+                  <span className="text-white/50">{t.specLivingKitchen}</span>
+                  <span className="text-white">{apt.livingKitchen}</span>
                 </div>
               </div>
             </div>
@@ -439,18 +428,17 @@ export default async function PodilPage() {
       <section className="py-20 bg-gold">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl md:text-3xl font-light text-navy mb-6">
-            Tento apartmán je nabízen v rámci družstevního vlastnictví
+            {t.sharesTitle}
           </h2>
           <p className="text-navy/70 mb-10 max-w-2xl mx-auto">
-            Můžete si koupit jeden podíl nebo celých {TOTAL_SHARES}. Každý podíl představuje
-            {' '}{(100 / TOTAL_SHARES).toFixed(0)} % vlastnictví apartmánu a odpovídající podíl na výnosech z pronájmu.
+            {t.sharesText(TOTAL_SHARES, (100 / TOTAL_SHARES).toFixed(0))}
           </p>
           
           {/* Share indicator */}
           <div className="bg-navy p-8 max-w-md mx-auto">
             <div className="flex justify-between text-sm text-white/60 mb-3">
-              <span>Prodáno</span>
-              <span>Dostupných</span>
+              <span>{t.sold}</span>
+              <span>{t.available}</span>
             </div>
             
             {/* Progress bar */}
@@ -467,7 +455,7 @@ export default async function PodilPage() {
             </div>
             
             <p className="text-white/40 text-sm mt-4">
-              z celkových {TOTAL_SHARES} podílů
+              {t.ofTotal(TOTAL_SHARES)}
             </p>
           </div>
         </div>
@@ -481,10 +469,10 @@ export default async function PodilPage() {
           <div className="text-center mb-12">
             <AlpineOrnament variant="diamond" className="w-6 h-6 text-gold/40 mx-auto mb-6" />
             <h2 className="text-3xl font-light text-navy mb-4">
-              Máte zájem o družstevní podíl?
+              {t.formTitle}
             </h2>
             <p className="text-navy/60">
-              Zanechte nám kontakt a připravíme vám nezávaznou nabídku.
+              {t.formText}
             </p>
           </div>
           
@@ -498,13 +486,13 @@ export default async function PodilPage() {
       <section className="py-16 bg-cream border-t border-navy/10">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-navy/50 mb-6">
-            Máte zájem o koupi celého apartmánu?
+            {t.wholeApartmentText}
           </p>
           <Link 
             href="/suites"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            Zobrazit apartmány k prodeji
+            {t.wholeApartmentLink}
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>

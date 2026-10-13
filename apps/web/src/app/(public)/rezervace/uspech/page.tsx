@@ -1,8 +1,48 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getRequestLocale } from '@/lib/i18n-server';
 
-export const metadata: Metadata = {
-  title: 'Rezervace potvrzena | Pod Zlatým návrším',
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: getRequestLocale() === 'cs'
+      ? 'Rezervace potvrzena | Pod Zlatým návrším'
+      : 'Reservation confirmed | Pod Zlatým návrším',
+  };
+}
+
+const TEXTS = {
+  cs: {
+    label: 'Platba proběhla úspěšně',
+    heading: 'Vaše rezervace je potvrzena',
+    next: 'Co následuje',
+    step1Title: 'Potvrzení e-mailem',
+    step1Text: 'Během několika minut obdržíte e-mail s potvrzením rezervace na adresu, kterou jste zadali.',
+    step2Title: 'Instrukce k příjezdu',
+    step2Text: 'Před příjezdem obdržíte podrobné instrukce k check-inu, přístupový kód a informace o parkování.',
+    step3Title: 'Máte otázky?',
+    step3Text: 'Kdykoli nás kontaktujte na',
+    arrival: 'Příjezd',
+    arrivalText: 'od 15:00 — Apartmán bude připraven k Vašemu příchodu',
+    departure: 'Odjezd',
+    departureText: 'do 10:00 — Prosíme o respektování času pro přípravu apartmánu',
+    back: 'Zpět na přehled apartmánů',
+  },
+  en: {
+    label: 'Payment successful',
+    heading: 'Your reservation is confirmed',
+    next: 'What happens next',
+    step1Title: 'Confirmation by email',
+    step1Text: 'Within a few minutes you will receive an email confirming your reservation at the address you provided.',
+    step2Title: 'Arrival instructions',
+    step2Text: 'Before your arrival you will receive detailed check-in instructions, an access code and parking information.',
+    step3Title: 'Any questions?',
+    step3Text: 'Contact us at any time at',
+    arrival: 'Arrival',
+    arrivalText: 'from 3:00 pm — The apartment will be ready for your arrival',
+    departure: 'Departure',
+    departureText: 'by 10:00 am — Please allow us time to prepare the apartment',
+    back: 'Back to all apartments',
+  },
 };
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +53,7 @@ interface Props {
 
 export default function BookingSuccessPage({ searchParams }: Props) {
   const sessionId = searchParams.session_id;
+  const t = TEXTS[getRequestLocale()];
 
   return (
     <>
@@ -23,9 +64,9 @@ export default function BookingSuccessPage({ searchParams }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
-          <p className="text-gold text-xs tracking-widest uppercase mb-4">Platba proběhla úspěšně</p>
+          <p className="text-gold text-xs tracking-widest uppercase mb-4">{t.label}</p>
           <h1 className="text-3xl md:text-4xl font-light text-white">
-            Vaše rezervace je potvrzena
+            {t.heading}
           </h1>
         </div>
       </section>
@@ -34,7 +75,7 @@ export default function BookingSuccessPage({ searchParams }: Props) {
         <div className="max-w-2xl mx-auto px-6 space-y-6">
 
           <div className="bg-white border border-[#0B1626]/10 rounded-sm p-8">
-            <h2 className="text-xs text-navy/40 uppercase tracking-widest mb-6">Co následuje</h2>
+            <h2 className="text-xs text-navy/40 uppercase tracking-widest mb-6">{t.next}</h2>
 
             <div className="space-y-6">
               <div className="flex gap-4">
@@ -42,10 +83,9 @@ export default function BookingSuccessPage({ searchParams }: Props) {
                   <span className="text-xs text-navy/40">1</span>
                 </div>
                 <div>
-                  <p className="text-navy font-light mb-1">Potvrzení e-mailem</p>
+                  <p className="text-navy font-light mb-1">{t.step1Title}</p>
                   <p className="text-sm text-navy/50">
-                    Během několika minut obdržíte e-mail s potvrzením rezervace na adresu,
-                    kterou jste zadali.
+                    {t.step1Text}
                   </p>
                 </div>
               </div>
@@ -55,10 +95,9 @@ export default function BookingSuccessPage({ searchParams }: Props) {
                   <span className="text-xs text-navy/40">2</span>
                 </div>
                 <div>
-                  <p className="text-navy font-light mb-1">Instrukce k příjezdu</p>
+                  <p className="text-navy font-light mb-1">{t.step2Title}</p>
                   <p className="text-sm text-navy/50">
-                    Před příjezdem obdržíte podrobné instrukce k check-inu, přístupový kód
-                    a informace o parkování.
+                    {t.step2Text}
                   </p>
                 </div>
               </div>
@@ -68,9 +107,9 @@ export default function BookingSuccessPage({ searchParams }: Props) {
                   <span className="text-xs text-navy/40">3</span>
                 </div>
                 <div>
-                  <p className="text-navy font-light mb-1">Máte otázky?</p>
+                  <p className="text-navy font-light mb-1">{t.step3Title}</p>
                   <p className="text-sm text-navy/50">
-                    Kdykoli nás kontaktujte na{' '}
+                    {t.step3Text}{' '}
                     <a
                       href="mailto:rezervace@podzlatymnavrsim.cz"
                       className="text-navy underline hover:no-underline"
@@ -85,11 +124,11 @@ export default function BookingSuccessPage({ searchParams }: Props) {
           </div>
 
           <div className="bg-[#0B1626] p-6">
-            <p className="text-white/50 text-sm mb-1">Příjezd</p>
-            <p className="text-white text-xs">od 15:00 — Apartmán bude připraven k Vašemu příchodu</p>
+            <p className="text-white/50 text-sm mb-1">{t.arrival}</p>
+            <p className="text-white text-xs">{t.arrivalText}</p>
             <div className="border-t border-white/10 my-4" />
-            <p className="text-white/50 text-sm mb-1">Odjezd</p>
-            <p className="text-white text-xs">do 10:00 — Prosíme o respektování času pro přípravu apartmánu</p>
+            <p className="text-white/50 text-sm mb-1">{t.departure}</p>
+            <p className="text-white text-xs">{t.departureText}</p>
           </div>
 
           <Link
@@ -99,7 +138,7 @@ export default function BookingSuccessPage({ searchParams }: Props) {
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
-            Zpět na přehled apartmánů
+            {t.back}
           </Link>
         </div>
       </section>

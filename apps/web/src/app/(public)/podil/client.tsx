@@ -106,7 +106,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
     messagePlaceholder: 'Your questions or requirements...',
     submit: 'Send inquiry',
     sending: 'Sending...',
-    success: 'Thank you for your interest! We will contact you soon.',
+    success: 'Thank you for your interest! We will get back to you as soon as possible.',
     error: 'Something went wrong. Please try again.',
   };
 

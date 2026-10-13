@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface PhotoGalleryProps {
   photos: string[];
@@ -14,6 +15,10 @@ interface PhotoGalleryProps {
 
 export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { locale } = useLanguage();
+  const t = locale === 'cs'
+    ? { prev: 'Previous image', next: 'Next image', thumb: 'thumbnail' }
+    : { prev: 'Previous image', next: 'Next image', thumb: 'thumbnail' };
 
   if (photos.length === 0) {
     return (
@@ -42,7 +47,7 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
             <button
               onClick={() => setSelectedIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
               className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-              aria-label="Previous image"
+              aria-label={t.prev}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -51,7 +56,7 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
             <button
               onClick={() => setSelectedIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
               className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-              aria-label="Next image"
+              aria-label={t.next}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -83,7 +88,7 @@ export function PhotoGallery({ photos, alt }: PhotoGalleryProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photo}
-                alt={`${alt} thumbnail ${index + 1}`}
+                alt={`${alt} ${t.thumb} ${index + 1}`}
                 className="w-full h-full object-cover"
               />
             </button>

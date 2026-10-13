@@ -20,6 +20,9 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   const maxGuestsStr = formData.get('max_guests') as string;
   const orientation = formData.get('orientation') as string;
   const description = formData.get('description') as string;
+  const title_en = (formData.get('title_en') as string | null)?.trim() ?? '';
+  const orientation_en = (formData.get('orientation_en') as string | null)?.trim() ?? '';
+  const description_en = (formData.get('description_en') as string | null)?.trim() ?? '';
   const fdmRoomUseStr = (formData.get('fdm_room_use_id') as string | null) ?? '';
   const fdmRoomUseId = fdmRoomUseStr.trim() ? parseInt(fdmRoomUseStr, 10) : null;
   if (fdmRoomUseStr.trim() && (fdmRoomUseId == null || isNaN(fdmRoomUseId) || fdmRoomUseId < 1)) {
@@ -37,6 +40,9 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
     max_guests: maxGuestsStr ? parseInt(maxGuestsStr, 10) : null,
     orientation: orientation || null,
     description: description || null,
+    title_en: title_en || null,
+    orientation_en: orientation_en || null,
+    description_en: description_en || null,
     fdm_room_use_id: fdmRoomUseId,
   }).eq('id', id);
 
@@ -47,11 +53,12 @@ export async function updateApartmentInfo(id: string, formData: FormData) {
   return { ok: true };
 }
 
-export async function updateApartmentFeatures(id: string, features: string[]) {
+export async function updateApartmentFeatures(id: string, features: string[], lang: 'cs' | 'en' = 'cs') {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from('apartments').update({ features }).eq('id', id);
+  const column = lang === 'en' ? 'features_en' : 'features';
+  const { error } = await supabase.from('apartments').update({ [column]: features.length ? features : (lang === 'en' ? null : features) }).eq('id', id);
 
   if (error) return { ok: false, error: error.message };
   revalidate(id);

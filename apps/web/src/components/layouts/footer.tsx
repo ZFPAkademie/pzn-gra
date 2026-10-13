@@ -97,8 +97,8 @@ export function Footer() {
           <div className="text-white/30 text-sm space-y-1 text-center md:text-left">
             <p>© {year} Pod Zlatým návrším</p>
             <p className="text-xs text-white/25">
-              {t('footer.seller')}: {SALES_COMPANY.name}, {SALES_COMPANY.address}, IČ {SALES_COMPANY.ico}, DIČ {SALES_COMPANY.dic},{' '}
-              {locale === 'cs' ? `sp. zn. ${SALES_COMPANY.registerCs}` : SALES_COMPANY.registerEn}
+              {t('footer.seller')}: {SALES_COMPANY.name}, {SALES_COMPANY.address}, {locale === 'cs' ? 'IČ' : 'Company ID'} {SALES_COMPANY.ico}, {locale === 'cs' ? 'DIČ' : 'VAT ID'} {SALES_COMPANY.dic},{' '}
+              {locale === 'cs' ? `sp. zn. ${SALES_COMPANY.registerCs}` : `file no. ${SALES_COMPANY.registerEn}`}
             </p>
           </div>
           <div className="flex items-center space-x-6 text-sm">

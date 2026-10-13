@@ -6,13 +6,22 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'O projektu | Pod Zlatým návrším',
-  description: 'Rezidenční projekt v srdci Krkonoš. Luxusní apartmány k pronájmu a prodeji ve Špindlerově Mlýně.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getRequestLocale() === 'en') {
+    return {
+      title: 'About the project | Pod Zlatým návrším',
+      description: 'A residential project in the heart of the Krkonoše (Giant Mountains). Luxury apartments for rent and for sale in Špindlerův Mlýn.',
+    };
+  }
+  return {
+    title: 'O projektu | Pod Zlatým návrším',
+    description: 'Rezidenční projekt v srdci Krkonoš. Luxusní apartmány k pronájmu a prodeji ve Špindlerově Mlýně.',
+  };
+}
 
 export default async function AboutPage() {
   const cookieStore = cookies();
@@ -50,26 +59,26 @@ export default async function AboutPage() {
     
     cta: 'Prohlédnout apartmány',
   } : {
-    tagline: 'About',
+    tagline: 'About the project',
     title: 'Pod Zlatým návrším',
-    subtitle: 'Residential project set in the picturesque Giant Mountains landscape',
+    subtitle: 'A residential project set in the picturesque landscape of the Krkonoše (Giant Mountains)',
     
     sections: [
       {
         title: 'Vision',
-        text: 'To create a place where modern comfort meets respect for the mountain landscape. A place for relaxation, appreciation, and return to what matters. Pod Zlatým návrším is not just real estate – it is a lifestyle.',
+        text: 'To create a place where modern comfort meets respect for the mountain landscape. A place for rest, appreciation and a return to what matters. Pod Zlatým návrším is not just a property – it is a way of life.',
       },
       {
         title: 'Location',
-        text: 'Špindlerův Mlýn is the most sought-after mountain destination in the Czech Republic. Year-round tourism, excellent accessibility from Prague, and unique natural environment in the heart of Krkonoše National Park.',
+        text: 'Špindlerův Mlýn is the most sought-after mountain destination in the Czech Republic. Year-round tourism, excellent access from Prague and a unique natural environment in the heart of the Krkonoše National Park.',
       },
       {
         title: 'Architecture',
-        text: 'Modern alpine architecture in harmony with surrounding nature. Large glass surfaces, natural materials, and thoughtful layouts maximizing mountain views.',
+        text: 'Modern alpine architecture in harmony with the surrounding nature. Large glazed surfaces, natural materials and carefully considered layouts that make the most of the mountain views.',
       },
       {
         title: 'Quality',
-        text: 'Every apartment is designed with attention to detail. Quality materials, premium amenities, and timeless design that will remain relevant for 20 years.',
+        text: 'Every apartment is designed with attention to detail. Quality materials, premium furnishings and a timeless design that will still feel current in 20 years.',
       },
     ],
     

@@ -6,13 +6,22 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Kdo staví | Pod Zlatým návrším',
-  description: 'Zkušený tým za projektem Pod Zlatým návrším.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getRequestLocale() === 'en') {
+    return {
+      title: 'Who is building | Pod Zlatým návrším',
+      description: 'The experienced team behind the Pod Zlatým návrším project.',
+    };
+  }
+  return {
+    title: 'Kdo staví | Pod Zlatým návrším',
+    description: 'Zkušený tým za projektem Pod Zlatým návrším.',
+  };
+}
 
 export default async function BuilderPage() {
   const cookieStore = cookies();
@@ -34,10 +43,10 @@ export default async function BuilderPage() {
     cta: 'Kontaktovat nás',
   } : {
     tagline: 'Behind the project',
-    title: 'Who builds',
-    subtitle: 'Experienced team with years of practice in residential development',
+    title: 'Who is building',
+    subtitle: 'An experienced team with many years of practice in residential development',
     
-    intro: 'Pod Zlatým návrším is created by an experienced team with dozens of successfully completed residential projects.',
+    intro: 'The Pod Zlatým návrším project is being developed under the leadership of an experienced team with dozens of successfully completed residential projects behind it.',
     
     values: [
       { title: 'Experience', desc: 'More than 15 years in residential development' },

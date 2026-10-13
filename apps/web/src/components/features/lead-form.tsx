@@ -77,29 +77,29 @@ export function LeadForm({
     optional: 'nepovinné',
   } : {
     title: type === 'rent_inquiry' 
-      ? 'Inquire about dates' 
+      ? 'Enquire about dates' 
       : type === 'sale_inquiry' 
-        ? 'Request price information'
+        ? 'Request a price, without obligation'
         : type === 'investment_inquiry'
-          ? 'Contact investment team'
+          ? 'Contact the investment team'
           : type === 'investment_share_request'
-            ? 'Request share offer'
+            ? 'Request a share offer'
             : 'Contact us',
-    firstName: 'First Name',
-    lastName: 'Last Name',
+    firstName: 'First name',
+    lastName: 'Last name',
     email: 'Email',
     phone: 'Phone',
     message: 'Message',
-    preferredDates: 'Preferred Dates',
-    guestCount: 'Number of Guests',
-    shareCount: 'Estimated number of shares',
-    gdprConsent: 'I agree to the processing of personal data',
+    preferredDates: 'Preferred dates',
+    guestCount: 'Number of guests',
+    shareCount: 'Approximate number of shares',
+    gdprConsent: 'I consent to the processing of my personal data',
     termsAccepted: 'I accept the terms and conditions',
     marketingConsent: 'I agree to receive news and updates',
-    submit: 'Submit inquiry',
-    submitting: 'Submitting...',
+    submit: 'Send enquiry',
+    submitting: 'Sending...',
     successTitle: 'Thank you for your interest',
-    successMessage: 'Your inquiry has been sent. We will contact you soon.',
+    successMessage: 'Your enquiry has been sent. We will be in touch as soon as possible.',
     close: 'Close',
     optional: 'optional',
   };
@@ -137,7 +137,7 @@ export function LeadForm({
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Nepodařilo se odeslat');
+        setError(data.error || (locale === 'cs' ? 'Nepodařilo se odeslat' : 'The enquiry could not be sent'));
         setSubmitting(false);
         return;
       }
@@ -254,7 +254,7 @@ export function LeadForm({
               name="preferred_dates"
               value={formData.preferred_dates}
               onChange={handleChange}
-              placeholder={locale === 'cs' ? 'např. 15. 3. – 20. 3. 2025' : 'e.g. March 15-20, 2025'}
+              placeholder={locale === 'cs' ? 'např. 15. 3. – 20. 3. 2025' : 'e.g. 15–20 March 2025'}
               className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
             />
           </div>

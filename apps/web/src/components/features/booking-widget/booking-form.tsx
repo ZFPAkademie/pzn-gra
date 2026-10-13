@@ -1,6 +1,48 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '@/components/providers/language-provider';
+
+const TEXTS = {
+  cs: {
+    gdprRequired: 'Pro pokračování je nutný souhlas se zpracováním osobních údajů.',
+    createFailed: 'Nepodařilo se vytvořit rezervaci. Zkuste to prosím znovu.',
+    unexpected: 'Nastala neočekávaná chyba. Zkuste to prosím znovu.',
+    firstName: 'Jméno',
+    firstNamePh: 'Jana',
+    lastName: 'Příjmení',
+    lastNamePh: 'Nováková',
+    email: 'E-mail',
+    emailPh: 'jana@email.cz',
+    phone: 'Telefon',
+    phonePh: '+420 777 000 000',
+    guests: 'Počet hostů',
+    guestOption: (n: number) => `${n} ${n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'}`,
+    consentBefore: 'Souhlasím se zpracováním osobních údajů pro účely rezervace a komunikace v souladu s',
+    consentLink: 'zásadami ochrany osobních údajů',
+    redirecting: 'Přesměrovávám na platbu...',
+    submit: 'Odeslat rezervaci',
+  },
+  en: {
+    gdprRequired: 'To continue, you must consent to the processing of your personal data.',
+    createFailed: 'The reservation could not be created. Please try again.',
+    unexpected: 'An unexpected error occurred. Please try again.',
+    firstName: 'First name',
+    firstNamePh: 'Jane',
+    lastName: 'Surname',
+    lastNamePh: 'Smith',
+    email: 'Email',
+    emailPh: 'jane@example.com',
+    phone: 'Phone',
+    phonePh: '+44 7700 900000',
+    guests: 'Number of guests',
+    guestOption: (n: number) => `${n} ${n === 1 ? 'guest' : 'guests'}`,
+    consentBefore: 'I consent to the processing of my personal data for the purposes of the reservation and communication in accordance with the',
+    consentLink: 'privacy policy',
+    redirecting: 'Redirecting to payment...',
+    submit: 'Send reservation',
+  },
+};
 
 interface Props {
   apartmentId: string;
@@ -28,12 +70,14 @@ export function BookingForm({
   const [guests, setGuests] = useState(2);
   const [gdpr, setGdpr] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { locale } = useLanguage();
+  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!gdpr) {
-      onError('Pro pokračování je nutný souhlas se zpracováním osobních údajů.');
+      onError(t.gdprRequired);
       return;
     }
 
@@ -59,13 +103,13 @@ export function BookingForm({
       const json = await res.json();
 
       if (!res.ok) {
-        onError(json.error ?? 'Nepodařilo se vytvořit rezervaci. Zkuste to prosím znovu.');
+        onError(json.error ?? t.createFailed);
         return;
       }
 
       onSuccess(json.bookingId, json.confirmationToken);
     } catch {
-      onError('Nastala neočekávaná chyba. Zkuste to prosím znovu.');
+      onError(t.unexpected);
     } finally {
       setLoading(false);
     }
@@ -76,7 +120,7 @@ export function BookingForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
-            Jméno
+            {t.firstName}
           </label>
           <input
             type="text"
@@ -84,12 +128,12 @@ export function BookingForm({
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             className="w-full px-4 py-3 bg-white border border-navy/20 text-navy text-sm focus:outline-none focus:border-navy transition-colors"
-            placeholder="Jana"
+            placeholder={t.firstNamePh}
           />
         </div>
         <div>
           <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
-            Příjmení
+            {t.lastName}
           </label>
           <input
             type="text"
@@ -97,14 +141,14 @@ export function BookingForm({
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             className="w-full px-4 py-3 bg-white border border-navy/20 text-navy text-sm focus:outline-none focus:border-navy transition-colors"
-            placeholder="Nováková"
+            placeholder={t.lastNamePh}
           />
         </div>
       </div>
 
       <div>
         <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
-          E-mail
+          {t.email}
         </label>
         <input
           type="email"
@@ -112,26 +156,26 @@ export function BookingForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-3 bg-white border border-navy/20 text-navy text-sm focus:outline-none focus:border-navy transition-colors"
-          placeholder="jana@email.cz"
+          placeholder={t.emailPh}
         />
       </div>
 
       <div>
         <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
-          Telefon
+          {t.phone}
         </label>
         <input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="w-full px-4 py-3 bg-white border border-navy/20 text-navy text-sm focus:outline-none focus:border-navy transition-colors"
-          placeholder="+420 777 000 000"
+          placeholder={t.phonePh}
         />
       </div>
 
       <div>
         <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
-          Počet hostů
+          {t.guests}
         </label>
         <select
           value={guests}
@@ -140,7 +184,7 @@ export function BookingForm({
         >
           {Array.from({ length: maxGuests }, (_, i) => i + 1).map((n) => (
             <option key={n} value={n}>
-              {n} {n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'}
+              {t.guestOption(n)}
             </option>
           ))}
         </select>
@@ -155,10 +199,9 @@ export function BookingForm({
             className="mt-0.5 w-4 h-4 accent-navy cursor-pointer"
           />
           <span className="text-xs text-navy/60 leading-relaxed">
-            Souhlasím se zpracováním osobních údajů pro účely rezervace a komunikace v souladu
-            s{' '}
+            {t.consentBefore}{' '}
             <a href="/ochrana-osobnich-udaju" className="underline hover:text-navy transition-colors" target="_blank">
-              zásadami ochrany osobních údajů
+              {t.consentLink}
             </a>
             .
           </span>
@@ -176,10 +219,10 @@ export function BookingForm({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Přesměrovávám na platbu...
+            {t.redirecting}
           </span>
         ) : (
-          'Odeslat rezervaci'
+          t.submit
         )}
       </button>
     </form>

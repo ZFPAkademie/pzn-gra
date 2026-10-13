@@ -28,10 +28,43 @@ export interface ApartmentDB {
   for_rent: boolean;
   in_rental_program: boolean;
   status: string;
+  // Anglické texty (013) — NULL = zobrazí se česká verze
+  title_en: string | null;
+  subtitle_en: string | null;
+  orientation_en: string | null;
+  description_en: string | null;
+  features_en: string[] | null;
 }
 
 const DB_SELECT =
-  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status' as const;
+  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status, title_en, subtitle_en, orientation_en, description_en, features_en' as const;
+
+/**
+ * Texty apartmánu v jazyce návštěvníka — pro 'en' přepíše title/subtitle/orientation/
+ * description/features anglickou verzí, chybějící EN pole nechá česky.
+ */
+export function localizeApartment<T extends ApartmentDB>(apt: T, locale: 'cs' | 'en'): T {
+  if (locale !== 'en') return apt;
+  return {
+    ...apt,
+    title: apt.title_en ?? apt.title,
+    subtitle: apt.subtitle_en ?? apt.subtitle,
+    orientation: apt.orientation_en ?? apt.orientation,
+    description: apt.description_en ?? apt.description,
+    features: apt.features_en?.length ? apt.features_en : apt.features,
+  };
+}
+
+/** Dispozice pro zahraničního hosta: 1+kk → Studio (1+kk), 2+kk → One-bedroom (2+kk) */
+export function layoutLabel(layout: string | null | undefined, locale: 'cs' | 'en'): string {
+  if (!layout) return '';
+  if (locale !== 'en') return layout;
+  const m = layout.match(/^(\d)\s*\+\s*(kk|1)$/i);
+  if (!m) return layout;
+  const rooms = Number(m[1]) - (m[2].toLowerCase() === 'kk' ? 1 : 0);
+  const name = rooms <= 0 ? 'Studio' : rooms === 1 ? 'One-bedroom' : rooms === 2 ? 'Two-bedroom' : `${rooms}-bedroom`;
+  return `${name} (${layout})`;
+}
 
 export async function getApartmentBySlugDB(slug: string): Promise<ApartmentDB | null> {
   const admin = createSupabaseAdminClient();

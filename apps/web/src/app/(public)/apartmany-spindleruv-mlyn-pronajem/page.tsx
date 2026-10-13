@@ -5,20 +5,81 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getRentalApartmentsDB } from '@/lib/apartments';
+import { getRentalApartmentsDB, localizeApartment, layoutLabel } from '@/lib/apartments';
 import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
 import { formatMoney } from '@/lib/booking-engine/money';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
-  description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně, přímo u lanovky. Plně vybavené, designový nábytek KARE.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = getRequestLocale();
+  if (locale === 'en') {
+    return {
+      title: 'Apartments for rent | Pod Zlatým návrším | Špindlerův Mlýn',
+      description: 'Luxury apartments for rent in Špindlerův Mlýn, right by the chairlift. Fully equipped, KARE designer furniture.',
+    };
+  }
+  return {
+    title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
+    description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně, přímo u lanovky. Plně vybavené, designový nábytek KARE.',
+  };
+}
 
 export default async function RentalApartmentsPage() {
-  const apartments = await getRentalApartmentsDB();
+  const locale = getRequestLocale();
+  const numLocale = locale === 'cs' ? 'cs-CZ' : 'en-GB';
+  const apartments = (await getRentalApartmentsDB()).map((a) => localizeApartment(a, locale));
+  const t = locale === 'cs' ? {
+    eyebrow: 'Pronájem',
+    h1: 'Apartmány k pronájmu',
+    lead: 'Luxusní apartmány ve Špindlerově Mlýně, přímo u lanovky Labská. Plně vybavené, designový nábytek KARE.',
+    statApartments: (_n: number) => 'apartmánů',
+    statArea: 'm² plocha',
+    statGuests: 'hosté',
+    statLift: 'od lanovky',
+    alsoForSale: 'I k prodeji',
+    maxGuests: (n: number | null) => `max. ${n} hostů`,
+    from: 'od',
+    perNight: 'za noc',
+    priceOnRequest: 'Cena na dotaz',
+    detail: 'Detail',
+    featuresTitle: 'Všechny apartmány nabízejí',
+    features: [
+      { title: 'Designový nábytek', desc: 'KARE Design' },
+      { title: 'Plná výbava', desc: 'Myčka, trouba, kávovar' },
+      { title: 'Komfort', desc: 'TV, Wi-Fi, trezor' },
+      { title: 'Umístění', desc: '50 m od lanovky' },
+    ],
+    ctaTitle: 'Chcete rezervovat?',
+    ctaText: 'Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.',
+    ctaButton: 'Kontaktovat nás',
+  } : {
+    eyebrow: 'Rentals',
+    h1: 'Apartments for rent',
+    lead: 'Luxury apartments in Špindlerův Mlýn, right by the Labská chairlift. Fully equipped, KARE designer furniture.',
+    statApartments: (n: number) => (n === 1 ? 'apartment' : 'apartments'),
+    statArea: 'm² floor area',
+    statGuests: 'guests',
+    statLift: 'from the chairlift',
+    alsoForSale: 'Also for sale',
+    maxGuests: (n: number | null) => `up to ${n} ${n === 1 ? 'guest' : 'guests'}`,
+    from: 'from',
+    perNight: 'per night',
+    priceOnRequest: 'Price on request',
+    detail: 'Details',
+    featuresTitle: 'Every apartment offers',
+    features: [
+      { title: 'Designer furniture', desc: 'KARE Design' },
+      { title: 'Fully equipped', desc: 'Dishwasher, oven, coffee machine' },
+      { title: 'Comfort', desc: 'TV, Wi-Fi, safe' },
+      { title: 'Location', desc: '50 m from the chairlift' },
+    ],
+    ctaTitle: 'Would you like to book?',
+    ctaText: 'Contact us to make a reservation or for more information on availability.',
+    ctaButton: 'Contact us',
+  };
   // Cena „od" z Front Desk Master pro napojené apartmány (klíč = slug)
   const fdmPrices = await getFdmPriceFromMany(apartments.filter((a) => a.fdm_room_use_id).map((a) => a.id));
   const priceFromBySlug: Record<string, { cents: number; currency: 'CZK' | 'EUR' } | undefined> = {};
@@ -31,13 +92,13 @@ export default async function RentalApartmentsPage() {
       <section className="bg-navy pt-32 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-gold text-sm tracking-[0.2em] uppercase mb-6">
-            Pronájem
+            {t.eyebrow}
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
-            Apartmány k pronájmu
+            {t.h1}
           </h1>
           <p className="text-xl text-white/50 max-w-xl">
-            Luxusní apartmány ve Špindlerově Mlýně, přímo u lanovky Labská. Plně vybavené, designový nábytek KARE.
+            {t.lead}
           </p>
         </div>
       </section>
@@ -48,19 +109,19 @@ export default async function RentalApartmentsPage() {
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-navy">
             <div className="text-center">
               <p className="text-3xl font-light">{apartments.length}</p>
-              <p className="text-sm opacity-70">apartmánů</p>
+              <p className="text-sm opacity-70">{t.statApartments(apartments.length)}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-light">35–45</p>
-              <p className="text-sm opacity-70">m² plocha</p>
+              <p className="text-sm opacity-70">{t.statArea}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-light">2–4</p>
-              <p className="text-sm opacity-70">hosté</p>
+              <p className="text-sm opacity-70">{t.statGuests}</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-light">50 m</p>
-              <p className="text-sm opacity-70">od lanovky</p>
+              <p className="text-sm opacity-70">{t.statLift}</p>
             </div>
           </div>
         </div>
@@ -72,7 +133,7 @@ export default async function RentalApartmentsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apartments.map((apt) => {
               const heroImage = heroImages[apt.slug] ?? null;
-              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+              const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(numLocale) + ' m²' : '—';
               const alsoForSale = apt.for_sale;
               return (
                 <Link
@@ -95,13 +156,13 @@ export default async function RentalApartmentsPage() {
                     )}
                     <div className="absolute bottom-4 left-4">
                       <span className="px-3 py-1 bg-white/90 text-navy text-xs">
-                        {apt.layout} · {totalArea}
+                        {layoutLabel(apt.layout, locale)} · {totalArea}
                       </span>
                     </div>
                     {alsoForSale && (
                       <div className="absolute top-4 right-4">
                         <span className="px-3 py-1 bg-gold text-navy text-xs uppercase tracking-wider">
-                          I k prodeji
+                          {t.alsoForSale}
                         </span>
                       </div>
                     )}
@@ -114,7 +175,7 @@ export default async function RentalApartmentsPage() {
                     </h2>
 
                     <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">
-                      <span>max. {apt.max_guests} hostů</span>
+                      <span>{t.maxGuests(apt.max_guests)}</span>
                       <span>·</span>
                       <span>{apt.orientation}</span>
                     </div>
@@ -124,23 +185,23 @@ export default async function RentalApartmentsPage() {
                         {priceFromBySlug[apt.slug] ? (
                           <>
                             <p className="text-2xl font-light text-navy">
-                              od {formatMoney(priceFromBySlug[apt.slug]!.cents, priceFromBySlug[apt.slug]!.currency)}
+                              {t.from} {formatMoney(priceFromBySlug[apt.slug]!.cents, priceFromBySlug[apt.slug]!.currency, locale)}
                             </p>
-                            <p className="text-xs text-navy/40">za noc</p>
+                            <p className="text-xs text-navy/40">{t.perNight}</p>
                           </>
                         ) : apt.base_price_cents ? (
                           <>
                             <p className="text-2xl font-light text-navy">
-                              {Math.round(apt.base_price_cents / 100).toLocaleString('cs-CZ')} Kč
+                              {Math.round(apt.base_price_cents / 100).toLocaleString(numLocale)} Kč
                             </p>
-                            <p className="text-xs text-navy/40">za noc</p>
+                            <p className="text-xs text-navy/40">{t.perNight}</p>
                           </>
                         ) : (
-                          <p className="text-sm text-navy/50">Cena na dotaz</p>
+                          <p className="text-sm text-navy/50">{t.priceOnRequest}</p>
                         )}
                       </div>
                       <span className="text-sm text-navy border-b border-navy pb-1 group-hover:text-gold group-hover:border-gold transition-colors">
-                        Detail
+                        {t.detail}
                       </span>
                     </div>
                   </div>
@@ -155,15 +216,10 @@ export default async function RentalApartmentsPage() {
       <section className="py-24 bg-stone">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
-            Všechny apartmány nabízejí
+            {t.featuresTitle}
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { title: 'Designový nábytek', desc: 'KARE Design' },
-              { title: 'Plná výbava', desc: 'Myčka, trouba, kávovar' },
-              { title: 'Komfort', desc: 'TV, Wi-Fi, trezor' },
-              { title: 'Umístění', desc: '50 m od lanovky' },
-            ].map((item, i) => (
+            {t.features.map((item, i) => (
               <div key={i} className="text-center">
                 <h3 className="text-navy font-medium mb-2">{item.title}</h3>
                 <p className="text-sm text-navy/50">{item.desc}</p>
@@ -177,16 +233,16 @@ export default async function RentalApartmentsPage() {
       <section className="py-24 bg-navy">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-light text-white mb-6">
-            Chcete rezervovat?
+            {t.ctaTitle}
           </h2>
           <p className="text-white/50 mb-8 max-w-md mx-auto">
-            Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.
+            {t.ctaText}
           </p>
           <Link
             href="/kontakt"
             className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
           >
-            Kontaktovat nás
+            {t.ctaButton}
           </Link>
         </div>
       </section>

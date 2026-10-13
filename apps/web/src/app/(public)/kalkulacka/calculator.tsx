@@ -129,7 +129,8 @@ function ResultRow({
   );
 }
 
-export function InvestmentCalculator() {
+export function InvestmentCalculator({ locale = 'cs' }: { locale?: 'cs' | 'en' }) {
+  const en = locale === 'en';
   // Slider states
   const [apartmentPrice, setApartmentPrice] = useState(8790000);
   const [ownInvestment, setOwnInvestment] = useState(80);
@@ -161,9 +162,9 @@ export function InvestmentCalculator() {
   }, [apartmentPrice, ownInvestment, occupancy, pricePerNight]);
 
   // Format helpers
-  const formatCZK = (n: number) => new Intl.NumberFormat('cs-CZ').format(Math.round(n));
+  const formatCZK = (n: number) => new Intl.NumberFormat(en ? 'en-GB' : 'cs-CZ').format(Math.round(n));
   const formatPrice = (n: number) => {
-    if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace('.0', '')} mil`;
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace('.0', '')}${en ? 'm' : ' mil'}`;
     return formatCZK(n);
   };
 
@@ -172,82 +173,82 @@ export function InvestmentCalculator() {
       {/* Sliders */}
       <div className="mb-12">
         <Slider
-          label="Cena apartmán"
-          labelEn="Apartment price (CZK)"
+          label={en ? 'Apartment price (CZK)' : 'Cena apartmán'}
+          labelEn={en ? undefined : 'Apartment price (CZK)'}
           value={apartmentPrice}
           onChange={setApartmentPrice}
           min={5690000}
           max={13990000}
           step={100000}
           format={formatPrice}
-          tooltip="Cena apartmánu včetně DPH"
+          tooltip={en ? 'Apartment price including VAT' : 'Cena apartmánu včetně DPH'}
         />
 
         <Slider
-          label="Vlastní investice v %"
-          labelEn="Own investment in %"
+          label={en ? 'Own investment (%)' : 'Vlastní investice v %'}
+          labelEn={en ? undefined : 'Own investment in %'}
           value={ownInvestment}
           onChange={setOwnInvestment}
           min={20}
           max={100}
           step={5}
           format={(v) => `${v}`}
-          tooltip="Procento z ceny hrazené z vlastních prostředků"
+          tooltip={en ? 'Percentage of the price paid from your own funds' : 'Procento z ceny hrazené z vlastních prostředků'}
         />
 
         <Slider
-          label="Obsazenost"
-          labelEn="Occupancy"
+          label={en ? 'Occupancy' : 'Obsazenost'}
+          labelEn={en ? undefined : 'Occupancy'}
           value={occupancy}
           onChange={setOccupancy}
           min={30}
           max={90}
           step={5}
           format={(v) => `${v}`}
-          tooltip="Předpokládaná roční obsazenost apartmánu"
+          tooltip={en ? 'Expected annual occupancy of the apartment' : 'Předpokládaná roční obsazenost apartmánu'}
         />
 
         <Slider
-          label="Cena za noc"
-          labelEn="Price per night"
+          label={en ? 'Price per night' : 'Cena za noc'}
+          labelEn={en ? undefined : 'Price per night'}
           value={pricePerNight}
           onChange={setPricePerNight}
           min={2500}
           max={6500}
           step={250}
           format={formatCZK}
-          tooltip="Průměrná cena za noc v Kč"
+          tooltip={en ? 'Average price per night in CZK' : 'Průměrná cena za noc v Kč'}
         />
       </div>
 
       {/* Results */}
       <div className="border-t border-navy/10 pt-8">
         <ResultRow
-          label="Výše hypotéky (cena suite - vlastní investice)"
-          value={`${formatCZK(results.mortgageAmount)} Kč`}
+          label={en ? 'Mortgage amount (apartment price - own investment)' : 'Výše hypotéky (cena suite - vlastní investice)'}
+          value={`${formatCZK(results.mortgageAmount)} ${en ? 'CZK' : 'Kč'}`}
         />
         
         <ResultRow
-          label="Tržba za rok"
-          labelEn="Revenue per year"
+          label={en ? 'Revenue per year' : 'Tržba za rok'}
+          labelEn={en ? undefined : 'Revenue per year'}
           value={`${formatCZK(results.revenuePerYear)} CZK`}
         />
         
         <ResultRow
-          label="Tržby za měsíc"
-          labelEn="Monthly revenue"
+          label={en ? 'Monthly revenue' : 'Tržby za měsíc'}
+          labelEn={en ? undefined : 'Monthly revenue'}
           value={`${formatCZK(results.revenuePerMonth)} CZK`}
         />
         
         <ResultRow
-          label="Tržby po zaplacení služby Rentier (servis & marketing)"
-          labelEn="Revenue after payment of Rentier service (service & marketing)"
+          label={en ? 'Revenue after paying for the Rentier service (service & marketing)' : 'Tržby po zaplacení služby Rentier (servis & marketing)'}
+          labelEn={en ? undefined : 'Revenue after payment of Rentier service (service & marketing)'}
           value={`${formatCZK(results.revenueAfterRentier)} CZK`}
         />
         
         <ResultRow
-          label="Měsíční tržby po zaplacení služby Rentier (servis & marketing)"
-          labelEn="Monthly sales after paying for the Rentier service (service & marketing)"
+          label={en ? 'Monthly revenue after paying for the Rentier service (service & marketing)' : 'Měsíční tržby po zaplacení služby Rentier (servis & marketing)'}
+          labelEn={en ? undefined : 'Monthly sales after paying for the Rentier service (service & marketing)'}
           value={`${formatCZK(results.monthlyAfterRentier)} CZK`}
           highlight
         />

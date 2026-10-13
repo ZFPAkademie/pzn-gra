@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { formatMoney } from '@/lib/booking-engine/money';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface Props {
   apartmentSlug: string;
@@ -17,7 +18,26 @@ interface PriceData {
   currency: string;
 }
 
+const TEXTS = {
+  cs: {
+    loadFailed: 'Nepodařilo se načíst cenu',
+    unavailable: 'Vybrané termíny nejsou volné. Zvolte jiné datum.',
+    summary: 'Přehled ceny',
+    nights: (_n: number) => 'nocí',
+    total: 'Celkem',
+  },
+  en: {
+    loadFailed: 'The price could not be loaded',
+    unavailable: 'The selected dates are not available. Please choose different dates.',
+    summary: 'Price summary',
+    nights: (n: number) => (n === 1 ? 'night' : 'nights'),
+    total: 'Total',
+  },
+};
+
 export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props) {
+  const { locale } = useLanguage();
+  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
   const [data, setData] = useState<PriceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +58,7 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
         setData(json);
       })
       .catch(() => {
-        if (!cancelled) setError('Nepodařilo se načíst cenu');
+        if (!cancelled) setError(t.loadFailed);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -60,7 +80,7 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
     return (
       <div className="bg-red-50 border border-red-200 rounded-sm p-4">
         <p className="text-sm text-red-700">
-          {error ?? 'Vybrané termíny nejsou volné. Zvolte jiné datum.'}
+          {error ?? t.unavailable}
         </p>
       </div>
     );
@@ -71,12 +91,12 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
   const checkInDate = new Date(checkIn + 'T12:00:00');
   const checkOutDate = new Date(checkOut + 'T12:00:00');
   const formatDate = (d: Date) =>
-    d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+    d.toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short' });
 
   return (
     <div className="bg-stone border border-[#0B1626]/10 rounded-sm p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-navy/50 uppercase tracking-widest">Přehled ceny</span>
+        <span className="text-xs text-navy/50 uppercase tracking-widest">{t.summary}</span>
         <span className="text-xs text-navy/50">
           {formatDate(checkInDate)} — {formatDate(checkOutDate)}
         </span>
@@ -84,14 +104,14 @@ export function BookingPriceSummary({ apartmentSlug, checkIn, checkOut }: Props)
 
       <div className="space-y-2 text-sm text-navy/70 mb-3">
         <div className="flex justify-between">
-          <span>{formatMoney(data.pricePerNightCents, data.currency)} × {data.nights} nocí</span>
-          <span>{formatMoney(data.totalCents, data.currency)}</span>
+          <span>{formatMoney(data.pricePerNightCents, data.currency, locale)} × {data.nights} {t.nights(data.nights)}</span>
+          <span>{formatMoney(data.totalCents, data.currency, locale)}</span>
         </div>
       </div>
 
       <div className="border-t border-navy/10 pt-3 flex justify-between items-baseline">
-        <span className="text-sm text-navy/50">Celkem</span>
-        <span className="text-xl font-light text-navy">{formatMoney(data.totalCents, data.currency)}</span>
+        <span className="text-sm text-navy/50">{t.total}</span>
+        <span className="text-xl font-light text-navy">{formatMoney(data.totalCents, data.currency, locale)}</span>
       </div>
     </div>
   );

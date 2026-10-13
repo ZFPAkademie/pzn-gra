@@ -6,13 +6,22 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Lokalita | Pod Zlatým návrším',
-  description: 'Špindlerův Mlýn - nejžádanější horská destinace České republiky.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getRequestLocale() === 'en') {
+    return {
+      title: 'Location | Pod Zlatým návrším',
+      description: 'Špindlerův Mlýn - the most sought-after mountain destination in the Czech Republic.',
+    };
+  }
+  return {
+    title: 'Lokalita | Pod Zlatým návrším',
+    description: 'Špindlerův Mlýn - nejžádanější horská destinace České republiky.',
+  };
+}
 
 export default async function LocationPage() {
   const cookieStore = cookies();
@@ -71,34 +80,34 @@ export default async function LocationPage() {
     title: 'Location',
     subtitle: 'The most sought-after mountain destination in the Czech Republic',
     
-    intro: 'Pod Zlatým návrším is located in the heart of Špindlerův Mlýn, close to ski resorts and hiking trails. An ideal starting point for winter and summer activities.',
+    intro: 'Pod Zlatým návrším is located in the heart of Špindlerův Mlýn, close to the ski areas and hiking trails. An ideal starting point for both winter and summer activities.',
     
     stats: [
       { value: '1.5h', label: 'from Prague' },
       { value: '2h', label: 'from Berlin' },
-      { value: '765m', label: 'altitude' },
+      { value: '765m', label: 'above sea level' },
     ],
     
     sections: [
       {
         title: 'Winter',
         items: [
-          'Best ski resort in Czech Republic',
+          'The best ski resort in the Czech Republic',
           'Slopes for all levels',
-          'Modern lifts',
+          'Modern chairlifts and ski tows',
           'Season: December – April',
           'Night skiing',
-          'Ski area Svatý Petr 400m',
+          'Svatý Petr ski area 400m',
         ],
       },
       {
         title: 'Summer',
         items: [
           'Hundreds of km of hiking trails',
-          'Cycling paths',
-          'Krkonoše National Park',
-          'Waterfalls and lookouts',
-          'Golf courses nearby',
+          'Cycle trails',
+          'Krkonoše (Giant Mountains) National Park',
+          'Waterfalls and lookout towers',
+          'A golf course nearby',
           'Wellness and relaxation',
         ],
       },
@@ -106,11 +115,11 @@ export default async function LocationPage() {
     
     nearby: 'Nearby',
     nearbyItems: [
-      { name: 'Ski area Svatý Petr', distance: '400 m' },
-      { name: 'Town center', distance: '500 m' },
+      { name: 'Svatý Petr ski area', distance: '400 m' },
+      { name: 'Town centre', distance: '500 m' },
       { name: 'Restaurants and shops', distance: '300 m' },
       { name: 'Labská bouda', distance: '8 km' },
-      { name: 'Sněžka peak', distance: '12 km' },
+      { name: 'Sněžka', distance: '12 km' },
     ],
     
     cta: 'Contact us',

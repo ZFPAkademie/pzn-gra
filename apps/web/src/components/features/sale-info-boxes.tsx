@@ -101,8 +101,90 @@ const INFO_DATA = {
   }
 };
 
-export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstateProduct?: boolean }) {
+type InfoType = keyof typeof INFO_DATA;
+type InfoText = Pick<(typeof INFO_DATA)[InfoType], 'label' | 'annotation' | 'content'>;
+
+// Anglické texty — ikony a barvy zůstávají z INFO_DATA
+const INFO_TEXT_EN: Record<InfoType, InfoText> = {
+  standards: {
+    label: 'Standards',
+    annotation: 'Premium quality',
+    content: {
+      title: 'Premium fit-out standards',
+      sections: [
+        {
+          title: 'Kitchen',
+          items: ['Electrolux appliances', 'Induction hob', 'Built-in oven', 'Dishwasher', 'Fridge-freezer']
+        },
+        {
+          title: 'Bathroom',
+          items: ['Laufen sanitaryware', 'Grohe taps', 'Underfloor heating', 'Large-format tiles', 'Shower / bath']
+        },
+        {
+          title: 'Interior',
+          items: ['KARE designer furniture', 'Underfloor heating', 'Air conditioning', 'Smart TV', 'High-speed Wi-Fi']
+        },
+        {
+          title: 'Security',
+          items: ['Safe', 'Fire protection system', 'Electronic lock', 'Video intercom']
+        }
+      ]
+    }
+  },
+  investment: {
+    label: 'Investment opportunity',
+    annotation: 'Return 4-6% p.a.',
+    content: {
+      title: 'Why invest in an apartment',
+      sections: [
+        {
+          title: 'Stable returns',
+          items: ['Expected return of 4-6% per year', 'Year-round tourist destination', 'Growing interest in mountain holidays', 'Professional rental management']
+        },
+        {
+          title: 'Premium location',
+          items: ['50 m from the Labská chairlift', 'Centre of Špindlerův Mlýn', 'Close to the ski slopes', 'Within reach of Prague (2 h)']
+        },
+        {
+          title: 'Growth in value',
+          items: ['Limited supply in the centre', 'Historically rising prices', 'High-quality, long-lasting construction', 'Prestigious project']
+        },
+        {
+          title: 'Personal use',
+          items: ['Investment and holidays combined', 'Flexible use', 'Fully furnished, ready to use immediately', 'No maintenance worries']
+        }
+      ]
+    }
+  },
+  realEstateProduct: {
+    label: 'Real estate product',
+    annotation: 'Shared ownership',
+    content: {
+      title: 'Shared ownership of an apartment',
+      sections: [
+        {
+          title: 'How it works',
+          items: ['Buy a 1/12 share in an apartment', 'Right to use it 4 weeks a year', 'Shared maintenance costs', 'No rental worries']
+        },
+        {
+          title: 'Benefits',
+          items: ['Lower initial investment', 'Guaranteed weeks each year', 'Professional management', 'Option to swap dates']
+        }
+      ]
+    }
+  }
+};
+
+export function SaleInfoBoxes({
+  showRealEstateProduct = false,
+  locale = 'cs',
+}: {
+  showRealEstateProduct?: boolean;
+  locale?: 'cs' | 'en';
+}) {
   const [openModal, setOpenModal] = useState<'standards' | 'investment' | 'realEstateProduct' | null>(null);
+  const en = locale === 'en';
+  const info = (type: InfoType) => (en ? { ...INFO_DATA[type], ...INFO_TEXT_EN[type] } : INFO_DATA[type]);
 
   const boxes = showRealEstateProduct 
     ? ['standards', 'investment', 'realEstateProduct'] as const
@@ -113,7 +195,7 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
       {/* Info Boxes Grid */}
       <div className={`grid ${showRealEstateProduct ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 mb-16`}>
         {boxes.map((type) => {
-          const data = INFO_DATA[type];
+          const data = info(type);
           const colorClasses = {
             gold: 'border-gold/30 hover:border-gold bg-gradient-to-br from-gold/5 to-gold/10 hover:from-gold/10 hover:to-gold/20',
             emerald: 'border-emerald-500/30 hover:border-emerald-500 bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 hover:from-emerald-500/10 hover:to-emerald-500/20',
@@ -151,7 +233,7 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
               
               {/* CTA */}
               <span className="inline-flex items-center text-sm text-navy/60 group-hover:text-navy transition-colors">
-                Zobrazit detail
+                {en ? 'View details' : 'Zobrazit detail'}
                 <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -179,14 +261,15 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
                   openModal === 'investment' ? 'bg-emerald-100 text-emerald-600' :
                   'bg-blue-100 text-blue-600'
                 }`}>
-                  {INFO_DATA[openModal].icon}
+                  {info(openModal).icon}
                 </div>
                 <h2 className="text-2xl font-light text-navy">
-                  {INFO_DATA[openModal].content.title}
+                  {info(openModal).content.title}
                 </h2>
               </div>
               <button 
                 onClick={() => setOpenModal(null)}
+                aria-label={en ? 'Close' : undefined}
                 className="p-2 text-navy/40 hover:text-navy transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,7 +280,7 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
 
             {/* Content */}
             <div className="p-6 space-y-8">
-              {INFO_DATA[openModal].content.sections.map((section, i) => (
+              {info(openModal).content.sections.map((section, i) => (
                 <div key={i}>
                   <h3 className="text-sm text-navy/40 uppercase tracking-widest mb-4">{section.title}</h3>
                   <div className="grid sm:grid-cols-2 gap-3">
@@ -228,7 +311,7 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
                   'bg-blue-500 hover:bg-blue-600 text-white'
                 }`}
               >
-                Zobrazit celou stránku
+                {en ? 'View full page' : 'Zobrazit celou stránku'}
               </Link>
             </div>
           </div>
@@ -239,7 +322,7 @@ export function SaleInfoBoxes({ showRealEstateProduct = false }: { showRealEstat
 }
 
 // Real Estate Product Badge for apartment detail
-export function RealEstateProductBadge() {
+export function RealEstateProductBadge({ locale = 'cs' }: { locale?: 'cs' | 'en' }) {
   return (
     <Link 
       href="/nemovitostni-produkt"
@@ -248,7 +331,7 @@ export function RealEstateProductBadge() {
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
       </svg>
-      Součást nemovitostního produktu
+      {locale === 'en' ? 'Part of the real estate product' : 'Součást nemovitostního produktu'}
     </Link>
   );
 }

@@ -2,8 +2,10 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getBookingByToken } from '@/lib/booking-engine/bookings';
-import { getRentalApartmentBySlug } from '@/lib/apartments';
+import { getRentalApartmentBySlug, getApartmentBySlugDB, localizeApartment, layoutLabel } from '@/lib/apartments';
+import type { Locale } from '@/lib/i18n';
 import { getApartmentHeroImage } from '@/data/apartment-images';
 import { generatePaymentQR } from '@/lib/qr';
 import { formatMoney } from '@/lib/booking-engine/money';
@@ -14,28 +16,43 @@ interface Props { params: { token: string } }
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Jazyk karty: cookie NEXT_LOCALE, pokud ji návštěvník výslovně nastavil přepínačem,
+ * jinak jazyk, ve kterém host rezervaci odeslal (odkaz z e-mailu v prohlížeči bez cookie).
+ */
+function resolveLocale(bookingLanguage: string | null | undefined): Locale {
+  const cookieLocale = cookies().get('NEXT_LOCALE')?.value;
+  if (cookieLocale === 'cs' || cookieLocale === 'en') return cookieLocale;
+  return bookingLanguage === 'en' ? 'en' : 'cs';
+}
+
+type BookingApt = { slug: string; title: string; title_en?: string | null };
+
+function aptTitle(apt: BookingApt | null, locale: Locale): string | undefined {
+  return (locale === 'en' ? apt?.title_en : null) ?? apt?.title;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const booking = await getBookingByToken(params.token);
-  const apt = booking?.apartments as unknown as { title: string } | null;
+  const apt = booking?.apartments as unknown as BookingApt | null;
+  const locale = resolveLocale(booking?.language);
+  const title = aptTitle(apt, locale);
+  const label = locale === 'cs' ? 'Rezervace' : 'Reservation';
   return {
-    title: apt?.title ? `Rezervace — ${apt.title} | Pod Zlatým návrším` : 'Rezervace | Pod Zlatým návrším',
+    title: title ? `${label} — ${title} | Pod Zlatým návrším` : `${label} | Pod Zlatým návrším`,
     robots: { index: false },
   };
 }
 
-function fmtAmount(cents: number, currency: string = 'CZK') {
-  return formatMoney(cents, currency);
+function fmtAmount(cents: number, currency: string = 'CZK', locale: Locale = 'cs') {
+  return formatMoney(cents, currency, locale);
 }
-function fmtDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
+function fmtDay(d: string, locale: Locale) {
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { weekday: 'long' });
 }
-function fmtDay(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', { weekday: 'long' });
-}
-function fmtShort(d: string) {
+function fmtShort(d: string, locale: Locale) {
   const date = new Date(d + 'T12:00:00');
+  if (locale === 'en') return `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'long' })}`;
   return `${date.getDate()}. ${date.toLocaleDateString('cs-CZ', { month: 'long' })}`;
 }
 
@@ -48,9 +65,87 @@ export default async function BookingTokenPage({ params }: Props) {
   const booking = await getBookingByToken(params.token);
   if (!booking) notFound();
 
-  const apt = booking.apartments as unknown as { slug: string; title: string } | null;
-  const staticApt = apt?.slug ? getRentalApartmentBySlug(apt.slug) : null;
+  const locale = resolveLocale(booking.language);
+  const apt = booking.apartments as unknown as BookingApt | null;
+  const title = aptTitle(apt, locale);
+  const staticAptCs = apt?.slug ? getRentalApartmentBySlug(apt.slug) : null;
   const heroImage = apt?.slug ? await getApartmentHeroImage(apt.slug) : null;
+
+  // EN: texty apartmánu z DB (_en sloupce, fallback čeština), čísla ze statických dat
+  let staticApt = staticAptCs;
+  if (locale === 'en' && staticAptCs) {
+    const dbApt = await getApartmentBySlugDB(staticAptCs.slug);
+    const loc = dbApt ? localizeApartment(dbApt, 'en') : null;
+    staticApt = {
+      ...staticAptCs,
+      layout: layoutLabel(staticAptCs.layout, 'en'),
+      totalArea: staticAptCs.totalArea.replace(',', '.'),
+      description: loc?.description ?? staticAptCs.description,
+      features: loc?.features?.length ? loc.features : staticAptCs.features,
+    };
+  }
+
+  const t = locale === 'cs'
+    ? {
+        pending: 'Čeká na platbu',
+        confirmed: 'Potvrzeno',
+        cancelled: 'Zrušeno',
+        yourApartment: 'Váš apartmán',
+        apartmentAlt: 'Apartmán',
+        arrival: 'Příjezd',
+        departure: 'Odjezd',
+        arrivalTime: 'od 15:00',
+        departureTime: 'do 10:00',
+        nights: (n: number) => (n === 1 ? 'noc' : n < 5 ? 'noci' : 'nocí'),
+        guests: (n: number) => (n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'),
+        payTitle: 'Zaplaťte převodem',
+        paySub: 'Potvrdíme do 24 h od přijetí platby',
+        recipient: 'Příjemce',
+        amount: 'Částka',
+        message: 'Zpráva',
+        qr: 'QR platba',
+        afterPayment: 'Po odeslání platby vám zašleme potvrzení na',
+        questions: 'Máte otázky?',
+        paidTitle: 'Platba přijata · Rezervace potvrzena',
+        paidSub: 'Těšíme se na vás!',
+        doorCode: 'Kód ke dveřím',
+        parking: 'Parkování',
+        arrivalNote: 'Pokyny k příjezdu',
+        about: 'O apartmánu',
+        layout: 'Dispozice',
+        area: 'Plocha',
+        maxGuests: 'Max. hostů',
+      }
+    : {
+        pending: 'Awaiting payment',
+        confirmed: 'Confirmed',
+        cancelled: 'Cancelled',
+        yourApartment: 'Your apartment',
+        apartmentAlt: 'Apartment',
+        arrival: 'Arrival',
+        departure: 'Departure',
+        arrivalTime: 'from 3:00 pm',
+        departureTime: 'by 10:00 am',
+        nights: (n: number) => (n === 1 ? 'night' : 'nights'),
+        guests: (n: number) => (n === 1 ? 'guest' : 'guests'),
+        payTitle: 'Pay by bank transfer',
+        paySub: 'We will confirm within 24 hours of receiving your payment',
+        recipient: 'Beneficiary',
+        amount: 'Amount',
+        message: 'Payment reference',
+        qr: 'QR payment',
+        afterPayment: 'Once you have sent the payment, we will send a confirmation to',
+        questions: 'Any questions?',
+        paidTitle: 'Payment received · Reservation confirmed',
+        paidSub: 'We look forward to welcoming you!',
+        doorCode: 'Door code',
+        parking: 'Parking',
+        arrivalNote: 'Arrival instructions',
+        about: 'About the apartment',
+        layout: 'Layout',
+        area: 'Floor area',
+        maxGuests: 'Max. guests',
+      };
 
   const isPending   = booking.status === 'pending';
   const isConfirmed = booking.status === 'confirmed';
@@ -111,24 +206,24 @@ export default async function BookingTokenPage({ params }: Props) {
             {isPending && (
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-400/10 border border-amber-400/20 text-amber-300 text-[11px] tracking-wider uppercase rounded-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Čeká na platbu
+                {t.pending}
               </span>
             )}
             {isConfirmed && (
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-400/10 border border-green-400/20 text-green-300 text-[11px] tracking-wider uppercase rounded-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                Potvrzeno
+                {t.confirmed}
               </span>
             )}
             {isCancelled && (
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-400/10 border border-red-400/20 text-red-300 text-[11px] tracking-wider uppercase rounded-sm">
-                Zrušeno
+                {t.cancelled}
               </span>
             )}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-light text-white mb-1">
-            {apt?.title ?? 'Váš apartmán'}
+            {title ?? t.yourApartment}
           </h1>
           {staticApt && (
             <p className="text-white/35 text-sm">
@@ -142,7 +237,7 @@ export default async function BookingTokenPage({ params }: Props) {
           <div className="relative h-56 md:h-80 overflow-hidden">
             <Image
               src={heroImage}
-              alt={apt?.title ?? 'Apartmán'}
+              alt={title ?? t.apartmentAlt}
               fill
               className="object-cover"
               priority
@@ -159,25 +254,25 @@ export default async function BookingTokenPage({ params }: Props) {
         <div className="bg-white border border-[#0B1626]/8 rounded-sm overflow-hidden">
           <div className="grid grid-cols-2 divide-x divide-[#0B1626]/6">
             <div className="px-5 py-5">
-              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-2">Příjezd</p>
-              <p className="text-[11px] text-[#0B1626]/40 mb-0.5 capitalize">{fmtDay(booking.check_in)}</p>
-              <p className="text-[1.4rem] font-light text-[#0B1626] leading-none">{fmtShort(booking.check_in)}</p>
-              <p className="text-[11px] text-[#0B1626]/35 mt-2">od 15:00</p>
+              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-2">{t.arrival}</p>
+              <p className="text-[11px] text-[#0B1626]/40 mb-0.5 capitalize">{fmtDay(booking.check_in, locale)}</p>
+              <p className="text-[1.4rem] font-light text-[#0B1626] leading-none">{fmtShort(booking.check_in, locale)}</p>
+              <p className="text-[11px] text-[#0B1626]/35 mt-2">{t.arrivalTime}</p>
             </div>
             <div className="px-5 py-5">
-              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-2">Odjezd</p>
-              <p className="text-[11px] text-[#0B1626]/40 mb-0.5 capitalize">{fmtDay(booking.check_out)}</p>
-              <p className="text-[1.4rem] font-light text-[#0B1626] leading-none">{fmtShort(booking.check_out)}</p>
-              <p className="text-[11px] text-[#0B1626]/35 mt-2">do 10:00</p>
+              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-2">{t.departure}</p>
+              <p className="text-[11px] text-[#0B1626]/40 mb-0.5 capitalize">{fmtDay(booking.check_out, locale)}</p>
+              <p className="text-[1.4rem] font-light text-[#0B1626] leading-none">{fmtShort(booking.check_out, locale)}</p>
+              <p className="text-[11px] text-[#0B1626]/35 mt-2">{t.departureTime}</p>
             </div>
           </div>
           <div className="px-5 py-3 bg-[#F4F6F8] border-t border-[#0B1626]/6 flex items-center justify-between">
             <span className="text-sm text-[#0B1626]/50">
-              {booking.nights} {booking.nights === 1 ? 'noc' : booking.nights < 5 ? 'noci' : 'nocí'}
+              {booking.nights} {t.nights(booking.nights)}
               {' · '}
-              {booking.guests_count} {booking.guests_count === 1 ? 'host' : booking.guests_count < 5 ? 'hosté' : 'hostů'}
+              {booking.guests_count} {t.guests(booking.guests_count)}
             </span>
-            <span className="text-sm font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency)}</span>
+            <span className="text-sm font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency, locale)}</span>
           </div>
         </div>
 
@@ -186,8 +281,8 @@ export default async function BookingTokenPage({ params }: Props) {
           <div className="bg-white border border-[#C9A24D]/25 rounded-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-[#0B1626]/6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-[#0B1626]">Zaplaťte převodem</p>
-                <p className="text-[11px] text-[#0B1626]/40 mt-0.5">Potvrdíme do 24 h od přijetí platby</p>
+                <p className="text-sm font-medium text-[#0B1626]">{t.payTitle}</p>
+                <p className="text-[11px] text-[#0B1626]/40 mt-0.5">{t.paySub}</p>
               </div>
               <div className="w-8 h-8 rounded-full bg-[#C9A24D]/10 flex items-center justify-center">
                 <svg className="w-4 h-4 text-[#C9A24D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,7 +297,7 @@ export default async function BookingTokenPage({ params }: Props) {
               <div className="flex-1 divide-y divide-[#0B1626]/5">
                 <div className="flex items-center justify-between px-5 py-3.5">
                   <div>
-                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Příjemce</p>
+                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.recipient}</p>
                     <p className="text-sm text-[#0B1626]">{BANK_NAME}</p>
                   </div>
                 </div>
@@ -211,21 +306,21 @@ export default async function BookingTokenPage({ params }: Props) {
                     <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">IBAN</p>
                     <p className="text-sm text-[#0B1626] font-mono">{BANK_IBAN}</p>
                   </div>
-                  <CopyButton value={BANK_IBAN.replace(/\s/g,'')} />
+                  <CopyButton locale={locale} value={BANK_IBAN.replace(/\s/g,'')} />
                 </div>
                 <div className="flex items-center justify-between px-5 py-3.5">
                   <div>
-                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Částka</p>
-                    <p className="text-lg font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency)}</p>
+                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.amount}</p>
+                    <p className="text-lg font-light text-[#0B1626]">{fmtAmount(booking.total_amount_cents, currency, locale)}</p>
                   </div>
-                  <CopyButton value={amountStr} />
+                  <CopyButton locale={locale} value={amountStr} />
                 </div>
                 <div className="flex items-center justify-between px-5 py-3.5">
                   <div>
-                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Zpráva</p>
+                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.message}</p>
                     <p className="text-sm text-[#0B1626] font-mono">{reference}</p>
                   </div>
-                  <CopyButton value={reference} />
+                  <CopyButton locale={locale} value={reference} />
                 </div>
               </div>
 
@@ -233,17 +328,17 @@ export default async function BookingTokenPage({ params }: Props) {
               {qrDataUrl && (
                 <div className="flex flex-col items-center justify-center px-5 py-4 gap-2 bg-white min-w-[120px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrDataUrl} alt="QR platba" width={100} height={100} className="rounded-sm" />
-                  <p className="text-[9px] text-[#0B1626]/30 uppercase tracking-wider text-center">QR platba</p>
+                  <img src={qrDataUrl} alt={t.qr} width={100} height={100} className="rounded-sm" />
+                  <p className="text-[9px] text-[#0B1626]/30 uppercase tracking-wider text-center">{t.qr}</p>
                 </div>
               )}
             </div>
 
             <div className="px-5 py-3.5 bg-amber-50/70 border-t border-amber-100/80">
               <p className="text-[11px] text-amber-700 leading-relaxed">
-                Po odeslání platby vám zašleme potvrzení na{' '}
+                {t.afterPayment}{' '}
                 <strong className="font-medium">{booking.guest_email}</strong>.
-                {' '}Máte otázky?{' '}
+                {' '}{t.questions}{' '}
                 <a href={`mailto:${CONTACT_EMAIL}`} className="underline hover:text-amber-900">
                   {CONTACT_EMAIL}
                 </a>
@@ -262,8 +357,8 @@ export default async function BookingTokenPage({ params }: Props) {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-[#0B1626]">Platba přijata · Rezervace potvrzena</p>
-                <p className="text-[11px] text-[#0B1626]/40 mt-0.5">Těšíme se na vás!</p>
+                <p className="text-sm font-medium text-[#0B1626]">{t.paidTitle}</p>
+                <p className="text-[11px] text-[#0B1626]/40 mt-0.5">{t.paidSub}</p>
               </div>
             </div>
 
@@ -273,10 +368,10 @@ export default async function BookingTokenPage({ params }: Props) {
                 {checkinInfo.door_code && (
                   <div className="flex items-center justify-between px-5 py-3.5">
                     <div>
-                      <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Kód ke dveřím</p>
+                      <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.doorCode}</p>
                       <p className="text-sm text-[#0B1626] font-mono font-medium">{checkinInfo.door_code}</p>
                     </div>
-                    <CopyButton value={checkinInfo.door_code} />
+                    <CopyButton locale={locale} value={checkinInfo.door_code} />
                   </div>
                 )}
                 {checkinInfo.wifi_name && (
@@ -288,18 +383,18 @@ export default async function BookingTokenPage({ params }: Props) {
                         <p className="text-[11px] text-[#0B1626]/50 font-mono mt-0.5">{checkinInfo.wifi_password}</p>
                       )}
                     </div>
-                    {checkinInfo.wifi_password && <CopyButton value={checkinInfo.wifi_password} />}
+                    {checkinInfo.wifi_password && <CopyButton locale={locale} value={checkinInfo.wifi_password} />}
                   </div>
                 )}
                 {checkinInfo.parking && (
                   <div className="px-5 py-3.5">
-                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Parkování</p>
+                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.parking}</p>
                     <p className="text-sm text-[#0B1626]">{checkinInfo.parking}</p>
                   </div>
                 )}
                 {checkinInfo.note && (
                   <div className="px-5 py-3.5">
-                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Pokyny k příjezdu</p>
+                    <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.arrivalNote}</p>
                     <p className="text-sm text-[#0B1626]/70 leading-relaxed">{checkinInfo.note}</p>
                   </div>
                 )}
@@ -312,7 +407,7 @@ export default async function BookingTokenPage({ params }: Props) {
         {staticApt && (
           <div className="bg-white border border-[#0B1626]/8 rounded-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-[#0B1626]/6">
-              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest">O apartmánu</p>
+              <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest">{t.about}</p>
             </div>
             <div className="px-5 py-4 flex flex-wrap gap-2 border-b border-[#0B1626]/5">
               {staticApt.features.map((f) => (
@@ -323,15 +418,15 @@ export default async function BookingTokenPage({ params }: Props) {
             </div>
             <div className="grid grid-cols-3 divide-x divide-[#0B1626]/5 border-b border-[#0B1626]/5">
               <div className="px-4 py-3">
-                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">Dispozice</p>
+                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">{t.layout}</p>
                 <p className="text-sm text-[#0B1626]">{staticApt.layout}</p>
               </div>
               <div className="px-4 py-3">
-                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">Plocha</p>
+                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">{t.area}</p>
                 <p className="text-sm text-[#0B1626]">{staticApt.totalArea}</p>
               </div>
               <div className="px-4 py-3">
-                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">Max. hostů</p>
+                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-1">{t.maxGuests}</p>
                 <p className="text-sm text-[#0B1626]">{staticApt.maxGuests}</p>
               </div>
             </div>
@@ -343,7 +438,7 @@ export default async function BookingTokenPage({ params }: Props) {
 
         {/* ZPRÁVY */}
         {!isCancelled && (
-          <MessagesThread token={params.token} guestName={guestFullName} />
+          <MessagesThread token={params.token} guestName={guestFullName} locale={locale} />
         )}
 
         {/* KONTAKT */}

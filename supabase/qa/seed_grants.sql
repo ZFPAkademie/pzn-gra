@@ -9,3 +9,6 @@ grant select (id, slug, building, unit, layout, area_m2, floor, owner_id, status
               in_rental_program, features, created_at, updated_at, title, base_price_cents,
               max_guests, description, orientation, rooms, subtitle)
   on public.apartments to authenticated;
+-- Zdroj: 013_i18n_en.sql — anglické texty apartmánů
+grant select (title_en, subtitle_en, orientation_en, description_en, features_en)
+  on public.apartments to anon, authenticated;

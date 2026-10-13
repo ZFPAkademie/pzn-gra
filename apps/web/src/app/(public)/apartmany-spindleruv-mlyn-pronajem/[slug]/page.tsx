@@ -6,7 +6,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getApartmentBySlugDB, getSalesManager } from '@/lib/apartments';
+import { getApartmentBySlugDB, getSalesManager, localizeApartment, layoutLabel } from '@/lib/apartments';
+import { getRequestLocale } from '@/lib/i18n-server';
 import { getFdmPriceFrom } from '@/lib/booking-engine/pricing';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
@@ -19,25 +20,88 @@ interface Props {
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const apt = await getApartmentBySlugDB(params.slug);
-  if (!apt) return { title: 'Apartmán nenalezen' };
+  const locale = getRequestLocale();
+  const raw = await getApartmentBySlugDB(params.slug);
+  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : 'Apartment not found' };
+  const apt = localizeApartment(raw, locale);
 
   return {
-    title: `${apt.title} | Pronájem | Pod Zlatým návrším`,
+    title: `${apt.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
   };
 }
 
+/** Plocha místnosti z DB („6,25 m²“) — v EN desetinná tečka */
+function roomArea(value: string, locale: 'cs' | 'en'): string {
+  return locale === 'cs' ? value : value.replace(/(\d),(\d)/g, '$1.$2');
+}
+
 export default async function RentalApartmentDetailPage({ params }: Props) {
-  const apt = await getApartmentBySlugDB(params.slug);
+  const locale = getRequestLocale();
+  const rawApt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
   const images = await getApartmentImages(params.slug);
 
-  if (!apt || !apt.for_rent) {
+  if (!rawApt || !rawApt.for_rent) {
     notFound();
   }
+  const apt = localizeApartment(rawApt, locale);
 
-  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString('cs-CZ') + ' m²' : '—';
+  const t = locale === 'cs' ? {
+    back: 'Zpět na přehled',
+    alsoForSale: 'I k prodeji',
+    maxGuests: (n: number | null) => `max. ${n} hostů`,
+    area: 'Plocha',
+    layout: 'Dispozice',
+    maxGuestsLabel: 'Max. hostů',
+    orientation: 'Orientace',
+    about: 'O apartmánu',
+    rooms: 'Členění',
+    hall: 'Vstupní hala',
+    bathroom: 'Koupelna',
+    bedroom: 'Ložnice',
+    livingKitchen: 'Pokoj s kuchyní',
+    features: 'Vybavení',
+    rentFrom: 'Pronájem od',
+    seasonal: 'Ceny se mohou lišit dle sezóny',
+    enquire: 'Poptat rezervaci',
+    orContact: 'Nebo nás kontaktujte přímo:',
+    saleTitle: 'Tento apartmán je i k prodeji',
+    saleText: 'Díky vybavení apartmánu můžete ihned bez dalších nákladů profitovat z pronájmu jednotky.',
+    managerTitle: manager.title,
+    mailSubject: `Zájem o koupi ${apt.title}`,
+    writeEmail: 'Napsat e-mail',
+    otherText: 'Prohlédněte si další dostupné apartmány',
+    allRentals: 'Všechny apartmány k pronájmu',
+  } : {
+    back: 'Back to overview',
+    alsoForSale: 'Also for sale',
+    maxGuests: (n: number | null) => `up to ${n} ${n === 1 ? 'guest' : 'guests'}`,
+    area: 'Floor area',
+    layout: 'Layout',
+    maxGuestsLabel: 'Max. guests',
+    orientation: 'Orientation',
+    about: 'About the apartment',
+    rooms: 'Room breakdown',
+    hall: 'Entrance hall',
+    bathroom: 'Bathroom',
+    bedroom: 'Bedroom',
+    livingKitchen: 'Living room with kitchen',
+    features: 'Amenities',
+    rentFrom: 'Rates from',
+    seasonal: 'Prices may vary by season',
+    enquire: 'Request a booking',
+    orContact: 'Or contact us directly:',
+    saleTitle: 'This apartment is also for sale',
+    saleText: "Thanks to the apartment's furnishings, you can benefit from renting out the unit immediately, with no further costs.",
+    managerTitle: manager.title === 'Manažer prodeje' ? 'Sales Manager' : manager.title,
+    mailSubject: `Interest in purchasing ${apt.title}`,
+    writeEmail: 'Send an email',
+    otherText: 'Browse our other available apartments',
+    allRentals: 'All apartments for rent',
+  };
+
+  const totalArea = apt.area_m2 ? apt.area_m2.toLocaleString(locale === 'cs' ? 'cs-CZ' : 'en-GB') + ' m²' : '—';
   // Cena „od": Front Desk Master (EUR), jinak lokální base_price (CZK)
   const fdmPriceFrom = apt.fdm_room_use_id ? await getFdmPriceFrom(apt.id) : null;
   const priceFrom = fdmPriceFrom
@@ -60,13 +124,13 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
-            Zpět na přehled
+            {t.back}
           </Link>
 
           <div className="flex items-center gap-4 mb-6">
             {alsoForSale && (
               <span className="px-4 py-2 bg-gold text-navy text-xs uppercase tracking-widest">
-                I k prodeji
+                {t.alsoForSale}
               </span>
             )}
           </div>
@@ -75,11 +139,11 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
             {apt.title}
           </h1>
           <div className="flex items-center gap-4 text-white/50">
-            <span>{apt.layout}</span>
+            <span>{layoutLabel(apt.layout, locale)}</span>
             <span>·</span>
             <span>{totalArea}</span>
             <span>·</span>
-            <span>max. {apt.max_guests} hostů</span>
+            <span>{t.maxGuests(apt.max_guests)}</span>
           </div>
         </div>
       </section>
@@ -99,26 +163,26 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Plocha</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.area}</p>
                   <p className="text-2xl font-light text-navy">{totalArea}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Dispozice</p>
-                  <p className="text-2xl font-light text-navy">{apt.layout ?? '—'}</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.layout}</p>
+                  <p className="text-2xl font-light text-navy">{apt.layout != null ? layoutLabel(apt.layout, locale) : '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Max. hostů</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.maxGuestsLabel}</p>
                   <p className="text-2xl font-light text-navy">{apt.max_guests ?? '—'}</p>
                 </div>
                 <div className="border-b border-navy/10 pb-4">
-                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Orientace</p>
+                  <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.orientation}</p>
                   <p className="text-2xl font-light text-navy">{apt.orientation ?? '—'}</p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-16">
-                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">O apartmánu</h2>
+                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.about}</h2>
                 <p className="text-navy/70 leading-relaxed text-lg whitespace-pre-line">
                   {apt.description}
                 </p>
@@ -127,25 +191,25 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
               {/* Room breakdown */}
               {apt.rooms && (
                 <div className="mb-16">
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Členění</h2>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.rooms}</h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Vstupní hala</p>
-                      <p className="text-xl text-navy">{apt.rooms.hall}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.hall}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.hall, locale)}</p>
                     </div>
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Koupelna</p>
-                      <p className="text-xl text-navy">{apt.rooms.bathroom}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bathroom}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.bathroom, locale)}</p>
                     </div>
                     {apt.rooms.bedroom && (
                       <div className="bg-stone p-6">
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Ložnice</p>
-                        <p className="text-xl text-navy">{apt.rooms.bedroom}</p>
+                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bedroom}</p>
+                        <p className="text-xl text-navy">{roomArea(apt.rooms.bedroom, locale)}</p>
                       </div>
                     )}
                     <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">Pokoj s kuchyní</p>
-                      <p className="text-xl text-navy">{apt.rooms.livingKitchen}</p>
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.livingKitchen}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.livingKitchen, locale)}</p>
                     </div>
                   </div>
                 </div>
@@ -154,7 +218,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
               {/* Features */}
               {apt.features && apt.features.length > 0 && (
                 <div>
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">Vybavení</h2>
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.features}</h2>
                   <div className="flex flex-wrap gap-3">
                     {apt.features.map((feature, i) => (
                       <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
@@ -178,18 +242,18 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                 />
               ) : (
                 <div className="bg-navy p-8">
-                  <p className="text-gold text-sm tracking-widest uppercase mb-4">Pronájem od</p>
+                  <p className="text-gold text-sm tracking-widest uppercase mb-4">{t.rentFrom}</p>
                   <p className="text-white/30 text-sm mb-8">
-                    Ceny se mohou lišit dle sezóny
+                    {t.seasonal}
                   </p>
                   <Link
                     href="/kontakt"
                     className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-[#b8913c] transition-colors mb-4"
                   >
-                    Poptat rezervaci
+                    {t.enquire}
                   </Link>
                   <div className="border-t border-white/10 pt-6 mt-6">
-                    <p className="text-white/50 text-sm mb-4">Nebo nás kontaktujte přímo:</p>
+                    <p className="text-white/50 text-sm mb-4">{t.orContact}</p>
                     <a
                       href="mailto:rezervace@podzlatymnavrsim.cz"
                       className="flex items-center text-white hover:text-gold transition-colors text-sm"
@@ -206,9 +270,9 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
               {/* Sale Card - only if also for sale */}
               {alsoForSale && (
                 <div className="bg-stone p-8 border-2 border-gold">
-                  <p className="text-gold text-sm tracking-widest uppercase mb-4">Tento apartmán je i k prodeji</p>
+                  <p className="text-gold text-sm tracking-widest uppercase mb-4">{t.saleTitle}</p>
                   <p className="text-navy/70 text-sm mb-6">
-                    Díky vybavení apartmánu můžete ihned bez dalších nákladů profitovat z pronájmu jednotky.
+                    {t.saleText}
                   </p>
 
                   <div className="flex items-center mb-6">
@@ -223,7 +287,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                     </div>
                     <div>
                       <p className="text-navy font-medium">{manager.name}</p>
-                      <p className="text-navy/50 text-xs">{manager.title}</p>
+                      <p className="text-navy/50 text-xs">{t.managerTitle}</p>
                     </div>
                   </div>
 
@@ -238,10 +302,10 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                       {manager.phone}
                     </a>
                     <a
-                      href={`mailto:${manager.email}?subject=Zájem o koupi ${apt.title}`}
+                      href={`mailto:${manager.email}?subject=${t.mailSubject}`}
                       className="flex items-center justify-center w-full py-3 border border-navy text-navy text-sm uppercase tracking-widest hover:bg-navy/5 transition-colors"
                     >
-                      Napsat e-mail
+                      {t.writeEmail}
                     </a>
                   </div>
                 </div>
@@ -255,13 +319,13 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
       <section className="py-16 bg-stone border-t border-navy/10">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-navy/50 mb-6">
-            Prohlédněte si další dostupné apartmány
+            {t.otherText}
           </p>
           <Link
             href="/apartmany-spindleruv-mlyn-pronajem"
             className="inline-flex items-center text-navy font-medium hover:text-gold transition-colors"
           >
-            Všechny apartmány k pronájmu
+            {t.allRentals}
             <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
             </svg>

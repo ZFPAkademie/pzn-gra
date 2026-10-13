@@ -6,13 +6,22 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/i18n-server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Standardy | Pod Zlatým návrším',
-  description: 'Vysoký standard vybavení našich apartmánů.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  if (getRequestLocale() === 'en') {
+    return {
+      title: 'Standards | Pod Zlatým návrším',
+      description: 'The high standard of furnishings in our apartments.',
+    };
+  }
+  return {
+    title: 'Standardy | Pod Zlatým návrším',
+    description: 'Vysoký standard vybavení našich apartmánů.',
+  };
+}
 
 export default async function StandardsPage() {
   const cookieStore = cookies();
@@ -34,12 +43,12 @@ export default async function StandardsPage() {
   } : {
     tagline: 'Quality in detail',
     title: 'Standards',
-    subtitle: 'Every apartment is designed with emphasis on comfort and timeless design',
+    subtitle: 'Every apartment is designed with an emphasis on comfort and timeless design',
     
     standards: [
-      { title: 'Interior', desc: 'Timeless design with emphasis on functionality. Quality materials and careful craftsmanship.' },
-      { title: 'Kitchen', desc: 'Fully equipped kitchen with modern appliances. Everything for comfortable cooking.' },
-      { title: 'Bathroom', desc: 'Spacious bathroom with quality sanitary ware. Luxury shower and premium cosmetics.' },
+      { title: 'Interior', desc: 'Timeless design with an emphasis on functionality. Quality materials and careful craftsmanship.' },
+      { title: 'Kitchen', desc: 'A fully equipped kitchen with modern appliances. Everything you need for comfortable cooking.' },
+      { title: 'Bathroom', desc: 'A spacious bathroom with quality sanitary ware. A luxury shower and premium toiletries.' },
       { title: 'Technology', desc: 'High-speed Wi-Fi, Smart TV and air conditioning in every apartment.' },
     ],
     

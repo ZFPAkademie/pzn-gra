@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookingCalendar } from './booking-calendar';
 import { BookingPriceSummary } from './booking-price-summary';
 import { BookingForm } from './booking-form';
+import { useLanguage } from '@/components/providers/language-provider';
 
 type Step = 'calendar' | 'form';
 
@@ -18,8 +19,39 @@ interface Props {
   currency?: 'CZK' | 'EUR';
 }
 
-function fmtDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+const TEXTS = {
+  cs: {
+    minStay: (n: number) => `Minimální pobyt jsou ${n} noci.`,
+    rentFrom: 'Pronájem od',
+    perNight: 'noc',
+    seasonal: 'Ceny se mohou lišit dle sezóny',
+    pickArrival: 'Vyberte datum příjezdu',
+    arrival: 'Příjezd',
+    pickDeparture: 'vyberte odjezd',
+    cancel: 'Zrušit',
+    book: 'Rezervovat',
+    dates: 'Termín',
+    nights: (_n: number) => 'nocí',
+    change: 'Změnit',
+  },
+  en: {
+    minStay: (n: number) => `The minimum stay is ${n} nights.`,
+    rentFrom: 'Rates from',
+    perNight: 'night',
+    seasonal: 'Prices may vary by season',
+    pickArrival: 'Select your arrival date',
+    arrival: 'Arrival',
+    pickDeparture: 'select your departure',
+    cancel: 'Cancel',
+    book: 'Book',
+    dates: 'Dates',
+    nights: (n: number) => (n === 1 ? 'night' : 'nights'),
+    change: 'Change',
+  },
+};
+
+function fmtDate(d: string, locale: 'cs' | 'en' = 'cs') {
+  return new Date(d + 'T12:00:00').toLocaleDateString(locale === 'cs' ? 'cs-CZ' : 'en-GB', { day: 'numeric', month: 'short' });
 }
 function nights(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
@@ -30,12 +62,14 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
   const [checkIn, setCheckIn]   = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
   const [error, setError]       = useState<string | null>(null);
+  const { locale } = useLanguage();
+  const t = locale === 'cs' ? TEXTS.cs : TEXTS.en;
 
   function handleDates(ci: string, co: string | null) {
     setCheckIn(ci); setCheckOut(co); setError(null);
     if (ci && co) {
       const n = nights(ci, co);
-      if (n < MIN_NIGHTS) setError(`Minimální pobyt jsou ${MIN_NIGHTS} noci.`);
+      if (n < MIN_NIGHTS) setError(t.minStay(MIN_NIGHTS));
     }
   }
 
@@ -54,14 +88,14 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
 
       {/* ── Price strip ── */}
       <div className="bg-[#0B1626] px-6 py-5">
-        <p className="text-[#C9A24D] text-[10px] tracking-[0.18em] uppercase mb-2">Pronájem od</p>
+        <p className="text-[#C9A24D] text-[10px] tracking-[0.18em] uppercase mb-2">{t.rentFrom}</p>
         <div className="flex items-baseline gap-2">
           <span className="text-[2.2rem] font-light text-white leading-none">
-            {basePricePerNight.toLocaleString('cs-CZ')}
+            {basePricePerNight.toLocaleString(locale === 'cs' ? 'cs-CZ' : 'en-GB')}
           </span>
-          <span className="text-white/40 text-sm">{currency === 'EUR' ? '€' : 'Kč'} / noc</span>
+          <span className="text-white/40 text-sm">{currency === 'EUR' ? '€' : 'Kč'} / {t.perNight}</span>
         </div>
-        <p className="text-white/25 text-[11px] mt-1.5">Ceny se mohou lišit dle sezóny</p>
+        <p className="text-white/25 text-[11px] mt-1.5">{t.seasonal}</p>
       </div>
 
       {/* ── Calendar / Form ── */}
@@ -80,12 +114,12 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
             <div className="mt-4 min-h-[20px]">
               {!checkIn && (
                 <p className="text-[11px] text-[#0B1626]/35 text-center tracking-wide">
-                  Vyberte datum příjezdu
+                  {t.pickArrival}
                 </p>
               )}
               {checkIn && !checkOut && (
                 <p className="text-[11px] text-[#0B1626]/50 text-center">
-                  Příjezd <span className="text-[#0B1626] font-medium">{fmtDate(checkIn)}</span> — vyberte odjezd
+                  {t.arrival} <span className="text-[#0B1626] font-medium">{fmtDate(checkIn, locale)}</span> — {t.pickDeparture}
                 </p>
               )}
               {error && (
@@ -106,13 +140,13 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
                     onClick={reset}
                     className="flex-none px-4 py-3 text-[11px] uppercase tracking-widest text-[#0B1626]/50 border border-[#0B1626]/15 hover:border-[#0B1626]/30 transition-colors"
                   >
-                    Zrušit
+                    {t.cancel}
                   </button>
                   <button
                     onClick={() => setStep('form')}
                     className="flex-1 py-3 bg-[#C9A24D] text-[#0B1626] text-[11px] uppercase tracking-widest font-medium hover:bg-[#b8913c] transition-colors"
                   >
-                    Rezervovat
+                    {t.book}
                   </button>
                 </div>
               </div>
@@ -125,17 +159,17 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
             {/* Selected dates bar */}
             <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#0B1626]/8">
               <div>
-                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">Termín</p>
+                <p className="text-[10px] text-[#0B1626]/35 uppercase tracking-widest mb-0.5">{t.dates}</p>
                 <p className="text-sm text-[#0B1626] font-medium">
-                  {fmtDate(checkIn)} → {fmtDate(checkOut)}
+                  {fmtDate(checkIn, locale)} → {fmtDate(checkOut, locale)}
                   <span className="text-[#0B1626]/40 font-normal ml-2">
-                    {nights(checkIn, checkOut)} nocí
+                    {nights(checkIn, checkOut)} {t.nights(nights(checkIn, checkOut))}
                   </span>
                 </p>
               </div>
               <button onClick={() => setStep('calendar')}
                 className="text-[11px] text-[#0B1626]/40 hover:text-[#0B1626] underline underline-offset-2 transition-colors">
-                Změnit
+                {t.change}
               </button>
             </div>
 
