@@ -15,6 +15,7 @@ import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
 import { formatMoney } from '@/lib/booking-engine/money';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -194,7 +195,8 @@ export default async function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section className="relative min-h-screen flex flex-col">
+      {/* pt-20 = výška fixní hlavičky, jinak obsah zajíždí pod ni; svh = skutečná výška na mobilu */}
+      <section className="relative min-h-screen min-h-[100svh] pt-20 flex flex-col">
         <div className="absolute inset-0">
           <Image
             src="/images/hero.jpg"
@@ -210,9 +212,9 @@ export default async function HomePage() {
           <AlpineOrnament variant="horizontal" className="w-full max-w-md mx-auto h-5 text-gold/40" />
         </div>
         
-        <div className="relative z-10 flex-1 flex items-center justify-center px-6">
+        <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-10 md:py-0">
           <div className="max-w-5xl mx-auto text-center">
-            <p className="text-sm tracking-[0.4em] uppercase text-gold mb-8">
+            <p className="text-xs md:text-sm tracking-[0.25em] md:tracking-[0.4em] uppercase text-gold mb-6 md:mb-8">
               {t.heroClaim}
             </p>
             
@@ -256,7 +258,7 @@ export default async function HomePage() {
           <MountainSilhouette className="w-full h-24 text-cream" />
         </div>
         
-        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-3">
           <span className="text-xs tracking-[0.3em] uppercase text-white/40">Scroll</span>
           <div className="w-px h-12 bg-gradient-to-b from-gold to-transparent" />
         </div>
@@ -352,7 +354,7 @@ export default async function HomePage() {
                   </div>
                   <div className="p-5 flex items-end justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-light text-navy group-hover:text-gold transition-colors">{apt.title}</h3>
+                      <h3 className="text-lg font-light text-navy group-hover:text-gold transition-colors"><ApartmentTitle title={apt.title} /></h3>
                       <p className="text-xs text-navy/50 mt-1">
                         {layoutLabel(apt.layout, locale)}
                         {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString(locale === 'en' ? 'en-GB' : 'cs-CZ')} m²` : ''}

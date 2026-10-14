@@ -11,6 +11,7 @@ import { formatMoney } from '@/lib/booking-engine/money';
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getRequestLocaleFull } from '@/lib/i18n-server';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 export const dynamic = 'force-dynamic';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
@@ -129,6 +130,15 @@ export default async function RentalApartmentsPage() {
   for (const a of apartments) priceFromBySlug[a.slug] = fdmPrices[a.id];
   const heroImages = await getHeroImagesBySlugs(apartments.map((a) => a.slug));
 
+  // Rozsahy pro pruh se statistikami počítané z dat, ne natvrdo
+  const areas  = apartments.map((a) => Number(a.area_m2)).filter((n) => n > 0);
+  const guests = apartments.map((a) => Number(a.max_guests)).filter((n) => n > 0);
+  const range  = (xs: number[]) => {
+    if (!xs.length) return '—';
+    const lo = Math.floor(Math.min(...xs)), hi = Math.floor(Math.max(...xs));
+    return lo === hi ? String(lo) : `${lo}–${hi}`;
+  };
+
   return (
     <>
       {/* Hero */}
@@ -149,17 +159,17 @@ export default async function RentalApartmentsPage() {
       {/* Quick Stats */}
       <section className="bg-gold py-8">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-navy">
+          <div className="grid grid-cols-2 gap-y-6 md:flex md:flex-wrap md:justify-center md:gap-16 text-navy">
             <div className="text-center">
               <p className="text-3xl font-light">{apartments.length}</p>
               <p className="text-sm opacity-70">{t.statApartments(apartments.length)}</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-light">35–45</p>
+              <p className="text-3xl font-light">{range(areas)}</p>
               <p className="text-sm opacity-70">{t.statArea}</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-light">2–4</p>
+              <p className="text-3xl font-light">{range(guests)}</p>
               <p className="text-sm opacity-70">{t.statGuests}</p>
             </div>
             <div className="text-center">
@@ -214,7 +224,7 @@ export default async function RentalApartmentsPage() {
                   {/* Content */}
                   <div className="p-6">
                     <h2 className="text-xl font-light text-navy group-hover:text-gold transition-colors mb-2">
-                      {apt.title}
+                      <ApartmentTitle title={apt.title} />
                     </h2>
 
                     <div className="flex items-center gap-4 text-sm text-navy/50 mb-4">

@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { getRequestLocaleFull } from '@/lib/i18n-server';
 import { getApartmentBySlugDB, localizeApartment, layoutLabel } from '@/lib/apartments';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -111,7 +112,7 @@ export default async function RentApartmentDetailPage({ params }: PageProps) {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
           <div className="max-w-6xl mx-auto">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
-              {apartment.title}
+              <ApartmentTitle title={apartment.title} />
             </h1>
             <p className="text-white/60 text-lg">
               {totalArea} · {layoutLabel(apartment.layout, locale)}

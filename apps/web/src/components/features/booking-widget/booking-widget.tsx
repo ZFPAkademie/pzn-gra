@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BookingCalendar } from './booking-calendar';
 import { BookingPriceSummary } from './booking-price-summary';
 import { BookingForm } from './booking-form';
@@ -90,6 +90,18 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
   const { locale } = useLanguage();
   const t = TEXTS[locale];
 
+  // Po přepnutí kalendář ↔ formulář vrátit pohled na začátek widgetu,
+  // jinak na mobilu host zůstane uprostřed formuláře (kalendář je vyšší).
+  const rootRef = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    const el = rootRef.current;
+    if (el && el.getBoundingClientRect().top < 80) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [step]);
+
   function handleDates(ci: string, co: string | null) {
     setCheckIn(ci); setCheckOut(co); setError(null);
     if (ci && co) {
@@ -109,7 +121,7 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
 
   return (
     /* sticky container */
-    <div className="sticky top-24 space-y-0">
+    <div ref={rootRef} className="lg:sticky lg:top-24 scroll-mt-24 space-y-0">
 
       {/* ── Price strip ── */}
       <div className="bg-[#0B1626] px-6 py-5">

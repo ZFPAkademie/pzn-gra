@@ -10,6 +10,7 @@ import { getSaleApartmentsDB, getSalesManager, localizeApartment, layoutLabel } 
 import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getRequestLocale } from '@/lib/i18n-server';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -148,7 +149,7 @@ export default async function SuitesPage() {
 
                     <div className={index % 2 === 1 ? 'md:order-1' : ''}>
                       <h2 className="text-3xl font-light text-navy group-hover:text-gold transition-colors mb-2">
-                        {apt.title}
+                        <ApartmentTitle title={apt.title} />
                       </h2>
                       <p className="text-navy/50 mb-6">{apt.subtitle}</p>
 

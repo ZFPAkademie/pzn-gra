@@ -14,6 +14,7 @@ import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { BookingWidget } from '@/components/features/booking-widget';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 interface Props {
   params: { slug: string };
 }
@@ -170,7 +171,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
-            {apt.title}
+            <ApartmentTitle title={apt.title} />
           </h1>
           <div className="flex items-center gap-4 text-white/50">
             <span>{layoutLabel(apt.layout, locale)}</span>

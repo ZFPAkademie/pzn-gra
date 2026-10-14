@@ -102,10 +102,10 @@ export function Footer() {
             </p>
           </div>
           <div className="flex items-center space-x-6 text-sm">
-            <Link href="#" className="text-white/30 hover:text-white/60 transition-colors">
+            <Link href="#" className="inline-block py-2 text-white/30 hover:text-white/60 transition-colors">
               {t('footer.privacy')}
             </Link>
-            <Link href="#" className="text-white/30 hover:text-white/60 transition-colors">
+            <Link href="#" className="inline-block py-2 text-white/30 hover:text-white/60 transition-colors">
               {t('footer.terms')}
             </Link>
           </div>

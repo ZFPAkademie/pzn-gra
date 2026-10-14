@@ -12,6 +12,7 @@ import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { SaleInfoBoxes, RealEstateProductBadge } from '@/components/features/sale-info-boxes';
 
+import { ApartmentTitle } from '@/components/features/apartment-title';
 interface Props {
   params: { slug: string };
 }
@@ -77,7 +78,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-4">
-            {apt.title}
+            <ApartmentTitle title={apt.title} />
           </h1>
           <p className="text-xl text-white/50">{apt.subtitle}</p>
         </div>
