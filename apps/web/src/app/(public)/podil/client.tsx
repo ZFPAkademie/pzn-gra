@@ -64,7 +64,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
               postal: formData.postalCode || geoData.postal,
             },
             source: 'podil',
-            apartment: 'chata-1-suite-7',
+            apartment: 'chata-2-suite-11', // = PODIL_APARTMENT_SLUG v texts.tsx (serverový modul, sem se neimportuje)
             locale,
           },
         }),

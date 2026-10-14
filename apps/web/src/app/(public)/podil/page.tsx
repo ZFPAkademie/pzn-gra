@@ -8,11 +8,10 @@ import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
-import { getSaleApartmentBySlug } from '@/lib/apartments';
 import { getApartmentImages, getApartmentHeroImage } from '@/data/apartment-images';
 import { AlpineOrnament, SectionLabel } from '@/components/ui/ornaments';
 import { ShareRequestForm } from './client';
-import { getPodilTexts, getPodilApartmentView } from './texts';
+import { getPodilTexts, getPodilApartment, getPodilApartmentView, PODIL_APARTMENT_SLUG } from './texts';
 
 export const dynamic = 'force-dynamic';
 
@@ -160,10 +159,10 @@ export default async function PodilPage() {
   const t = getPodilTexts(locale);
   const AVAILABLE_SHARES = await getAvailableShares();
 
-  // Get apartment 7 data (but don't mention the number)
-  const apartment = getSaleApartmentBySlug('chata-1-suite-7');
-  const heroImage = await getApartmentHeroImage('chata-1-suite-7');
-  const allImages = await getApartmentImages('chata-1-suite-7');
+  // Apartmán nabízený v podílech (číslo se na stránce neuvádí)
+  const apartment = await getPodilApartment(locale);
+  const heroImage = await getApartmentHeroImage(PODIL_APARTMENT_SLUG);
+  const allImages = await getApartmentImages(PODIL_APARTMENT_SLUG);
   const carouselImages = allImages.filter(img => img !== heroImage).slice(0, 6);
 
   if (!apartment) {

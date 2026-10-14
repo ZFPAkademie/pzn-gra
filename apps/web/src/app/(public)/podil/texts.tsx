@@ -6,8 +6,13 @@
  */
 
 import type { ReactNode } from 'react';
-import type { SaleApartment } from '@/lib/apartments';
-import { layoutLabel } from '@/lib/apartments';
+import type { ApartmentDB } from '@/lib/apartments';
+import {
+  getApartmentBySlugDB,
+  getSaleApartmentBySlug,
+  layoutLabel,
+  localizeApartment,
+} from '@/lib/apartments';
 
 type Locale = 'cs' | 'en';
 
@@ -118,9 +123,9 @@ const cs: PodilTexts = {
   specTotalArea: 'Celková plocha',
   specFloor: 'Patro',
   specOrientation: 'Orientace',
-  specHall: 'Předsíň',
+  specHall: 'Vstupní hala',
   specBathroom: 'Koupelna',
-  specLivingKitchen: 'Obývací pokoj s kuchyní',
+  specLivingKitchen: 'Pokoj s kuchyní',
   sharesTitle: 'Tento apartmán je nabízen v rámci družstevního vlastnictví',
   sharesText: (total, percent) =>
     `Můžete si koupit jeden podíl nebo celých ${total}. Každý podíl představuje ${percent} % vlastnictví apartmánu a odpovídající podíl na výnosech z pronájmu.`,
@@ -197,7 +202,7 @@ const en: PodilTexts = {
   specTotalArea: 'Total area',
   specFloor: 'Floor',
   specOrientation: 'Orientation',
-  specHall: 'Hallway',
+  specHall: 'Entrance hall',
   specBathroom: 'Bathroom',
   specLivingKitchen: 'Living room with kitchen',
   sharesTitle: 'This apartment is offered under cooperative ownership',
@@ -216,48 +221,59 @@ export function getPodilTexts(locale: Locale): PodilTexts {
   return locale === 'cs' ? cs : en;
 }
 
+/** Apartmán nabízený v družstevních podílech (číslo se na /podil nikde neuvádí). */
+export const PODIL_APARTMENT_SLUG = 'chata-2-suite-11';
+
 /**
- * Údaje nabízeného apartmánu ve zvoleném jazyce. CZ = beze změny ze statického JSON.
- * EN texty odpovídají migraci 013 (description_en, features_en, orientation_en) — bez čísla apartmánu.
+ * Apartmán pro /podil ze stejného zdroje jako detail /suites/[slug] (tabulka apartments),
+ * aby plochy a rozměry seděly s detailem. Při výpadku DB záloha ze statického JSON.
  */
-export function getPodilApartmentView(apartment: SaleApartment, locale: Locale) {
-  if (locale === 'cs') {
-    return {
-      description: apartment.description,
-      features: apartment.features,
-      layout: apartment.layout,
-      totalArea: apartment.totalArea,
-      floor: `${apartment.floor}. NP`,
-      orientation: apartment.orientation,
-      hall: apartment.rooms.hall,
-      bathroom: apartment.rooms.bathroom,
-      livingKitchen: apartment.rooms.livingKitchen,
-    };
-  }
-  const dot = (v: string | null | undefined) => (v ?? '').replace(/(\d),(\d)/g, '$1.$2');
+export async function getPodilApartment(locale: Locale): Promise<ApartmentDB | null> {
+  const fromDb = await getApartmentBySlugDB(PODIL_APARTMENT_SLUG);
+  if (fromDb) return localizeApartment(fromDb, locale);
+  const s = getSaleApartmentBySlug(PODIL_APARTMENT_SLUG);
+  if (!s) return null;
+  const area = Number.parseFloat(s.totalArea.replace(',', '.'));
+  return {
+    id: s.slug, slug: s.slug, title: s.title, subtitle: s.subtitle, layout: s.layout,
+    area_m2: Number.isFinite(area) ? area : null, floor: s.floor, orientation: s.orientation,
+    description: s.description, features: s.features, rooms: s.rooms,
+    max_guests: null, base_price_cents: null, fdm_room_use_id: null,
+    for_sale: true, for_rent: false, in_rental_program: false, status: s.status,
+    title_en: null, subtitle_en: null, orientation_en: null, description_en: null, features_en: null,
+    title_pl: null, subtitle_pl: null, orientation_pl: null, description_pl: null, features_pl: null,
+  };
+}
+
+/**
+ * Údaje nabízeného apartmánu ve zvoleném jazyce — formát ploch a podlaží stejný jako na /suites/[slug].
+ * Texty už jsou lokalizované přes getPodilApartment (description_en, features_en, orientation_en).
+ */
+export function getPodilApartmentView(apartment: ApartmentDB, locale: Locale) {
+  const en = locale === 'en';
+  const roomArea = (v: string | null | undefined) =>
+    v ? (en ? v.replace(/(\d),(\d)/g, '$1.$2') : v) : '—';
   // Czech NP numbering: 1. NP = ground floor (British convention)
   const ordinal = (n: number) => {
     const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th';
     return `${n}${s}`;
   };
-  const floorNo = Number(apartment.floor);
-  const floor = Number.isFinite(floorNo)
-    ? floorNo <= 1 ? 'Ground floor' : `${ordinal(floorNo - 1)} floor`
-    : String(apartment.floor);
-  const known = apartment.slug === 'chata-1-suite-7';
+  const floorNo = apartment.floor;
+  const floor =
+    floorNo == null ? '—'
+      : !en ? `${floorNo}. NP`
+      : floorNo <= 1 ? 'Ground floor' : `${ordinal(floorNo - 1)} floor`;
   return {
-    description: known
-      ? 'Apartment next to the staircase with a hallway offering space for a wardrobe, a spacious bathroom and an east-facing living room with kitchen overlooking the Labská ski slope. White kitchen units with wood décor, Electrolux appliances, underfloor heating in the bathroom, Laufen and Grohe fittings.'
-      : apartment.description,
-    features: known
-      ? ['View of the Labská ski slope', 'Electrolux appliances', 'Underfloor heating', 'Laufen and Grohe']
-      : apartment.features,
-    layout: layoutLabel(apartment.layout, 'en'),
-    totalArea: dot(apartment.totalArea),
+    description: apartment.description ?? '',
+    features: apartment.features ?? [],
+    layout: layoutLabel(apartment.layout, locale) || '—',
+    totalArea: apartment.area_m2 != null
+      ? Number(apartment.area_m2).toLocaleString(en ? 'en-GB' : 'cs-CZ') + ' m²'
+      : '—',
     floor,
-    orientation: known ? 'east' : apartment.orientation,
-    hall: dot(apartment.rooms.hall),
-    bathroom: dot(apartment.rooms.bathroom),
-    livingKitchen: dot(apartment.rooms.livingKitchen),
+    orientation: apartment.orientation ?? '—',
+    hall: roomArea(apartment.rooms?.hall),
+    bathroom: roomArea(apartment.rooms?.bathroom),
+    livingKitchen: roomArea(apartment.rooms?.livingKitchen),
   };
 }
