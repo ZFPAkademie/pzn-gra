@@ -1,7 +1,7 @@
 /**
  * Leads API
  * POST /api/v1/leads - Create new lead
- * Sends notifications to info@zfpreality.cz
+ * Sends notifications to info@zfpreality.cz + druzstvo@zfpakademie.cz
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -53,8 +53,8 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 5;
 const RATE_WINDOW = 60 * 1000; // 1 minute
 
-// Notification email for investment inquiries
-const NOTIFICATION_EMAIL = 'info@zfpreality.cz';
+// Příjemci notifikace o žádosti o podíl (družstvo)
+const NOTIFICATION_EMAILS = ['info@zfpreality.cz', 'druzstvo@zfpakademie.cz'];
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -108,7 +108,7 @@ Jazyk: ${lead.metadata?.locale || 'cs'}
       },
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL || 'Pod Zlatým návrším <info@zfpreality.cz>',
-        to: NOTIFICATION_EMAIL,
+        to: NOTIFICATION_EMAILS,
         subject: `Nová poptávka podílů: ${lead.name}`,
         text: emailBody,
       }),
