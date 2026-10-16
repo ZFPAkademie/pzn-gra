@@ -45,6 +45,18 @@ if (ref !== "local" && !(cfg.qa_refs ?? []).includes(ref)) {
   process.exit(3)
 }
 
+// Přímé připojení k Postgresu (SUPABASE_DB_URL, DATABASE_URL…) obchází NEXT_PUBLIC_SUPABASE_URL —
+// každá postgres:// adresa v QA env musí mířit na lokální stack (14. 10. 2026, Rituel/drizzle).
+function assertLocalPostgres(vars, failFn) {
+  for (const [k, v] of Object.entries(vars)) {
+    if (!/^postgres(ql)?:\/\//.test(v ?? "")) continue
+    let host
+    try { host = new URL(v).hostname } catch { host = "?" }
+    if (!["127.0.0.1", "localhost", "host.docker.internal"].includes(host)) failFn(`${k} míří na '${host}', ne na lokální QA databázi.`)
+  }
+}
+assertLocalPostgres(qa, (m) => { console.error(`\n  ZASTAVENO: ${m}\n`); process.exit(3) })
+
 const blanked = []
 const prod = existsSync(join(ROOT, ".env.local")) ? parse(join(ROOT, ".env.local")) : {}
 const childEnv = { ...process.env, ...qa }

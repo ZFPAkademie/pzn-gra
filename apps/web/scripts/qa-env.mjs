@@ -83,8 +83,20 @@ function fail(msg) {
   process.exit(3)
 }
 
+// Přímé připojení k Postgresu (SUPABASE_DB_URL, DATABASE_URL…) obchází NEXT_PUBLIC_SUPABASE_URL —
+// každá postgres:// adresa v QA env musí mířit na lokální stack (14. 10. 2026, Rituel/drizzle).
+function assertLocalPostgres(vars, failFn) {
+  for (const [k, v] of Object.entries(vars)) {
+    if (!/^postgres(ql)?:\/\//.test(v ?? "")) continue
+    let host
+    try { host = new URL(v).hostname } catch { host = "?" }
+    if (!["127.0.0.1", "localhost", "host.docker.internal"].includes(host)) failFn(`${k} míří na '${host}', ne na lokální QA databázi.`)
+  }
+}
+
 const qaConfig = readQaConfig()
 export const TARGET = targetRef(env.NEXT_PUBLIC_SUPABASE_URL)
+if (!process.env.VKQA_ALLOW_PROD) assertLocalPostgres(env, fail)
 
 const allowed = new Set(["local", ...(qaConfig.qa_refs ?? [])])
 if (!allowed.has(TARGET)) {
