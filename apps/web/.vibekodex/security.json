@@ -1,17 +1,57 @@
 {
   "ref": "nudiugowvzflokflcokd",
   "allow_read": [
-    { "table": "apartments", "why": "veřejný katalog apartmánů na webu (iCal token skrytý sloupcovým grantem, migrace 011)" },
-    { "table": "apartment_images", "why": "fotogalerie apartmánů na veřejném webu" },
-    { "table": "pricing_rules", "why": "veřejný ceník pronájmu (kalkulace ceny v rezervačním widgetu)" }
+    {
+      "table": "apartments",
+      "why": "veřejný katalog apartmánů na webu (iCal token skrytý sloupcovým grantem, migrace 011)"
+    },
+    {
+      "table": "apartment_images",
+      "why": "fotogalerie apartmánů na veřejném webu"
+    },
+    {
+      "table": "pricing_rules",
+      "why": "veřejný ceník pronájmu (kalkulace ceny v rezervačním widgetu)"
+    },
+    {
+      "table": "blocked_dates",
+      "why": "veřejný kalendář dostupnosti, bez osobních údajů — potvrzeno uživatelem 16. 10. 2026"
+    }
   ],
   "allow_api": [
-    { "route": "POST /api/v1/bookings", "why": "veřejná rezervace apartmánu" },
-    { "route": "POST /api/v1/leads", "why": "veřejný poptávkový formulář (prodej, podíly)" },
-    { "route": "POST /api/v1/contact", "why": "veřejný kontaktní formulář" },
-    { "route": "GET /api/v1/apartments/[slug]/availability", "why": "veřejná dostupnost a cena pro rezervační kalendář" },
-    { "route": "GET /api/v1/rezervace/[token]/messages", "why": "autorizace = znalost potvrzovacího tokenu rezervace (odkaz z e-mailu)" },
-    { "route": "POST /api/v1/rezervace/[token]/messages", "why": "autorizace = znalost potvrzovacího tokenu rezervace" },
-    { "route": "GET /api/v1/ical/[token]", "why": "iCal export pro Booking.com/Airbnb, token v URL je tajemství (ical_export_token)" }
+    {
+      "route": "POST /api/v1/bookings",
+      "why": "veřejná rezervace apartmánu"
+    },
+    {
+      "route": "POST /api/v1/leads",
+      "why": "veřejný poptávkový formulář (prodej, podíly)"
+    },
+    {
+      "route": "POST /api/v1/contact",
+      "why": "veřejný kontaktní formulář"
+    },
+    {
+      "route": "GET /api/v1/apartments/[slug]/availability",
+      "why": "veřejná dostupnost a cena pro rezervační kalendář"
+    },
+    {
+      "route": "GET /api/v1/rezervace/[token]/messages",
+      "why": "autorizace = znalost potvrzovacího tokenu rezervace (odkaz z e-mailu)"
+    },
+    {
+      "route": "POST /api/v1/rezervace/[token]/messages",
+      "why": "autorizace = znalost potvrzovacího tokenu rezervace"
+    },
+    {
+      "route": "GET /api/v1/ical/[token]",
+      "why": "iCal export pro Booking.com/Airbnb, token v URL je tajemství (ical_export_token)"
+    }
+  ],
+  "allow_insert": [
+    {
+      "table": "leads",
+      "why": "kontaktní/poptávkový formulář — potvrzeno uživatelem 16. 10. 2026"
+    }
   ]
 }
