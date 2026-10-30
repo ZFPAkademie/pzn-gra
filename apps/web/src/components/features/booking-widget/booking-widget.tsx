@@ -6,6 +6,7 @@ import { BookingPriceSummary } from './booking-price-summary';
 import { BookingForm } from './booking-form';
 import { useLanguage } from '@/components/providers/language-provider';
 import type { Locale } from '@/lib/i18n';
+import { nightsLabel } from '@/lib/booking-engine/dates';
 
 type Step = 'calendar' | 'form';
 
@@ -18,6 +19,9 @@ interface Props {
   basePricePerNight: number;
   /** Měna ceny „od“ — CZK (lokální ceník) nebo EUR (Front Desk Master) */
   currency?: 'CZK' | 'EUR';
+  /** Předvyplněný termín z hledání /volne-terminy */
+  initialCheckIn?: string;
+  initialCheckOut?: string;
 }
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
@@ -42,7 +46,7 @@ const TEXTS = {
     cancel: 'Zrušit',
     book: 'Rezervovat',
     dates: 'Termín',
-    nights: (_n: number) => 'nocí',
+    nights: (n: number) => nightsLabel(n, 'cs'),
     change: 'Změnit',
   },
   en: {
@@ -82,10 +86,10 @@ function nights(a: string, b: string) {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
 }
 
-export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePricePerNight, currency = 'CZK' }: Props) {
+export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePricePerNight, currency = 'CZK', initialCheckIn, initialCheckOut }: Props) {
   const [step, setStep]         = useState<Step>('calendar');
-  const [checkIn, setCheckIn]   = useState<string | null>(null);
-  const [checkOut, setCheckOut] = useState<string | null>(null);
+  const [checkIn, setCheckIn]   = useState<string | null>(initialCheckIn ?? null);
+  const [checkOut, setCheckOut] = useState<string | null>(initialCheckOut ?? null);
   const [error, setError]       = useState<string | null>(null);
   const { locale } = useLanguage();
   const t = TEXTS[locale];
@@ -121,7 +125,7 @@ export function BookingWidget({ apartmentId, apartmentSlug, maxGuests, basePrice
 
   return (
     /* sticky container */
-    <div ref={rootRef} className="lg:sticky lg:top-24 scroll-mt-24 space-y-0">
+    <div ref={rootRef} id="rezervace" className="lg:sticky lg:top-24 scroll-mt-24 space-y-0">
 
       {/* ── Price strip ── */}
       <div className="bg-[#0B1626] px-6 py-5">

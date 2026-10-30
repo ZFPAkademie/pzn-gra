@@ -18,6 +18,52 @@ export interface PriceResult {
   source: 'fdm' | 'local';
 }
 
+export interface FdmNight {
+  date: string;
+  price_cents: number | null;
+  min_stay: number | null;
+  currency: string | null;
+}
+
+/**
+ * Cena pobytu z nocí fdm_calendar — jediné místo výpočtu pro rezervaci i hledání termínů.
+ * Vrací null, když některá noc nemá cenu.
+ */
+export function priceFdmStay(
+  nightsByDate: Map<string, FdmNight>,
+  checkIn: string,
+  checkOut: string
+): PriceResult | null {
+  const breakdown: PriceBreakdown[] = [];
+  let totalCents = 0;
+  let minNights = 2;
+  let currency: BookingCurrency = 'EUR';
+
+  const current = new Date(checkIn + 'T00:00:00Z');
+  const end = new Date(checkOut + 'T00:00:00Z');
+  while (current < end) {
+    const dateStr = current.toISOString().slice(0, 10);
+    const d = nightsByDate.get(dateStr);
+    if (!d || d.price_cents == null) return null;
+    breakdown.push({ date: dateStr, pricePerNightCents: d.price_cents, ruleName: 'FDM' });
+    totalCents += d.price_cents;
+    if (d.min_stay && d.min_stay > minNights) minNights = d.min_stay;
+    if (d.currency === 'CZK' || d.currency === 'EUR') currency = d.currency;
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  const nights = breakdown.length;
+  return {
+    totalCents,
+    pricePerNightCents: nights > 0 ? Math.round(totalCents / nights) : 0,
+    nights,
+    minNights,
+    breakdown,
+    currency,
+    source: 'fdm',
+  };
+}
+
 /**
  * Ceník z FDM (fdm_calendar, Standard Rate). Vrací null, když apartmán není na FDM
  * napojen; když napojen je, ale některá noc nemá cenu, vrací { missing: true } —
@@ -44,35 +90,8 @@ async function calculateFdmPrice(
     .lt('date', checkOut)
     .order('date', { ascending: true });
 
-  const byDate = new Map((days ?? []).map((d) => [d.date as string, d]));
-  const breakdown: PriceBreakdown[] = [];
-  let totalCents = 0;
-  let minNights = 2;
-  let currency: BookingCurrency = 'EUR';
-
-  const current = new Date(checkIn + 'T00:00:00Z');
-  const end = new Date(checkOut + 'T00:00:00Z');
-  while (current < end) {
-    const dateStr = current.toISOString().slice(0, 10);
-    const d = byDate.get(dateStr);
-    if (!d || d.price_cents == null) return { missing: true };
-    breakdown.push({ date: dateStr, pricePerNightCents: d.price_cents, ruleName: 'FDM' });
-    totalCents += d.price_cents;
-    if (d.min_stay && d.min_stay > minNights) minNights = d.min_stay;
-    if (d.currency === 'CZK' || d.currency === 'EUR') currency = d.currency;
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
-
-  const nights = breakdown.length;
-  return {
-    totalCents,
-    pricePerNightCents: nights > 0 ? Math.round(totalCents / nights) : 0,
-    nights,
-    minNights,
-    breakdown,
-    currency,
-    source: 'fdm',
-  };
+  const byDate = new Map((days ?? []).map((d) => [d.date as string, d as FdmNight]));
+  return priceFdmStay(byDate, checkIn, checkOut) ?? { missing: true };
 }
 
 /** Batch varianta getFdmPriceFrom pro seznamy (sync → async: listy nemohou awaitovat v .map()). */

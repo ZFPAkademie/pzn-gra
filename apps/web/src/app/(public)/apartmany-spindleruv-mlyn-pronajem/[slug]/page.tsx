@@ -10,6 +10,7 @@ import { getApartmentBySlugDB, getSalesManager, localizeApartment, layoutLabel }
 import { getRequestLocaleFull } from '@/lib/i18n-server';
 import type { Locale } from '@/lib/i18n';
 import { getFdmPriceFrom } from '@/lib/booking-engine/pricing';
+import { parseStay } from '@/lib/booking-engine/dates';
 import { getApartmentImages } from '@/data/apartment-images';
 import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { BookingWidget } from '@/components/features/booking-widget';
@@ -17,6 +18,8 @@ import { BookingWidget } from '@/components/features/booking-widget';
 import { ApartmentTitle } from '@/components/features/apartment-title';
 interface Props {
   params: { slug: string };
+  /** Termín z hledání /volne-terminy */
+  searchParams: { od?: string; do?: string };
 }
 
 export const dynamic = 'force-dynamic';
@@ -40,7 +43,7 @@ function roomArea(value: string, locale: Locale): string {
   return locale === 'cs' || locale === 'pl' ? value : value.replace(/(\d),(\d)/g, '$1.$2');
 }
 
-export default async function RentalApartmentDetailPage({ params }: Props) {
+export default async function RentalApartmentDetailPage({ params, searchParams }: Props) {
   const locale = getRequestLocaleFull();
   const rawApt = await getApartmentBySlugDB(params.slug);
   const manager = getSalesManager();
@@ -145,6 +148,7 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
       ? { amount: Math.round(apt.base_price_cents / 100), currency: 'CZK' as const }
       : null;
   const hasBookingEngine = !!apt.id && !!priceFrom;
+  const stay = parseStay(searchParams.od, searchParams.do);
   const alsoForSale = apt.for_sale;
 
   return (
@@ -274,6 +278,8 @@ export default async function RentalApartmentDetailPage({ params }: Props) {
                   maxGuests={apt.max_guests ?? 4}
                   basePricePerNight={priceFrom?.amount ?? 0}
                   currency={priceFrom?.currency ?? 'CZK'}
+                  initialCheckIn={stay?.checkIn}
+                  initialCheckOut={stay?.checkOut}
                 />
               ) : (
                 <div className="bg-navy p-8">

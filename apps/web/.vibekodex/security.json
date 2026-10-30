@@ -46,6 +46,10 @@
     {
       "route": "GET /api/v1/ical/[token]",
       "why": "iCal export pro Booking.com/Airbnb, token v URL je tajemství (ical_export_token)"
+    },
+    {
+      "route": "GET /api/v1/availability",
+      "why": "veřejný vyhledávací kalendář: jen seznam dnů bez volného apartmánu, žádné osobní údaje (hledání podle termínu schváleno uživatelem 30. 10. 2026)"
     }
   ],
   "allow_insert": [

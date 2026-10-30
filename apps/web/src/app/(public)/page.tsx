@@ -16,6 +16,7 @@ import { getFdmPriceFromMany } from '@/lib/booking-engine/pricing';
 import { formatMoney } from '@/lib/booking-engine/money';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { DateSearchBar } from '@/components/features/date-search';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -213,12 +214,13 @@ export default async function HomePage() {
         </div>
         
         <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-10 md:py-0">
-          <div className="max-w-5xl mx-auto text-center">
+          {/* Na mobilu je panel hned pod nadpisem, aby byl vidět bez posouvání */}
+          <div className="max-w-5xl mx-auto text-center flex flex-col">
             <p className="text-xs md:text-sm tracking-[0.25em] md:tracking-[0.4em] uppercase text-gold mb-6 md:mb-8">
               {t.heroClaim}
             </p>
             
-            <h1 className="mb-8">
+            <h1 className="mb-6 md:mb-8">
               <span className="block text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-wide leading-[1.15]">
                 {t.heroTitle1}
               </span>
@@ -227,20 +229,24 @@ export default async function HomePage() {
               </span>
             </h1>
             
-            <div className="flex items-center justify-center gap-6 my-10">
+            <div className="hidden md:flex md:order-1 items-center justify-center gap-6 my-10">
               <div className="w-20 h-px bg-gradient-to-r from-transparent to-gold/40" />
               <AlpineOrnament variant="diamond" className="w-5 h-5 text-gold/60" />
               <div className="w-20 h-px bg-gradient-to-l from-transparent to-gold/40" />
             </div>
             
-            <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+            <p className="order-2 text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mt-8 md:mt-0 mb-10 font-light leading-relaxed">
               {t.heroText}
             </p>
+
+            <div className="order-1 md:order-3 w-full max-w-3xl mx-auto md:mb-6">
+              <DateSearchBar />
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="order-3 flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/apartmany-spindleruv-mlyn-pronajem"
-                className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-[0.2em] uppercase hover:bg-white transition-colors duration-500"
+                className="inline-block px-10 py-4 border border-white/30 text-white text-sm tracking-[0.2em] uppercase hover:bg-white/10 hover:border-gold transition-all duration-500"
               >
                 {t.cta}
               </Link>
@@ -258,7 +264,7 @@ export default async function HomePage() {
           <MountainSilhouette className="w-full h-24 text-cream" />
         </div>
         
-        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-3">
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 hidden [@media(min-width:768px)_and_(min-height:1080px)]:flex flex-col items-center gap-3">
           <span className="text-xs tracking-[0.3em] uppercase text-white/40">Scroll</span>
           <div className="w-px h-12 bg-gradient-to-b from-gold to-transparent" />
         </div>

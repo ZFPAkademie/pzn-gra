@@ -6,6 +6,8 @@ import { admin, TARGET } from "./qa-env.mjs"
 
 export const QA_APT_ID = "00000000-0000-4000-8000-000000000a01"
 export const QA_APT_SLUG = "qa-apartman"
+export const QA_FDM_APT_ID = "00000000-0000-4000-8000-000000000a02"
+export const QA_FDM_APT_SLUG = "qa-apartman-fdm"
 
 const { error: e1 } = await admin.from("apartments").upsert({
   id: QA_APT_ID,
@@ -31,4 +33,38 @@ if (e2) { console.error("seed pricing_rules:", e2.message); process.exit(1) }
 await admin.from("bookings").delete().eq("apartment_id", QA_APT_ID)
 await admin.from("blocked_dates").delete().eq("apartment_id", QA_APT_ID)
 
-console.log(`seed hotov (${TARGET}): apartmán ${QA_APT_SLUG}`)
+// Apartmán napojený na Front Desk Master pro hledání podle termínu: 60 dní, 100 €/noc, minimum 2 noci.
+// Dny +20 až +22 obsazené, noc +30 s minimem 4 noci (jako Silvestr), +40 s jinou cenou.
+const { error: e3 } = await admin.from("apartments").upsert({
+  id: QA_FDM_APT_ID,
+  slug: QA_FDM_APT_SLUG,
+  title: "QA apartmán FDM",
+  building: "A", unit: "2", layout: "1+kk", area_m2: 40, floor: 1,
+  status: "sold", for_sale: false, for_rent: true, in_rental_program: true,
+  base_price_cents: 250000, max_guests: 4, fdm_room_use_id: 9001,
+}, { onConflict: "id" })
+if (e3) { console.error("seed apartments fdm:", e3.message); process.exit(1) }
+
+const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Prague" })
+const dayOffset = (n) => {
+  const d = new Date(today + "T00:00:00Z")
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+await admin.from("fdm_calendar").delete().eq("apartment_id", QA_FDM_APT_ID)
+const { error: e4 } = await admin.from("fdm_calendar").insert(
+  Array.from({ length: 60 }, (_, n) => ({
+    apartment_id: QA_FDM_APT_ID,
+    date: dayOffset(n),
+    available: n < 20 || n > 22,
+    price_cents: n === 40 ? 15000 : 10000,
+    currency: "EUR",
+    min_stay: n === 30 ? 4 : 2,
+    closed: false,
+  }))
+)
+if (e4) { console.error("seed fdm_calendar:", e4.message); process.exit(1) }
+await admin.from("bookings").delete().eq("apartment_id", QA_FDM_APT_ID)
+await admin.from("blocked_dates").delete().eq("apartment_id", QA_FDM_APT_ID)
+
+console.log(`seed hotov (${TARGET}): apartmány ${QA_APT_SLUG}, ${QA_FDM_APT_SLUG}`)

@@ -17,6 +17,7 @@ export function Header() {
   // Pronájem na prvním místě; prodej, o projektu a investice jsou pod „Prodej" (13. 10. 2026)
   const navItems = [
     { href: '/apartmany-spindleruv-mlyn-pronajem', label: t('nav.rental') },
+    { href: '/volne-terminy', label: t('nav.availability') },
     { href: '/lokalita', label: t('nav.location') },
   ];
   const saleItems = [

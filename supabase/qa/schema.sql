@@ -1172,3 +1172,72 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
+
+
+-- ═══ Doplněno 30. 10. 2026: struktura z migrací 012–014, které jsou novější než dump z 9. 10. ═══
+-- Nový dump z lokálního stacku nejde (DB host jen IPv6, kontejner v Colimě IPv6 neumí).
+-- Jen DDL: seed běží jako dávka a UPDATE by se kontroloval dřív, než tabulka vznikne.
+-- Shodu s produkcí ověřuje os/qa/parity.sh.
+
+-- ─── 012_fdm_integration.sql ───
+ALTER TABLE public.apartments
+  ADD COLUMN IF NOT EXISTS fdm_room_use_id int UNIQUE;
+CREATE TABLE IF NOT EXISTS public.fdm_calendar (
+  apartment_id uuid NOT NULL REFERENCES public.apartments(id) ON DELETE CASCADE,
+  date date NOT NULL,
+  available boolean NOT NULL DEFAULT false,
+  price_cents int,                       -- Standard Rate, v měně currency
+  currency text NOT NULL DEFAULT 'EUR',
+  min_stay int,                          -- MinStayArrival z FDM restrictions
+  closed boolean NOT NULL DEFAULT false, -- Closed / ClosedOnArrival
+  synced_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (apartment_id, date)
+);
+ALTER TABLE public.fdm_calendar ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.fdm_calendar TO service_role;
+REVOKE ALL ON public.fdm_calendar FROM anon, authenticated;
+CREATE INDEX IF NOT EXISTS fdm_calendar_date_idx ON public.fdm_calendar (date);
+CREATE TABLE IF NOT EXISTS public.fdm_sync_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  started_at timestamptz NOT NULL DEFAULT now(),
+  finished_at timestamptz,
+  apartments int NOT NULL DEFAULT 0,
+  days int NOT NULL DEFAULT 0,
+  error text
+);
+ALTER TABLE public.fdm_sync_log ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.fdm_sync_log TO service_role;
+REVOKE ALL ON public.fdm_sync_log FROM anon, authenticated;
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS fdm_reservation_code text,
+  ADD COLUMN IF NOT EXISTS fdm_guest_account_id text,
+  ADD COLUMN IF NOT EXISTS fdm_sync_status text NOT NULL DEFAULT 'skipped'
+    CHECK (fdm_sync_status IN ('pending', 'synced', 'failed', 'skipped')),
+  ADD COLUMN IF NOT EXISTS fdm_sync_error text,
+  ADD COLUMN IF NOT EXISTS fdm_synced_at timestamptz;
+CREATE INDEX IF NOT EXISTS bookings_fdm_reservation_code_idx
+  ON public.bookings (fdm_reservation_code) WHERE fdm_reservation_code IS NOT NULL;
+
+-- ─── 013_i18n_en.sql ───
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS title_en text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS subtitle_en text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS orientation_en text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS description_en text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS features_en jsonb;
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'cs';
+DO $$ BEGIN
+  ALTER TABLE public.bookings ADD CONSTRAINT bookings_language_check CHECK (language IN ('cs', 'en'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+grant select (title_en, subtitle_en, orientation_en, description_en, features_en)
+  on public.apartments to anon, authenticated;
+
+-- ─── 014_i18n_pl.sql ───
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS title_pl text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS subtitle_pl text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS orientation_pl text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS description_pl text;
+ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS features_pl jsonb;
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_language_check;
+ALTER TABLE public.bookings ADD CONSTRAINT bookings_language_check CHECK (language IN ('cs', 'en', 'pl'));
+grant select (title_pl, subtitle_pl, orientation_pl, description_pl, features_pl)
+  on public.apartments to anon, authenticated;

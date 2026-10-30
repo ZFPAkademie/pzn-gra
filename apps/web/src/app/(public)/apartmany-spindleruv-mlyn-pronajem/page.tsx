@@ -12,6 +12,7 @@ import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { DateSearchBar } from '@/components/features/date-search';
 export const dynamic = 'force-dynamic';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
@@ -150,9 +151,10 @@ export default async function RentalApartmentsPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6">
             {t.h1}
           </h1>
-          <p className="text-xl text-white/50 max-w-xl">
+          <p className="text-xl text-white/50 max-w-xl mb-10">
             {t.lead}
           </p>
+          <DateSearchBar />
         </div>
       </section>
 

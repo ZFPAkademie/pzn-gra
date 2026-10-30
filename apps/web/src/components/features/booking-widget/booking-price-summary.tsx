@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { formatMoney } from '@/lib/booking-engine/money';
+import { nightsLabel } from '@/lib/booking-engine/dates';
 import { useLanguage } from '@/components/providers/language-provider';
 
 interface Props {
@@ -31,7 +32,7 @@ const TEXTS = {
     loadFailed: 'Nepodařilo se načíst cenu',
     unavailable: 'Vybrané termíny nejsou volné. Zvolte jiné datum.',
     summary: 'Přehled ceny',
-    nights: (_n: number) => 'nocí',
+    nights: (n: number) => nightsLabel(n, 'cs'),
     total: 'Celkem',
   },
   en: {

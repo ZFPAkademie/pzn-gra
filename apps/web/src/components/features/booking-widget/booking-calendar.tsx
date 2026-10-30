@@ -44,8 +44,9 @@ export function BookingCalendar({ apartmentSlug, selectedCheckIn, selectedCheckO
   const now = new Date(); now.setHours(0,0,0,0);
   const todayStr = iso(now.getFullYear(), now.getMonth()+1, now.getDate());
 
-  const [year, setYear]   = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth()+1);
+  // Předvyplněný termín: otevřít rovnou na jeho měsíci
+  const [year, setYear]   = useState(selectedCheckIn ? Number(selectedCheckIn.slice(0,4)) : now.getFullYear());
+  const [month, setMonth] = useState(selectedCheckIn ? Number(selectedCheckIn.slice(5,7)) : now.getMonth()+1);
   const [cache, setCache] = useState<Record<string,Set<string>>>({});
   const [hover, setHover] = useState<string|null>(null);
 
