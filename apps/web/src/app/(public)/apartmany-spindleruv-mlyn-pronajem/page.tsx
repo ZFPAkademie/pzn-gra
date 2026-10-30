@@ -72,6 +72,9 @@ export default async function RentalApartmentsPage() {
     ctaTitle: 'Chcete rezervovat?',
     ctaText: 'Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.',
     ctaButton: 'Kontaktovat nás',
+    noFixedDates: 'Nemáte přesný termín?',
+    nearestStays: 'Zobrazit nejbližší volné pobyty',
+    ctaFreeDates: 'Zobrazit volné termíny',
   },
     en: {
     eyebrow: 'Rentals',
@@ -97,6 +100,9 @@ export default async function RentalApartmentsPage() {
     ctaTitle: 'Would you like to book?',
     ctaText: 'Contact us to make a reservation or for more information on availability.',
     ctaButton: 'Contact us',
+    noFixedDates: 'No fixed dates?',
+    nearestStays: 'See the next available stays',
+    ctaFreeDates: 'See available dates',
   },
     pl: {
       eyebrow: 'Wynajem',
@@ -122,6 +128,9 @@ export default async function RentalApartmentsPage() {
       ctaTitle: 'Chcą Państwo zarezerwować?',
       ctaText: 'Prosimy o kontakt w celu rezerwacji lub uzyskania informacji o dostępności.',
       ctaButton: 'Kontakt',
+      noFixedDates: 'Nie mają Państwo ustalonego terminu?',
+      nearestStays: 'Zobacz najbliższe wolne pobyty',
+      ctaFreeDates: 'Zobacz wolne terminy',
     },
   };
   const t = T[locale];
@@ -155,6 +164,15 @@ export default async function RentalApartmentsPage() {
             {t.lead}
           </p>
           <DateSearchBar />
+          <p className="mt-3 text-sm text-white/50">
+            {t.noFixedDates}{' '}
+            <Link
+              href="/volne-terminy"
+              className="inline-block py-2 text-gold border-b border-gold/40 hover:border-gold transition-colors"
+            >
+              {t.nearestStays}
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -293,12 +311,20 @@ export default async function RentalApartmentsPage() {
           <p className="text-white/50 mb-8 max-w-md mx-auto">
             {t.ctaText}
           </p>
-          <Link
-            href="/kontakt"
-            className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
-          >
-            {t.ctaButton}
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/volne-terminy"
+              className="inline-block px-10 py-4 bg-gold text-navy text-sm tracking-widest uppercase hover:bg-gold-400 transition-colors"
+            >
+              {t.ctaFreeDates}
+            </Link>
+            <Link
+              href="/kontakt"
+              className="inline-block px-10 py-4 border border-white/30 text-white text-sm tracking-widest uppercase hover:border-gold transition-colors"
+            >
+              {t.ctaButton}
+            </Link>
+          </div>
         </div>
       </section>
     </>

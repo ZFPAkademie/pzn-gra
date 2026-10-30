@@ -120,4 +120,12 @@ const apiPrice = async (from, to) =>
   check("detail s termínem z hledání: rezervační widget", r.status === 200 && html.includes('id="rezervace"'), String(r.status))
 }
 
+{
+  const r = await fetch(`${BASE}/apartmany-spindleruv-mlyn-pronajem`)
+  const html = await r.text()
+  const links = html.match(/href="\/volne-terminy"/g)?.length ?? 0
+  // Hlavička + odkaz pod panelem + tlačítko na konci stránky
+  check("stránka Pronájem odkazuje na volné termíny", r.status === 200 && links >= 3, `${links} odkazů`)
+}
+
 process.exit(summary())
