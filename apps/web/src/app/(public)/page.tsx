@@ -17,6 +17,7 @@ import { formatMoney } from '@/lib/booking-engine/money';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
 import { DateSearchBar } from '@/components/features/date-search';
+import { GUEST_RATING, formatScore } from '@/data/stay-info';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -111,6 +112,7 @@ export default async function HomePage() {
       distance: 'Od lanovky',
       slope: 'Délka sjezdovky',
       completed: 'Kolaudováno',
+      rating: `Hodnocení hostů · ${GUEST_RATING.source}`,
     },
 
     labelRental: '01 · Pronájem',
@@ -182,6 +184,7 @@ export default async function HomePage() {
       distance: 'From the lift',
       slope: 'Slope length',
       completed: 'Completed',
+      rating: `Guest rating · ${GUEST_RATING.source}`,
     },
 
     labelRental: '01 · Rentals',
@@ -284,7 +287,7 @@ export default async function HomePage() {
             <Stat value={String(rentalCount)} label={t.stats.apartments} />
             <Stat value="50" unit="m" label={t.stats.distance} />
             <Stat value={locale === 'en' ? '1,770' : '1 770'} unit="m" label={t.stats.slope} />
-            <Stat value="XI/23" label={t.stats.completed} />
+            <Stat value={formatScore(GUEST_RATING.score, locale)} unit="/10" label={t.stats.rating} />
           </div>
         </div>
       </section>

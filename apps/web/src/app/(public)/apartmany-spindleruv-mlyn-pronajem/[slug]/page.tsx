@@ -16,6 +16,17 @@ import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { BookingWidget } from '@/components/features/booking-widget';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { bedConfiguration } from '@/data/stay-info';
+import {
+  DirectBookingBenefits,
+  GuestReviews,
+  LocationMap,
+  NearbyList,
+  StayFaq,
+  StayPractical,
+  StayRules,
+} from '@/components/features/guest-info';
+
 interface Props {
   params: { slug: string };
   /** Termín z hledání /volne-terminy */
@@ -63,6 +74,7 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
     layout: 'Dispozice',
     maxGuestsLabel: 'Max. hostů',
     orientation: 'Orientace',
+    beds: 'Lůžka',
     about: 'O apartmánu',
     rooms: 'Členění',
     hall: 'Vstupní hala',
@@ -90,6 +102,7 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
     layout: 'Layout',
     maxGuestsLabel: 'Max. guests',
     orientation: 'Orientation',
+    beds: 'Beds',
     about: 'About the apartment',
     rooms: 'Room breakdown',
     hall: 'Entrance hall',
@@ -117,6 +130,7 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
       layout: 'Układ',
       maxGuestsLabel: 'Maks. gości',
       orientation: 'Orientacja',
+      beds: 'Łóżka',
       about: 'O apartamencie',
       rooms: 'Pomieszczenia',
       hall: 'Przedpokój',
@@ -219,6 +233,12 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                 </div>
               </div>
 
+              {/* Beds — konfigurace shodná s Booking.com, odvozená z dispozice a kapacity */}
+              <div className="mb-16 -mt-8 border-b border-navy/10 pb-4">
+                <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.beds}</p>
+                <p className="text-lg font-light text-navy">{bedConfiguration(apt, locale)}</p>
+              </div>
+
               {/* Description */}
               <div className="mb-16">
                 <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.about}</h2>
@@ -226,51 +246,10 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                   {apt.description}
                 </p>
               </div>
-
-              {/* Room breakdown */}
-              {apt.rooms && (
-                <div className="mb-16">
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.rooms}</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.hall}</p>
-                      <p className="text-xl text-navy">{roomArea(apt.rooms.hall, locale)}</p>
-                    </div>
-                    <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bathroom}</p>
-                      <p className="text-xl text-navy">{roomArea(apt.rooms.bathroom, locale)}</p>
-                    </div>
-                    {apt.rooms.bedroom && (
-                      <div className="bg-stone p-6">
-                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bedroom}</p>
-                        <p className="text-xl text-navy">{roomArea(apt.rooms.bedroom, locale)}</p>
-                      </div>
-                    )}
-                    <div className="bg-stone p-6">
-                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.livingKitchen}</p>
-                      <p className="text-xl text-navy">{roomArea(apt.rooms.livingKitchen, locale)}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Features */}
-              {apt.features && apt.features.length > 0 && (
-                <div>
-                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.features}</h2>
-                  <div className="flex flex-wrap gap-3">
-                    {apt.features.map((feature, i) => (
-                      <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Right: Booking Widget */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 lg:row-span-2 space-y-6">
               {hasBookingEngine ? (
                 <BookingWidget
                   apartmentId={apt.id}
@@ -307,6 +286,8 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                   </div>
                 </div>
               )}
+
+              <DirectBookingBenefits locale={locale} />
 
               {/* Sale Card - only if also for sale */}
               {alsoForSale && (
@@ -352,6 +333,71 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                 </div>
               )}
             </div>
+
+            {/* Left (pokračování): na mobilu až za rezervačním panelem, na desktopu pod galerií */}
+            <div className="lg:col-span-2">
+              {/* Room breakdown */}
+              {apt.rooms && (
+                <div className="mb-16">
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.rooms}</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.hall}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.hall, locale)}</p>
+                    </div>
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bathroom}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.bathroom, locale)}</p>
+                    </div>
+                    {apt.rooms.bedroom && (
+                      <div className="bg-stone p-6">
+                        <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bedroom}</p>
+                        <p className="text-xl text-navy">{roomArea(apt.rooms.bedroom, locale)}</p>
+                      </div>
+                    )}
+                    <div className="bg-stone p-6">
+                      <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.livingKitchen}</p>
+                      <p className="text-xl text-navy">{roomArea(apt.rooms.livingKitchen, locale)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Features */}
+              {apt.features && apt.features.length > 0 && (
+                <div className="mb-16">
+                  <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.features}</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {apt.features.map((feature, i) => (
+                      <span key={i} className="px-4 py-2 bg-stone text-navy text-sm">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Informace pro hosty — převzato z inzerátu na Booking.com (1. 11. 2026), zdroj @/data/stay-info */}
+              <div className="mb-16">
+                <StayPractical locale={locale} />
+              </div>
+              <div className="mb-16">
+                <StayRules locale={locale} />
+              </div>
+              <div className="mb-16">
+                <GuestReviews locale={locale} />
+              </div>
+              <div className="mb-16 grid md:grid-cols-5 gap-10">
+                <div className="md:col-span-3">
+                  <LocationMap locale={locale} />
+                </div>
+                <div className="md:col-span-2">
+                  <NearbyList locale={locale} limit={6} />
+                </div>
+              </div>
+              <StayFaq locale={locale} />
+            </div>
+
           </div>
         </div>
       </section>

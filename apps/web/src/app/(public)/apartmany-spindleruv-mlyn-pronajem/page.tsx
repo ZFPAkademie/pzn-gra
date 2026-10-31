@@ -13,6 +13,7 @@ import { getRequestLocaleFull } from '@/lib/i18n-server';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
 import { DateSearchBar } from '@/components/features/date-search';
+import { GuestRatingBadge, StayRules, StayFaq } from '@/components/features/guest-info';
 export const dynamic = 'force-dynamic';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
@@ -65,10 +66,16 @@ export default async function RentalApartmentsPage() {
     featuresTitle: 'Všechny apartmány nabízejí',
     features: [
       { title: 'Designový nábytek', desc: 'KARE Design' },
-      { title: 'Plná výbava', desc: 'Myčka, trouba, kávovar' },
-      { title: 'Komfort', desc: 'TV, Wi-Fi, trezor' },
-      { title: 'Umístění', desc: '50 m od lanovky' },
+      { title: 'Plná výbava', desc: 'Myčka, trouba, kávovar, pračka' },
+      { title: 'Komfort', desc: 'TV se streamováním, Wi-Fi, trezor' },
+      { title: 'Umístění', desc: '50 m od lanovky Labská' },
+      { title: 'Parkování zdarma', desc: 'Soukromé, přímo u domu' },
+      { title: 'Lyžárna a kolárna', desc: 'Uzamykatelná, v přízemí' },
+      { title: 'Samoobslužný příjezd', desc: '16:00–24:00, klíče ve schránce' },
+      { title: 'Mazlíčci vítáni', desc: 'Za poplatek, na vyžádání' },
     ],
+    directTitle: 'Proč rezervovat přímo',
+    directText: 'Rezervujete u provozovatele apartmánů, bez zprostředkovatele. Zrušení zdarma do 14 dnů před příjezdem, parkování, Wi-Fi, ložní prádlo a ručníky v ceně.',
     ctaTitle: 'Chcete rezervovat?',
     ctaText: 'Kontaktujte nás pro rezervaci nebo více informací o dostupnosti.',
     ctaButton: 'Kontaktovat nás',
@@ -93,10 +100,16 @@ export default async function RentalApartmentsPage() {
     featuresTitle: 'Every apartment offers',
     features: [
       { title: 'Designer furniture', desc: 'KARE Design' },
-      { title: 'Fully equipped', desc: 'Dishwasher, oven, coffee machine' },
-      { title: 'Comfort', desc: 'TV, Wi-Fi, safe' },
-      { title: 'Location', desc: '50 m from the chairlift' },
+      { title: 'Fully equipped', desc: 'Dishwasher, oven, coffee machine, washing machine' },
+      { title: 'Comfort', desc: 'TV with streaming, Wi-Fi, safe' },
+      { title: 'Location', desc: '50 m from the Labská chairlift' },
+      { title: 'Free parking', desc: 'Private, right by the building' },
+      { title: 'Ski and bike room', desc: 'Lockable, ground floor' },
+      { title: 'Self check-in', desc: '4 pm to midnight, key box' },
+      { title: 'Pets welcome', desc: 'For a fee, on request' },
     ],
+    directTitle: 'Why book directly',
+    directText: 'You book with the operator of the apartments, with no intermediary. Free cancellation up to 14 days before arrival; parking, Wi-Fi, bed linen and towels are included.',
     ctaTitle: 'Would you like to book?',
     ctaText: 'Contact us to make a reservation or for more information on availability.',
     ctaButton: 'Contact us',
@@ -121,10 +134,16 @@ export default async function RentalApartmentsPage() {
       featuresTitle: 'Każdy apartament oferuje',
       features: [
         { title: 'Designerskie meble', desc: 'KARE Design' },
-        { title: 'Pełne wyposażenie', desc: 'Zmywarka, piekarnik, ekspres do kawy' },
-        { title: 'Komfort', desc: 'TV, Wi-Fi, sejf' },
-        { title: 'Lokalizacja', desc: '50 m od wyciągu' },
+        { title: 'Pełne wyposażenie', desc: 'Zmywarka, piekarnik, ekspres do kawy, pralka' },
+        { title: 'Komfort', desc: 'TV ze streamingiem, Wi-Fi, sejf' },
+        { title: 'Lokalizacja', desc: '50 m od wyciągu Labská' },
+        { title: 'Bezpłatny parking', desc: 'Prywatny, przy budynku' },
+        { title: 'Narciarnia i rowerownia', desc: 'Zamykana, na parterze' },
+        { title: 'Samodzielne zameldowanie', desc: '16:00–24:00, klucze w skrzynce' },
+        { title: 'Zwierzęta mile widziane', desc: 'Za opłatą, na życzenie' },
       ],
+      directTitle: 'Dlaczego rezerwować bezpośrednio',
+      directText: 'Rezerwują Państwo u operatora apartamentów, bez pośrednika. Bezpłatne anulowanie do 14 dni przed przyjazdem; parking, Wi-Fi, pościel i ręczniki w cenie.',
       ctaTitle: 'Chcą Państwo zarezerwować?',
       ctaText: 'Prosimy o kontakt w celu rezerwacji lub uzyskania informacji o dostępności.',
       ctaButton: 'Kontakt',
@@ -164,6 +183,9 @@ export default async function RentalApartmentsPage() {
             {t.lead}
           </p>
           <DateSearchBar />
+          <div className="mt-6">
+            <GuestRatingBadge locale={locale} light />
+          </div>
           <p className="mt-3 text-sm text-white/50">
             {t.noFixedDates}{' '}
             <Link
@@ -298,6 +320,24 @@ export default async function RentalApartmentsPage() {
                 <p className="text-sm text-navy/50">{item.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Přímá rezervace, podmínky pobytu a časté dotazy — převzato z Booking.com, zdroj @/data/stay-info */}
+      <section className="py-24 bg-cream">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-3 gap-16">
+            <div>
+              <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.directTitle}</h2>
+              <p className="text-navy/70 leading-relaxed">{t.directText}</p>
+            </div>
+            <div className="lg:col-span-2">
+              <StayRules locale={locale} />
+            </div>
+          </div>
+          <div className="mt-20 max-w-3xl">
+            <StayFaq locale={locale} />
           </div>
         </div>
       </section>
