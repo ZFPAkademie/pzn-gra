@@ -217,6 +217,7 @@ const SLUG_TO_FOLDER: Record<string, string> = {
   'chata-1-suite-7': 'chata1_apartman-7_1kk_38m2',
   'chata-1-suite-9': 'chata1_apartman-9_2kk_62m2',
   'chata-2-suite-11': 'chata2_apartman-11_1kk_35m2',
+  'chata-2-suite-7': 'chata1_apartman-7_1kk_38m2', // podíly — stejná dispozice jako B1 A7
   // Pronájem - sdílené s prodejními chata apartmány
   'golden-ridge-7': 'chata1_apartman-7_1kk_38m2',
   'golden-ridge-9': 'chata1_apartman-9_2kk_62m2',

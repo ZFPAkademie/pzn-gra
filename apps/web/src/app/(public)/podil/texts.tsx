@@ -118,8 +118,9 @@ const cs: PodilTexts = {
   apartmentLabel: 'Nabízený apartmán',
   apartmentTitle: 'Apartmán ve Špindlerově Mlýně',
   apartmentIntro:
-    'Zařízený apartmán 50 metrů od lanovky a sjezdovky Labská ve Špindlerově Mlýně, jedné z nejoblíbenějších ' +
-    'horských destinací v Česku. Turisté sem jezdí po celý rok: v zimě lyžovat, v létě na turistiku do Krkonoš.',
+    'Zařízený apartmán přímo u sjezdovky Labská, s lanovkou hned za domem a výhledem na svah z okna. ' +
+    'Turisté sem jezdí po celý rok: v zimě lyžovat, v létě na turistiku do Krkonoš. ' +
+    'Dům v alpském stylu byl dokončen v roce 2023.',
   heroImageAlt: 'Apartmán ve Špindlerově Mlýně',
   photoAlt: (n) => `Apartmán - foto ${n}`,
   aboutTitle: 'O apartmánu',
@@ -199,8 +200,9 @@ const en: PodilTexts = {
   apartmentLabel: 'The apartment on offer',
   apartmentTitle: 'Apartment in Špindlerův Mlýn',
   apartmentIntro:
-    'A furnished apartment 50 metres from the Labská chairlift and slope in Špindlerův Mlýn, one of the most popular ' +
-    'mountain destinations in the Czech Republic. Visitors come all year round: skiing in winter, hiking in the Krkonoše in summer.',
+    'A furnished apartment right by the Labská slope, with the chairlift just behind the building and a view of the slope from the window. ' +
+    'Visitors come all year round: skiing in winter, hiking in the Krkonoše in summer. ' +
+    'The Alpine-style building was completed in 2023.',
   heroImageAlt: 'Apartment in Špindlerův Mlýn',
   photoAlt: (n) => `Apartment - photo ${n}`,
   aboutTitle: 'About the apartment',
@@ -229,8 +231,11 @@ export function getPodilTexts(locale: Locale): PodilTexts {
   return locale === 'cs' ? cs : en;
 }
 
-/** Apartmán nabízený v družstevních podílech (číslo se na /podil nikde neuvádí). */
-export const PODIL_APARTMENT_SLUG = 'chata-2-suite-11';
+/** Apartmán nabízený v družstevních podílech = budova 2, apartmán 7 (číslo se na /podil nikde neuvádí). */
+export const PODIL_APARTMENT_SLUG = 'chata-2-suite-7';
+
+/** B2 A7 má stejnou dispozici jako B1 A7 — statická záloha bere jeho údaje. */
+const PODIL_FALLBACK_SLUG = 'chata-1-suite-7';
 
 /**
  * Apartmán pro /podil ze stejného zdroje jako detail /suites/[slug] (tabulka apartments),
@@ -239,7 +244,7 @@ export const PODIL_APARTMENT_SLUG = 'chata-2-suite-11';
 export async function getPodilApartment(locale: Locale): Promise<ApartmentDB | null> {
   const fromDb = await getApartmentBySlugDB(PODIL_APARTMENT_SLUG);
   if (fromDb) return localizeApartment(fromDb, locale);
-  const s = getSaleApartmentBySlug(PODIL_APARTMENT_SLUG);
+  const s = getSaleApartmentBySlug(PODIL_FALLBACK_SLUG);
   if (!s) return null;
   const area = Number.parseFloat(s.totalArea.replace(',', '.'));
   return {
