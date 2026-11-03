@@ -7,10 +7,11 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getRequestLocale } from '@/lib/i18n-server';
 import { InvestmentCalculator } from './calculator';
+import { withSeo } from '@/lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = getRequestLocale();
-  return locale === 'cs'
+  return withSeo(locale === 'cs'
     ? {
         title: 'Investice apartmány Krkonoše | Pod Zlatým návrším',
         description: 'Spočítejte si výnos z investice do apartmánu ve Špindlerově Mlýně. Interaktivní kalkulačka, DPH úspora, služba Rentier.',
@@ -18,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     : {
         title: 'Apartment investment in the Krkonoše | Pod Zlatým návrším',
         description: 'Calculate the return on an investment in an apartment in Špindlerův Mlýn. Interactive calculator, VAT savings, the Rentier service.',
-      };
+      }, '/kalkulacka');
 }
 
 export default function KalkulackaPage() {

@@ -5,6 +5,7 @@
 
 import { MetadataRoute } from 'next';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { SITE_URL } from '@/lib/seo';
 
 // Regenerovat každou hodinu — slugy se mění se změnou visibility flags v adminu
 export const revalidate = 3600;
@@ -24,7 +25,8 @@ async function getApartmentSlugs(): Promise<{ slug: string; for_sale: boolean; f
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://podzlatymnavrsim.cz').replace(/\/+$/, '');
+  // Kanonická doména s www — nezávisle na NEXT_PUBLIC_APP_URL (ten řídí odkazy v e-mailech)
+  const baseUrl = SITE_URL;
   const apartments = await getApartmentSlugs();
 
   // Static pages (SEO critical URLs)
@@ -37,18 +39,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/lokalita`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/investicni-prilezitost`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/nemovitostni-produkt`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -96,20 +86,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.8,
     },
-    // New rental section
-    {
-      url: `${baseUrl}/golden-ridge-apartments`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    // Prodej apartmánů
-    {
-      url: `${baseUrl}/apartmany-prodej`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
     // Družstevní podíly
     {
       url: `${baseUrl}/podil`,
@@ -117,13 +93,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/kalkulacka`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/obchodni-podminky`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/ochrana-osobnich-udaju`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 
   // Dynamické stránky apartmánů podle visibility flags v DB
   const saleApartments: MetadataRoute.Sitemap = apartments
     .filter((a) => a.for_sale)
     .map((a) => ({
-      url: `${baseUrl}/apartmany-prodej/${a.slug}`,
+      url: `${baseUrl}/suites/${a.slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -131,20 +125,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const rentApartments: MetadataRoute.Sitemap = apartments
     .filter((a) => a.for_rent)
-    .flatMap((a) => [
-      {
-        url: `${baseUrl}/apartmany-spindleruv-mlyn-pronajem/${a.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-      },
-      {
-        url: `${baseUrl}/golden-ridge-apartments/apartman/${a.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      },
-    ]);
+    .map((a) => ({
+      // /golden-ridge-apartments/apartman/[slug] je duplicita s canonical sem — do sitemapy nepatří
+      url: `${baseUrl}/apartmany-spindleruv-mlyn-pronajem/${a.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
 
   return [...staticPages, ...saleApartments, ...rentApartments];
 }

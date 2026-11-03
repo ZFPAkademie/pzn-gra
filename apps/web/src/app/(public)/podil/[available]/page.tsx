@@ -15,12 +15,13 @@ import { AlpineOrnament } from '@/components/ui/ornaments';
 import { ShareRequestForm } from '../client';
 import { getPodilTexts, getPodilApartment, getPodilApartmentView, PODIL_APARTMENT_SLUG } from '../texts';
 import { PodilContacts } from '../contacts';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getPodilTexts(toBaseLocale(getLocaleFromCookie(cookies().get('NEXT_LOCALE')?.value)));
-  return { title: t.metaTitle, description: t.metaDescriptionShort };
+  return withSeo({ title: t.metaTitle, description: t.metaDescriptionShort }, '/podil');
 }
 
 const TOTAL_SHARES = 50;

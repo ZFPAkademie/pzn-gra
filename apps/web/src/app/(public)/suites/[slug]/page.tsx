@@ -13,6 +13,7 @@ import { ApartmentGallery } from '@/components/features/apartment-gallery';
 import { SaleInfoBoxes, RealEstateProductBadge } from '@/components/features/sale-info-boxes';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { withSeo } from '@/lib/seo';
 interface Props {
   params: { slug: string };
 }
@@ -22,14 +23,30 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = getRequestLocale();
   const raw = await getApartmentBySlugDB(params.slug);
-  if (!raw) return { title: locale === 'en' ? 'Apartment not found' : 'Apartmán nenalezen' };
+  if (!raw) return withSeo({ title: locale === 'en' ? 'Apartment not found' : 'Apartmán nenalezen' }, `/suites/${params.slug}`, { ownImage: true });
   const apt = localizeApartment(raw, locale);
 
-  return {
+  return withSeo({
     title: `${apt.title} | ${locale === 'en' ? 'For sale' : 'Na prodej'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
-  };
+  }, `/suites/${params.slug}`, { ownImage: true });
 }
+
+/** Postup koupě — převzato ze starého webu, bez rezervační zálohy (zadání 3. 11. 2026) */
+const PURCHASE_STEPS = {
+  cs: [
+    { title: 'Rezervace', text: 'Vybraný apartmán vám nezávazně rezervujeme na dobu deseti dnů.' },
+    { title: 'Rezervační smlouva', text: 'V této lhůtě svůj zájem potvrdíte podpisem rezervační smlouvy.' },
+    { title: 'Kupní smlouva', text: 'Po podpisu kupní smlouvy uhradíte kupní cenu podle sjednaných platebních podmínek.' },
+    { title: 'Zápis do katastru', text: 'Prodávající podá návrh na vklad vlastnického práva do katastru nemovitostí a apartmán vám předá.' },
+  ],
+  en: [
+    { title: 'Reservation', text: 'We will reserve the apartment of your choice for ten days, with no obligation.' },
+    { title: 'Reservation agreement', text: 'Within this period, you confirm your interest by signing a reservation agreement.' },
+    { title: 'Purchase agreement', text: 'After signing the purchase agreement, you pay the purchase price according to the agreed payment terms.' },
+    { title: 'Land register', text: 'The seller files the application to register your ownership in the Land Register and hands the apartment over to you.' },
+  ],
+} as const;
 
 /** Podlaží: CZ „2. NP“, EN britsky (1. NP = ground floor, 2. NP = 1st floor) */
 function floorLabel(floor: number, locale: 'cs' | 'en'): string {
@@ -167,6 +184,20 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
                   </div>
                 </div>
               )}
+
+              {/* Purchase steps */}
+              <div className="mt-16">
+                <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{en ? 'How the purchase works' : 'Postup koupě'}</h2>
+                <ol className="grid sm:grid-cols-2 gap-4">
+                  {PURCHASE_STEPS[locale].map((step, i) => (
+                    <li key={i} className="bg-stone p-6">
+                      <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
+                      <h3 className="text-lg font-light text-navy mt-2 mb-2">{step.title}</h3>
+                      <p className="text-navy/60 text-sm leading-relaxed">{step.text}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
 
             {/* Right: Contact Card */}

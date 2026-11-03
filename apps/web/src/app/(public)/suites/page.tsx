@@ -11,20 +11,21 @@ import { getHeroImagesBySlugs } from '@/data/apartment-images';
 import { getRequestLocale } from '@/lib/i18n-server';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { withSeo } from '@/lib/seo';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = getRequestLocale();
   if (locale === 'en') {
-    return {
+    return withSeo({
       title: 'Completed apartments for sale in the Krkonoše (Giant Mountains) | Pod Zlatým návrším',
       description: 'Choose from the last available apartments in Špindlerův Mlýn – some come fully furnished with KARE Design furniture, ready to use or let straight away.',
-    };
+    }, '/suites');
   }
-  return {
+  return withSeo({
     title: 'Zkolaudované apartmány v Krkonoších prodej | Pod Zlatým návrším',
     description: 'Vyberte si z posledních dostupných apartmánů ve Špindlerově Mlýně – některé jsou plně vybavené nábytkem KARE Design a připravené k okamžitému využití i pronájmu.',
-  };
+  }, '/suites');
 }
 
 /** Podlaží: CZ „2. NP“, EN britsky (1. NP = ground floor, 2. NP = 1st floor) */

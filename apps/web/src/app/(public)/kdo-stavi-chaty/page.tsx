@@ -7,20 +7,21 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/i18n-server';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   if (getRequestLocale() === 'en') {
-    return {
+    return withSeo({
       title: 'Who is building | Pod Zlatým návrším',
-      description: 'The experienced team behind the Pod Zlatým návrším project.',
-    };
+      description: 'The Pod Zlatým návrším houses are built by ZFP GROUP; the low-energy timber construction was supplied by D.E.E.D.',
+    }, '/kdo-stavi-chaty');
   }
-  return {
+  return withSeo({
     title: 'Kdo staví | Pod Zlatým návrším',
-    description: 'Zkušený tým za projektem Pod Zlatým návrším.',
-  };
+    description: 'Domy Pod Zlatým návrším staví ZFP GROUP, nízkoenergetickou dřevostavbu dodala firma D.E.E.D.',
+  }, '/kdo-stavi-chaty');
 }
 
 export default async function BuilderPage() {
@@ -30,28 +31,28 @@ export default async function BuilderPage() {
   const t = locale === 'cs' ? {
     tagline: 'Za projektem',
     title: 'Kdo staví',
-    subtitle: 'Zkušený tým s dlouholetou praxí v rezidenčním developmentu',
+    subtitle: 'Domy Pod Zlatým návrším staví ZFP GROUP, stavbu dodala firma D.E.E.D.',
     
-    intro: 'Projekt Pod Zlatým návrším vzniká pod vedením zkušeného týmu, který má za sebou desítky úspěšně realizovaných rezidenčních projektů.',
+    intro: 'Vybrat dodavatele pro horské domy bylo velkou odpovědností. Chtěli jsme stavět s ohledem na okolí a s využitím moderních technologií. Proto jsme vybrali firmu D.E.E.D., která na českém trhu působí od roku 2001 a navazuje na šedesátiletou tradici německé firmy. Specializuje se na dřevostavby v Česku i po celé Evropě a stavební dílce vyrábí s renomovanými výrobci z Česka a Německa.',
     
     values: [
-      { title: 'Zkušenosti', desc: 'Více než 15 let v rezidenčním developmentu' },
-      { title: 'Kvalita', desc: 'Důraz na materiály a zpracování' },
-      { title: 'Transparentnost', desc: 'Otevřená komunikace s klienty' },
+      { title: 'Materiály', desc: 'Ekologicky nezávadné certifikované materiály, výroba pod kontrolou RAL a Výzkumného a vývojového ústavu dřevařského' },
+      { title: 'Úspora energie', desc: 'Nízkoenergetické domy, obvodové stěny s U = 0,16 W/m²K' },
+      { title: 'Šetrná stavba', desc: 'Montáž jeřábem přímo ze speciálních vozidel, bez nákladného zařízení staveniště. Domy jsou zkolaudované od listopadu 2023.' },
     ],
     
     cta: 'Kontaktovat nás',
   } : {
     tagline: 'Behind the project',
     title: 'Who is building',
-    subtitle: 'An experienced team with many years of practice in residential development',
+    subtitle: 'The Pod Zlatým návrším houses are built by ZFP GROUP, with construction by D.E.E.D.',
     
-    intro: 'The Pod Zlatým návrším project is being developed under the leadership of an experienced team with dozens of successfully completed residential projects behind it.',
+    intro: 'Choosing the right builder for our mountain houses was a big responsibility. We wanted to build with respect for the surroundings and with modern technology. That is why we chose D.E.E.D., a company active on the Czech market since 2001 that continues the sixty-year tradition of a German firm. It specialises in timber construction in the Czech Republic and across Europe, producing its building components with renowned Czech and German manufacturers.',
     
     values: [
-      { title: 'Experience', desc: 'More than 15 years in residential development' },
-      { title: 'Quality', desc: 'Emphasis on materials and craftsmanship' },
-      { title: 'Transparency', desc: 'Open communication with clients' },
+      { title: 'Materials', desc: 'Environmentally safe certified materials, production inspected by RAL and the Timber Research and Development Institute' },
+      { title: 'Energy efficiency', desc: 'Low-energy houses, external walls with U = 0.16 W/m²K' },
+      { title: 'Considerate construction', desc: 'Assembled by crane directly from special vehicles, without a costly site setup. The houses received final approval in November 2023.' },
     ],
     
     cta: 'Contact us',

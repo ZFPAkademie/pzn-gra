@@ -18,19 +18,20 @@ import { formatMoney } from '@/lib/booking-engine/money';
 import { ApartmentTitle } from '@/components/features/apartment-title';
 import { DateSearchBar } from '@/components/features/date-search';
 import { GUEST_RATING, formatScore } from '@/data/stay-info';
+import { withSeo } from '@/lib/seo';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   if (getRequestLocale() === 'en') {
-    return {
+    return withSeo({
       title: 'Apartments for rent in Špindlerův Mlýn by the chairlift | Pod Zlatým návrším',
       description: 'Design apartments for rent in Špindlerův Mlýn, 50 metres from the Labská chairlift. Book online. The last apartments are also for sale.',
-    };
+    }, '/');
   }
-  return {
+  return withSeo({
     title: 'Apartmány Špindlerův Mlýn k pronájmu u lanovky | Pod Zlatým návrším',
     description: 'Designové apartmány k pronájmu ve Špindlerově Mlýně, 50 metrů od lanovky Labská. Rezervace online. Poslední apartmány také na prodej.',
-  };
+  }, '/');
 }
 
 export default async function HomePage() {

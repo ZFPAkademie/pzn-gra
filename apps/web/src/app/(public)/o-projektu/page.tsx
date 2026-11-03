@@ -7,20 +7,21 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { getLocaleFromCookie, toBaseLocale } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/i18n-server';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   if (getRequestLocale() === 'en') {
-    return {
+    return withSeo({
       title: 'About the project | Pod Zlatým návrším',
       description: 'A residential project in the heart of the Krkonoše (Giant Mountains). Luxury apartments for rent and for sale in Špindlerův Mlýn.',
-    };
+    }, '/o-projektu');
   }
-  return {
+  return withSeo({
     title: 'O projektu | Pod Zlatým návrším',
     description: 'Rezidenční projekt v srdci Krkonoš. Luxusní apartmány k pronájmu a prodeji ve Špindlerově Mlýně.',
-  };
+  }, '/o-projektu');
 }
 
 export default async function AboutPage() {
@@ -38,6 +39,18 @@ export default async function AboutPage() {
         text: 'Vytvořit místo, kde se spojuje moderní komfort s úctou k horské krajině. Místo pro odpočinek, zhodnocení a návrat k tomu, co je důležité. Pod Zlatým návrším není jen nemovitost – je to životní styl.',
       },
       {
+        title: 'Dva horské domy',
+        text: 'Projekt vznikl citlivou rekonstrukcí dvou původních horských chat v Labské, místní části Špindlerova Mlýna. V obou domech je celkem 19 apartmánů: Junior Suite (1+kk) a Senior Suite (2+kk) o velikosti od 35 do 71 m², orientované jihovýchodně s výhledem do krajiny a na Labskou přehradu. Domy jsou čtyřpodlažní: jedno podlaží podzemní a tři nadzemní, poslední z nich podkrovní.',
+      },
+      {
+        title: 'Stavba',
+        text: 'Domy jsou postavené jako ekologická montovaná nízkoenergetická dřevostavba. Stavbu dodala firma D.E.E.D., která na českém trhu působí od roku 2001 a navazuje na šedesátiletou tradici německé firmy specializované na dřevostavby. Výrobu stavebních dílců průběžně kontroluje RAL Deutsches Institut für Gütesicherung und Kennzeichnung e.V. a Výzkumný a vývojový ústav dřevařský v Praze. Obvodové stěny mají součinitel prostupu tepla U = 0,16 W/m²K.',
+      },
+      {
+        title: 'Zázemí',
+        text: 'Ke každému apartmánu patří sklepní kóje. V domě je uzamykatelná lyžárna a kolárna. K dispozici jsou vnitřní i venkovní parkovací stání.',
+      },
+      {
         title: 'Lokalita',
         text: 'Špindlerův Mlýn je nejvyhledávanější horskou destinací v České republice. Celoroční turistický ruch, skvělá dostupnost z Prahy a unikátní přírodní prostředí v srdci Krkonošského národního parku.',
       },
@@ -52,9 +65,9 @@ export default async function AboutPage() {
     ],
     
     stats: [
-      { value: '6', label: 'apartmánů' },
-      { value: '2023', label: 'rok dokončení' },
-      { value: '45–65', label: 'm² plocha' },
+      { value: '19', label: 'apartmánů' },
+      { value: '2023', label: 'kolaudace' },
+      { value: '35–71', label: 'm² plocha' },
     ],
     
     cta: 'Prohlédnout apartmány',
@@ -67,6 +80,18 @@ export default async function AboutPage() {
       {
         title: 'Vision',
         text: 'To create a place where modern comfort meets respect for the mountain landscape. A place for rest, appreciation and a return to what matters. Pod Zlatým návrším is not just a property – it is a way of life.',
+      },
+      {
+        title: 'Two mountain houses',
+        text: 'The project was created by sensitively reconstructing two original mountain chalets in Labská, part of Špindlerův Mlýn. The two houses contain 19 apartments in total: Junior Suites (1+kk) and Senior Suites (2+kk) ranging from 35 to 71 m², facing south-east with views of the countryside and the Labská reservoir. Each house has four floors: one below ground and three above, the top one in the attic.',
+      },
+      {
+        title: 'Construction',
+        text: 'The houses are built as an ecological, prefabricated, low-energy timber construction. They were built by D.E.E.D., a company active on the Czech market since 2001 that continues the sixty-year tradition of a German timber-construction firm. Production of the building components is continuously inspected by RAL Deutsches Institut für Gütesicherung und Kennzeichnung e.V. and the Timber Research and Development Institute in Prague. The external walls have a thermal transmittance of U = 0.16 W/m²K.',
+      },
+      {
+        title: 'Facilities',
+        text: 'Every apartment comes with its own storage unit. The building has a lockable ski and bike room. Both indoor and outdoor parking spaces are available.',
       },
       {
         title: 'Location',
@@ -83,9 +108,9 @@ export default async function AboutPage() {
     ],
     
     stats: [
-      { value: '6', label: 'apartments' },
-      { value: '2023', label: 'completion year' },
-      { value: '45–65', label: 'm² area' },
+      { value: '19', label: 'apartments' },
+      { value: '2023', label: 'final approval' },
+      { value: '35–71', label: 'm² area' },
     ],
     
     cta: 'View apartments',

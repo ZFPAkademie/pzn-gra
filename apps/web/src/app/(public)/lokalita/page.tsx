@@ -9,20 +9,21 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getRequestLocale } from '@/lib/i18n-server';
 import { GuestRatingBadge, LocationMap, NearbyList } from '@/components/features/guest-info';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   if (getRequestLocale() === 'en') {
-    return {
+    return withSeo({
       title: 'Location | Labská, Špindlerův Mlýn | Pod Zlatým návrším',
       description: 'Apartments 50 metres from the Labská chairlift in the quiet Labská part of Špindlerův Mlýn. Free parking, ski bus to the centre, hiking from the door.',
-    };
+    }, '/lokalita');
   }
-  return {
+  return withSeo({
     title: 'Lokalita | Labská, Špindlerův Mlýn | Pod Zlatým návrším',
     description: 'Apartmány 50 metrů od lanovky Labská v klidné části Špindlerova Mlýna. Parkování zdarma, skibus do centra, turistika přímo od domu.',
-  };
+  }, '/lokalita');
 }
 
 export default async function LocationPage() {
@@ -50,13 +51,15 @@ export default async function LocationPage() {
           'Skibus zastavuje u lanovky Labská a vozí do centra a k dalším areálům',
           'Běžecké tratě na Zlatém návrší a Horních Mísečkách',
           'Večerní lyžování ve Svatém Petru',
+          'Lyžařská škola SKOL MAX necelých 100 m od domu',
           'Uzamykatelná lyžárna v domě, parkování zdarma',
         ],
       },
       {
         title: 'Léto',
         items: [
-          'Turistika přímo od domu: Labská přehrada, pramen Labe, Labská bouda, Sněžka',
+          'Turistika přímo od domu: Labská přehrada, Zlaté návrší a Vrbatova bouda, pramen Labe, Labská bouda, Sněžka',
+          'Z centra Špindlerova Mlýna začíná Harrachovská cesta, nejstarší turistická trasa Krkonoš',
           'Lanovka Labská jezdí i v létě, nahoře začínají hřebenové trasy',
           'Cyklotrasy a trailové stezky v Krkonošském národním parku',
           'Aquapark a bobová dráha ve Špindlerově Mlýně',
@@ -77,6 +80,16 @@ export default async function LocationPage() {
       { name: 'Parkování', value: 'soukromé parkoviště u domu zdarma, bez rezervace' },
       { name: 'Příjezd k domu', value: 'do kopce, v zimě počítejte se zimní výbavou auta' },
     ],
+
+    historyTitle: 'Zlaté návrší a historie místa',
+    history: [
+      'Zlaté návrší s výškou 1 411 m n. m. je jedním z nejhezčích míst Krkonoš. Jeho hřbet leží mezi Medvědínem a masivem Kotle (1 435 m n. m.), spolu s ním a Lysou horou tvoří nejvýraznější horskou trojici Krkonoš. Přibližně 400 m od vrcholu stojí v sedle Vrbatova bouda, odkud vedou trasy k prameni Labe a na Horní Mísečky. Odtud se po turistické trase a lanovkou Labská dostanete k domům Pod Zlatým návrším i do Špindlerova Mlýna.',
+      'Svah u Labské byl poprvé osídlen na konci 16. století. V roce 1916 byla dokončena Labská přehrada, která zachytává většinu sněhových vod ve středních Krkonoších a dotváří krajinu v údolí řeky.',
+      'Krkonoše zmínil už antický astronom a geograf Ptolemaios. Do hor lákalo lidi hlavně nerostné bohatství: kolonisté z různých koutů Evropy tu hledali zlato, stříbro, drahé kameny a rudy. Mezi 12. a 16. stoletím patřilo dolování a zpracování železných rud k nejčastější obživě místních a Krkonoše se staly nejvýznamnější hornickou oblastí českých zemí.',
+      'Ve 14. a 15. století sem přicházeli Vlaši, hledači zlata a drahých kamenů z Benátek. Stopy po jejich činnosti zanikly, dochovaly se ale tajemné záznamy o cestách k pokladům, takzvané Vlašské knihy.',
+    ],
+    historyQuote: '„Italové, kteří cestují do sudetských hor, aby tam hledali zlato, vyplachují z potoků písek smíchaný se slídami a drahokamy ve dlouhém plochém korytě, vydlabaném z jednoho kusu kmene… Zrnka zlata a granáty, které se usadí společně s těžším pískem na dně, omývají v další nádobě, balí do kožených váčků a berou s sebou.“',
+    historyQuoteSource: 'Georgius Agricola, De re metallica (1556)',
 
     cta: 'Zobrazit apartmány k pronájmu',
     ctaSecondary: 'Kontaktovat nás',
@@ -102,13 +115,15 @@ export default async function LocationPage() {
           'The ski bus stops at the Labská chairlift and runs to the centre and the other ski areas',
           'Cross-country trails on Zlaté návrší and Horní Mísečky',
           'Night skiing in Svatý Petr',
+          'SKOL MAX ski school less than 100 m from the building',
           'Lockable ski room in the building, free parking',
         ],
       },
       {
         title: 'Summer',
         items: [
-          'Hiking straight from the door: Labská dam, the source of the Elbe, Labská bouda, Sněžka',
+          'Hiking straight from the door: Labská dam, Zlaté návrší and Vrbatova bouda, the source of the Elbe, Labská bouda, Sněžka',
+          'The Harrachov Trail, the oldest hiking route in the Krkonoše, starts in the centre of Špindlerův Mlýn',
           'The Labská chairlift also runs in summer, with ridge trails starting at the top',
           'Cycle routes and trails in the Krkonoše (Giant Mountains) National Park',
           'Aquapark and bobsleigh track in Špindlerův Mlýn',
@@ -129,6 +144,16 @@ export default async function LocationPage() {
       { name: 'Parking', value: 'free private car park by the building, no reservation needed' },
       { name: 'Access road', value: 'uphill, winter equipment for your car is needed in winter' },
     ],
+
+    historyTitle: 'Zlaté návrší and the history of the area',
+    history: [
+      'At 1,411 m above sea level, Zlaté návrší is one of the most beautiful places in the Krkonoše. Its ridge lies between Medvědín and the Kotel massif (1,435 m); together with Lysá hora they form the most distinctive mountain trio of the Krkonoše. About 400 m from the summit, Vrbatova bouda stands in the saddle, with trails leading to the source of the Elbe and to Horní Mísečky. From there, a hiking trail and the Labská chairlift take you to the Pod Zlatým návrším houses and to Špindlerův Mlýn.',
+      'The Labská slope was first settled at the end of the 16th century. In 1916 the Labská dam was completed; it collects most of the meltwater of the central Krkonoše and shapes the landscape of the river valley.',
+      'The Krkonoše were already mentioned by the ancient astronomer and geographer Ptolemy. People were drawn to the mountains mainly by their mineral wealth: settlers from all over Europe searched here for gold, silver, precious stones and ore. Between the 12th and 16th centuries, mining and iron-ore processing were the most common livelihood, and the Krkonoše became the most important mining region in the Czech lands.',
+      'In the 14th and 15th centuries, the Walen, gold and gem prospectors from Venice, came to the mountains. Traces of their work have disappeared, but their mysterious records of routes to hidden treasure, the so-called Walen Books, have survived.',
+    ],
+    historyQuote: '"The Italians who travel to the Sudeten mountains in search of gold wash the sand of the streams, mixed with mica and gems, in a long, flat trough hollowed out of a single tree trunk… The grains of gold and garnets that settle with the heavier sand at the bottom are washed in another vessel, packed into leather pouches and taken away."',
+    historyQuoteSource: 'Georgius Agricola, De re metallica (1556)',
 
     cta: 'View apartments for rent',
     ctaSecondary: 'Contact us',
@@ -210,8 +235,24 @@ export default async function LocationPage() {
         </div>
       </section>
 
-      {/* Transport */}
+      {/* History */}
       <section className="py-24 bg-cream">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-2xl md:text-3xl font-light text-navy mb-10 text-center">{t.historyTitle}</h2>
+          <div className="space-y-6 text-navy/70 leading-relaxed">
+            {t.history.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
+          <figure className="mt-12 border-l-2 border-gold pl-6">
+            <blockquote className="text-navy/60 italic leading-relaxed">{t.historyQuote}</blockquote>
+            <figcaption className="mt-3 text-xs text-navy/40 uppercase tracking-widest">{t.historyQuoteSource}</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      {/* Transport */}
+      <section className="py-24 bg-stone">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-12">
             {t.transportTitle}

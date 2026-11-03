@@ -10,20 +10,21 @@ import { getRequestLocale } from '@/lib/i18n-server';
 import { ContactForm } from '@/components/features/contact-form';
 import { getSalesManager } from '@/lib/apartments';
 import { SALES_COMPANY } from '@/data/sales-company';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   if (getRequestLocale() === 'en') {
-    return {
+    return withSeo({
       title: 'Contact | Pod Zlatým návrším',
       description: 'Contact us for more information about the apartments in Špindlerův Mlýn.',
-    };
+    }, '/kontakt');
   }
-  return {
+  return withSeo({
     title: 'Kontakt | Pod Zlatým návrším',
     description: 'Kontaktujte nás pro více informací o apartmánech ve Špindlerově Mlýně.',
-  };
+  }, '/kontakt');
 }
 
 export default async function ContactPage() {
@@ -40,6 +41,7 @@ export default async function ContactPage() {
     saleDesc: 'Pro informace o apartmánech na prodej kontaktujte:',
     sellerLabel: 'Prodávající',
     sellerRegister: `Zapsaná v obchodním rejstříku, sp. zn. ${SALES_COMPANY.registerCs}`,
+    ownerNote: `Společnost ${SALES_COMPANY.name} je vlastněna českým kapitálem, holdingem ZFP GROUP, a.s. Holding ZFP GROUP patří k největším vzdělávacím a zprostředkovatelským společnostem v oblasti financí na českém a slovenském trhu.`,
     icoLabel: 'IČ',
     dicLabel: 'DIČ',
     
@@ -66,6 +68,7 @@ export default async function ContactPage() {
     saleDesc: 'For information about apartments for sale, please contact:',
     sellerLabel: 'Seller',
     sellerRegister: `Registered in the Commercial Register, file no. ${SALES_COMPANY.registerEn}`,
+    ownerNote: `${SALES_COMPANY.name} is Czech-owned, by the ZFP GROUP, a.s. holding. ZFP GROUP is one of the largest education and financial intermediation companies on the Czech and Slovak market.`,
     icoLabel: 'Company ID',
     dicLabel: 'VAT ID',
     
@@ -132,6 +135,7 @@ export default async function ContactPage() {
                   <p>{SALES_COMPANY.address}</p>
                   <p>{t.icoLabel} {SALES_COMPANY.ico} · {t.dicLabel} {SALES_COMPANY.dic}</p>
                   <p>{t.sellerRegister}</p>
+                  <p className="mt-4">{t.ownerNote}</p>
                 </div>
               </div>
               

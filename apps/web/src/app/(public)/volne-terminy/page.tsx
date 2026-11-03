@@ -24,6 +24,7 @@ import {
 } from '@/lib/booking-engine/search';
 import { DateSearchBar } from '@/components/features/date-search';
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { withSeo } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,24 +49,24 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   // Výsledky konkrétních hledání do indexu nepatří, jen přehled
   const robots = Object.keys(searchParams).length > 0 ? { index: false, follow: true } : undefined;
   if (locale === 'pl') {
-    return {
+    return withSeo({
       title: 'Wolne terminy | Apartamenty Szpindlerowy Młyn | Pod Zlatým návrším',
       description: 'Sprawdź wolne apartamenty w Szpindlerowym Młynie w wybranym terminie, z ceną za cały pobyt. 50 metrów od wyciągu Labská.',
       robots,
-    };
+    }, '/volne-terminy');
   }
   if (locale === 'en') {
-    return {
+    return withSeo({
       title: 'Available dates | Apartments in Špindlerův Mlýn | Pod Zlatým návrším',
       description: 'See which apartments in Špindlerův Mlýn are available for your dates, with the price for the whole stay. 50 metres from the Labská chairlift.',
       robots,
-    };
+    }, '/volne-terminy');
   }
-  return {
+  return withSeo({
     title: 'Volné termíny | Apartmány Špindlerův Mlýn | Pod Zlatým návrším',
     description: 'Podívejte se, které apartmány ve Špindlerově Mlýně jsou ve vašem termínu volné, s cenou za celý pobyt. 50 metrů od lanovky Labská.',
     robots,
-  };
+  }, '/volne-terminy');
 }
 
 function apartmentsWord(n: number, locale: Locale): string {

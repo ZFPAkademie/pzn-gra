@@ -26,6 +26,7 @@ import {
   StayPractical,
   StayRules,
 } from '@/components/features/guest-info';
+import { withSeo } from '@/lib/seo';
 
 interface Props {
   params: { slug: string };
@@ -38,15 +39,15 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const locale = getRequestLocaleFull();
   const raw = await getApartmentBySlugDB(params.slug);
-  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : locale === 'pl' ? 'Nie znaleziono apartamentu' : 'Apartment not found' };
+  if (!raw) return withSeo({ title: locale === 'cs' ? 'Apartmán nenalezen' : locale === 'pl' ? 'Nie znaleziono apartamentu' : 'Apartment not found' }, `/apartmany-spindleruv-mlyn-pronajem/${params.slug}`, { ownImage: true });
   const apt = localizeApartment(raw, locale);
 
-  return {
+  return withSeo({
     title: locale === 'pl'
       ? `${apt.title} | Wynajem Szpindlerowy Młyn | Pod Zlatým návrším`
       : `${apt.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
-  };
+  }, `/apartmany-spindleruv-mlyn-pronajem/${params.slug}`, { ownImage: true });
 }
 
 /** Plocha místnosti z DB („6,25 m²“) — v EN desetinná tečka, CS a PL čárka */

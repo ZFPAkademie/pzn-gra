@@ -15,6 +15,7 @@ import { getRequestLocaleFull } from '@/lib/i18n-server';
 import { getApartmentBySlugDB, localizeApartment, layoutLabel } from '@/lib/apartments';
 
 import { ApartmentTitle } from '@/components/features/apartment-title';
+import { withSeo } from '@/lib/seo';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
@@ -24,14 +25,14 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const locale = getRequestLocaleFull();
   const raw = await getApartmentBySlugDB(params.slug);
-  if (!raw) return { title: locale === 'cs' ? 'Apartmán nenalezen' : locale === 'pl' ? 'Nie znaleziono apartamentu' : 'Apartment not found' };
+  if (!raw) return withSeo({ title: locale === 'cs' ? 'Apartmán nenalezen' : locale === 'pl' ? 'Nie znaleziono apartamentu' : 'Apartment not found' }, `/apartmany-spindleruv-mlyn-pronajem/${params.slug}`, { ownImage: true });
   const apartment = localizeApartment(raw, locale);
-  return {
+  return withSeo({
     title: locale === 'pl'
       ? `${apartment.title} | Wynajem Szpindlerowy Młyn | Pod Zlatým návrším`
       : `${apartment.title} | ${locale === 'cs' ? 'Pronájem' : 'Rentals'} | Pod Zlatým návrším`,
     description: apartment.description ?? undefined,
-  };
+  }, `/apartmany-spindleruv-mlyn-pronajem/${params.slug}`, { ownImage: true });
 }
 
 export default async function RentApartmentDetailPage({ params }: PageProps) {

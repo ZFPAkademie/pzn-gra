@@ -28,19 +28,19 @@ const INFO_DATA = {
       sections: [
         {
           title: 'Kuchyně',
-          items: ['Electrolux spotřebiče', 'Indukční varná deska', 'Vestavná trouba', 'Myčka nádobí', 'Kombinovaná chladnička']
+          items: ['Kuchyňská linka vyššího standardu', 'Varná deska a trouba', 'Mikrovlnná trouba', 'Myčka nádobí', 'Prostor pro lednici s mrazákem']
         },
         {
           title: 'Koupelna',
-          items: ['Sanita Laufen', 'Baterie Grohe', 'Podlahové vytápění', 'Velkoformátové obklady', 'Sprchový kout / vana']
+          items: ['Sanita Laufen', 'Baterie Grohe', 'Podlahové vytápění', 'Obklady Atlas Concorde', 'Vana nebo sprchový kout']
         },
         {
           title: 'Interiér',
-          items: ['Designový nábytek KARE', 'Podlahové vytápění', 'Klimatizace', 'Smart TV', 'Vysokorychlostní Wi-Fi']
+          items: ['Dřevěné podlahy Princ parket', 'Vstupní dveře s protipožární odolností', 'Vypínače a zásuvky ABB / Schneider', 'Příprava na lustr v obývacím pokoji', 'Wi-Fi v celém domě']
         },
         {
-          title: 'Bezpečnost',
-          items: ['Trezor', 'Protipožární systém', 'Elektronický zámek', 'Videovzráfon']
+          title: 'Zázemí domu',
+          items: ['Uzamykatelná lyžárna a kolárna', 'Sklepní kóje', 'Vnitřní a venkovní parkovací stání', 'Požární hlásiče a hasicí přístroje']
         }
       ]
     }
@@ -52,26 +52,26 @@ const INFO_DATA = {
       </svg>
     ),
     label: 'Investiční příležitost',
-    annotation: 'Výnos 4-6 % p.a.',
+    annotation: 'Rekreace i pronájem',
     color: 'emerald',
     content: {
       title: 'Proč investovat do apartmánu',
       sections: [
         {
-          title: 'Stabilní výnosy',
-          items: ['Očekávaný výnos 4-6 % ročně', 'Celoroční turistická destinace', 'Rostoucí zájem o horské rekreace', 'Profesionální správa pronájmu']
+          title: 'Příjem z pronájmu',
+          items: ['Možnost pronájmu, když apartmán nevyužíváte', 'Celoroční turistická destinace', 'Pronájem a správu zajistíme za vás', 'Rezervace z webu i Booking.com a Airbnb']
         },
         {
           title: 'Prémiová lokalita',
-          items: ['50 m od lanovky Labská', 'Centrum Špindlerova Mlýna', 'Blízko lyžařských tratí', 'Dostupné z Prahy (2h)']
+          items: ['50 m od lanovky Labská', '2,2 km do centra Špindlerova Mlýna', 'Sjezdovka Labská 1 770 m u domu', 'Z Prahy autem asi 2 hodiny']
         },
         {
-          title: 'Růst hodnoty',
-          items: ['Limitovaná nabídka v centru', 'Historicky rostoucí ceny', 'Kvalitní stavba s dlouhou životností', 'Prestižní projekt']
+          title: 'Projekt',
+          items: ['19 apartmánů ve dvou horských domech', 'Nízkoenergetická dřevostavba D.E.E.D.', 'Zkolaudováno v listopadu 2023', 'Projekt skupiny ZFP GROUP']
         },
         {
           title: 'Vlastní užívání',
-          items: ['Kombinace investice a rekreace', 'Flexibilní využití', 'Plně vybaveno k okamžitému užívání', 'Bez starostí s údržbou']
+          items: ['Kombinace vlastní rekreace a pronájmu', 'Termíny pro sebe si blokujete sami', 'Přehled rezervací v klientském portálu', 'Správa domu zajištěna']
         }
       ]
     }
@@ -114,44 +114,44 @@ const INFO_TEXT_EN: Record<InfoType, InfoText> = {
       sections: [
         {
           title: 'Kitchen',
-          items: ['Electrolux appliances', 'Induction hob', 'Built-in oven', 'Dishwasher', 'Fridge-freezer']
+          items: ['Higher-standard fitted kitchen', 'Hob and oven', 'Microwave', 'Dishwasher', 'Space for a fridge-freezer']
         },
         {
           title: 'Bathroom',
-          items: ['Laufen sanitaryware', 'Grohe taps', 'Underfloor heating', 'Large-format tiles', 'Shower / bath']
+          items: ['Laufen sanitaryware', 'Grohe taps', 'Underfloor heating', 'Atlas Concorde tiles', 'Bath or shower']
         },
         {
           title: 'Interior',
-          items: ['KARE designer furniture', 'Underfloor heating', 'Air conditioning', 'Smart TV', 'High-speed Wi-Fi']
+          items: ['Princ parket wooden floors', 'Fire-rated entrance door', 'ABB / Schneider switches and sockets', 'Ceiling light point in the living room', 'Wi-Fi throughout the building']
         },
         {
-          title: 'Security',
-          items: ['Safe', 'Fire protection system', 'Electronic lock', 'Video intercom']
+          title: 'Building facilities',
+          items: ['Lockable ski and bike room', 'Private storage unit', 'Indoor and outdoor parking spaces', 'Smoke detectors and fire extinguishers']
         }
       ]
     }
   },
   investment: {
     label: 'Investment opportunity',
-    annotation: 'Return 4-6% p.a.',
+    annotation: 'Holidays and rental',
     content: {
       title: 'Why invest in an apartment',
       sections: [
         {
-          title: 'Stable returns',
-          items: ['Expected return of 4-6% per year', 'Year-round tourist destination', 'Growing interest in mountain holidays', 'Professional rental management']
+          title: 'Rental income',
+          items: ['Let the apartment when you are not using it', 'Year-round tourist destination', 'We handle rental and management for you', 'Bookings from our website, Booking.com and Airbnb']
         },
         {
           title: 'Premium location',
-          items: ['50 m from the Labská chairlift', 'Centre of Špindlerův Mlýn', 'Close to the ski slopes', 'Within reach of Prague (2 h)']
+          items: ['50 m from the Labská chairlift', '2.2 km to the centre of Špindlerův Mlýn', 'The 1,770 m Labská slope by the house', 'About 2 hours by car from Prague']
         },
         {
-          title: 'Growth in value',
-          items: ['Limited supply in the centre', 'Historically rising prices', 'High-quality, long-lasting construction', 'Prestigious project']
+          title: 'The project',
+          items: ['19 apartments in two mountain houses', 'Low-energy timber construction by D.E.E.D.', 'Final approval in November 2023', 'A ZFP GROUP project']
         },
         {
           title: 'Personal use',
-          items: ['Investment and holidays combined', 'Flexible use', 'Fully furnished, ready to use immediately', 'No maintenance worries']
+          items: ['Your own holidays combined with rental', 'You block your own dates', 'Booking overview in the owner portal', 'Building management taken care of']
         }
       ]
     }

@@ -28,6 +28,8 @@ const TEXTS = {
     guestOption: (n: number) => `${n} ${n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'}`,
     consentBefore: 'Souhlasím se zpracováním osobních údajů pro účely rezervace a komunikace v souladu s',
     consentLink: 'zásadami ochrany osobních údajů',
+    termsBefore: 'Odesláním rezervace souhlasíte s',
+    termsLink: 'obchodními podmínkami',
     redirecting: 'Přesměrovávám na platbu...',
     submit: 'Odeslat rezervaci',
   },
@@ -47,6 +49,8 @@ const TEXTS = {
     guestOption: (n: number) => `${n} ${n === 1 ? 'guest' : 'guests'}`,
     consentBefore: 'I consent to the processing of my personal data for the purposes of the reservation and communication in accordance with the',
     consentLink: 'privacy policy',
+    termsBefore: 'By submitting the booking, you agree to the',
+    termsLink: 'terms and conditions',
     redirecting: 'Redirecting to payment...',
     submit: 'Send reservation',
   },
@@ -66,6 +70,8 @@ const TEXTS = {
     guestOption: (n: number) => `${n} ${plPlural(n, 'gość', 'gości', 'gości')}`,
     consentBefore: 'Wyrażam zgodę na przetwarzanie moich danych osobowych w celu realizacji rezerwacji i komunikacji zgodnie z',
     consentLink: 'polityką prywatności',
+    termsBefore: 'Wysyłając rezerwację, akceptujesz',
+    termsLink: 'regulamin',
     redirecting: 'Przekierowanie do płatności...',
     submit: 'Wyślij rezerwację',
   },
@@ -233,6 +239,13 @@ export function BookingForm({
             .
           </span>
         </label>
+        <p className="mt-3 pl-7 text-xs text-navy/60 leading-relaxed">
+          {t.termsBefore}{' '}
+          <a href="/obchodni-podminky" className="underline hover:text-navy transition-colors" target="_blank">
+            {t.termsLink}
+          </a>
+          .
+        </p>
       </div>
 
       <button

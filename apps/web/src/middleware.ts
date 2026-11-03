@@ -6,13 +6,39 @@
  * - /portal/* → chráněno Supabase auth, redirect na /portal/login
  * - Vše ostatní → pass-through (veřejný web, API)
  * - ?lang=cs|en|pl → cookie NEXT_LOCALE + redirect bez parametru
+ * - *.vercel.app → 308 na NEXT_PUBLIC_APP_URL (jen produkce, mimo /api), jinak noindex
  */
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Kanonická doména z NEXT_PUBLIC_APP_URL (adresa v e-mailech). Dokud míří na *.vercel.app, přesměrování je vypnuté.
+const APP_HOST = (() => {
+  try { return new URL(process.env.NEXT_PUBLIC_APP_URL ?? '').host; } catch { return ''; }
+})();
+const CANONICAL_ACTIVE = APP_HOST !== '' && !APP_HOST.endsWith('.vercel.app');
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // *.vercel.app: produkce → 308 na kanonickou doménu se zachováním cesty (odkazy v odeslaných e-mailech),
+  // /api zůstává (crony, iCal feedy pro OTA); preview a vše před přepnutím domény → jen noindex
+  const host = request.headers.get('host') ?? '';
+  if (host.endsWith('.vercel.app')) {
+    if (CANONICAL_ACTIVE && process.env.VERCEL_ENV === 'production' && !pathname.startsWith('/api/')) {
+      const target = new URL(request.nextUrl.pathname + request.nextUrl.search, `https://${APP_HOST}`);
+      return NextResponse.redirect(target, 308);
+    }
+    const res = await middlewareInner(request);
+    res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return res;
+  }
+
+  return middlewareInner(request);
+}
+
+async function middlewareInner(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ?lang=cs|en|pl — nastaví jazyk webu (odkazy z e-mailů hostům, sdílené EN odkazy) a přesměruje na čistou URL

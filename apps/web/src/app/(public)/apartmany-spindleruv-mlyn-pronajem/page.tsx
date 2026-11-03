@@ -14,6 +14,7 @@ import { getRequestLocaleFull } from '@/lib/i18n-server';
 import { ApartmentTitle } from '@/components/features/apartment-title';
 import { DateSearchBar } from '@/components/features/date-search';
 import { GuestRatingBadge, StayRules, StayFaq } from '@/components/features/guest-info';
+import { withSeo } from '@/lib/seo';
 export const dynamic = 'force-dynamic';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
@@ -27,21 +28,21 @@ function plPlural(n: number, one: string, few: string, many: string): string {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = getRequestLocaleFull();
   if (locale === 'pl') {
-    return {
+    return withSeo({
       title: 'Apartamenty na wynajem | Pod Zlatým návrším | Szpindlerowy Młyn',
       description: 'Luksusowe apartamenty na wynajem w Szpindlerowym Młynie, tuż przy wyciągu krzesełkowym. W pełni wyposażone, designerskie meble KARE.',
-    };
+    }, '/apartmany-spindleruv-mlyn-pronajem');
   }
   if (locale === 'en') {
-    return {
+    return withSeo({
       title: 'Apartments for rent | Pod Zlatým návrším | Špindlerův Mlýn',
       description: 'Luxury apartments for rent in Špindlerův Mlýn, right by the chairlift. Fully equipped, KARE designer furniture.',
-    };
+    }, '/apartmany-spindleruv-mlyn-pronajem');
   }
-  return {
+  return withSeo({
     title: 'Apartmány k pronájmu | Pod Zlatým návrším | Špindlerův Mlýn',
     description: 'Luxusní apartmány k pronájmu ve Špindlerově Mlýně, přímo u lanovky. Plně vybavené, designový nábytek KARE.',
-  };
+  }, '/apartmany-spindleruv-mlyn-pronajem');
 }
 
 export default async function RentalApartmentsPage() {
