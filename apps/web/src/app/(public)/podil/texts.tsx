@@ -17,7 +17,29 @@ import {
 type Locale = 'cs' | 'en';
 
 /** Cena jednoho podílu (2 % apartmánu) — shodně s mailingem do sítě ZFP, 11/2026. */
-const PODIL_PRICE_CZK = 200_000;
+export const PODIL_PRICE_CZK = 200_000;
+
+export const PODIL_TOTAL_SHARES = 50;
+
+/**
+ * Počet volných podílů z app_settings (edituje asistentka na /sprava-podilu).
+ * Fallback = všechny podíly při výpadku DB — stránka nesmí spadnout.
+ */
+export async function getPodilAvailableShares(): Promise<number> {
+  try {
+    const { createSupabaseAdminClient } = await import('@/lib/supabase-server');
+    const { data } = await createSupabaseAdminClient()
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'podil_available')
+      .maybeSingle();
+    const parsed = parseInt(data?.value ?? '', 10);
+    if (Number.isNaN(parsed)) return PODIL_TOTAL_SHARES;
+    return Math.min(Math.max(parsed, 0), PODIL_TOTAL_SHARES);
+  } catch {
+    return PODIL_TOTAL_SHARES;
+  }
+}
 
 export interface PodilTexts {
   metaTitle: string;
