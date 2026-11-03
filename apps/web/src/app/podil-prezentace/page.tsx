@@ -19,8 +19,10 @@ import {
   getPodilApartmentView,
   getPodilAvailableShares,
   PODIL_APARTMENT_SLUG,
+  PODIL_CONTACTS,
   PODIL_PRICE_CZK,
   PODIL_TOTAL_SHARES,
+  telHref,
 } from '../(public)/podil/texts';
 import { Deck, Gallery } from './deck';
 
@@ -29,13 +31,6 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Prezentace družstevního podílu | Pod Zlatým návrším',
   robots: { index: false, follow: false },
-};
-
-// Kontakt družstva — shodně s mailingem do sítě ZFP (11/2026)
-const CONTACT = {
-  role: 'Koordinátorka projektu',
-  name: 'Leona Hellingerová',
-  email: 'druzstvo@zfpakademie.cz',
 };
 
 function SlideFrame({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -365,11 +360,27 @@ export default async function PodilPrezentacePage() {
                 Podrobnosti o apartmánu i aktuální počet volných podílů najdete na webu.
               </p>
               <div className="border-t border-white/15 pt-6">
-                <p className="text-xs uppercase tracking-widest text-white/40 mb-2">{CONTACT.role}</p>
-                <p className="text-2xl font-light mb-1">{CONTACT.name}</p>
-                <a href={`mailto:${CONTACT.email}`} className="text-gold hover:underline">
-                  {CONTACT.email}
-                </a>
+                <p className="text-gold text-xs tracking-[0.25em] uppercase mb-5">{t.contactsTitle}</p>
+                <div className="grid sm:grid-cols-2 gap-8">
+                  {PODIL_CONTACTS.map((c) => (
+                    <div key={c.email}>
+                      <p className="text-xs uppercase tracking-widest text-white/40 mb-2">{c.role.cs}</p>
+                      <p className="text-xl font-light mb-3">{c.name}</p>
+                      <p className="text-white/60 mb-1">
+                        {t.contactPhone}:{' '}
+                        <a href={telHref(c.phone)} className="text-white hover:text-gold whitespace-nowrap">
+                          {c.phone}
+                        </a>
+                      </p>
+                      <p className="text-white/60">
+                        {t.contactEmail}:{' '}
+                        <a href={`mailto:${c.email}`} className="text-gold hover:underline break-all">
+                          {c.email}
+                        </a>
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="text-center">

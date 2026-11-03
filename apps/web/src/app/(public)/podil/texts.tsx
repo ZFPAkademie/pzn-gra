@@ -21,6 +21,24 @@ export const PODIL_PRICE_CZK = 200_000;
 
 export const PODIL_TOTAL_SHARES = 50;
 
+/** Kontakty pro dotazy — /podil, /podil/[available] a /podil-prezentace (shodně s mailingem do sítě ZFP). */
+export const PODIL_CONTACTS = [
+  {
+    role: { cs: 'KAM', en: 'Key Account Manager' },
+    name: 'Bc. Radek Kučera, MSc',
+    phone: '+420 605 212 153',
+    email: 'r.kucera@zfpakademie.cz',
+  },
+  {
+    role: { cs: 'Koordinátorka projektu', en: 'Project coordinator' },
+    name: 'Leona Hellingerová',
+    phone: '+420 724 866 309',
+    email: 'druzstvo@zfpakademie.cz',
+  },
+] as const;
+
+export const telHref = (phone: string) => `tel:${phone.replace(/\s/g, '')}`;
+
 /**
  * Počet volných podílů z app_settings (edituje asistentka na /sprava-podilu).
  * Fallback = všechny podíly při výpadku DB — stránka nesmí spadnout.
@@ -81,6 +99,9 @@ export interface PodilTexts {
   ofTotal: (total: number) => string;
   formTitle: string;
   formText: string;
+  contactsTitle: string;
+  contactPhone: string;
+  contactEmail: string;
   wholeApartmentText: string;
   wholeApartmentLink: string;
 }
@@ -163,6 +184,9 @@ const cs: PodilTexts = {
   ofTotal: (total) => `z celkových ${total} podílů`,
   formTitle: 'Máte zájem o družstevní podíl?',
   formText: 'Zanechte nám kontakt a připravíme vám nezávaznou nabídku.',
+  contactsTitle: 'Kontakt pro dotazy',
+  contactPhone: 'mobil',
+  contactEmail: 'e-mail',
   wholeApartmentText: 'Máte zájem o koupi celého apartmánu?',
   wholeApartmentLink: 'Zobrazit apartmány k prodeji',
 };
@@ -245,6 +269,9 @@ const en: PodilTexts = {
   ofTotal: (total) => `out of a total of ${total} shares`,
   formTitle: 'Interested in a cooperative share?',
   formText: 'Leave us your contact details and we will prepare a non-binding offer for you.',
+  contactsTitle: 'Contact for enquiries',
+  contactPhone: 'mobile',
+  contactEmail: 'e-mail',
   wholeApartmentText: 'Interested in buying a whole apartment?',
   wholeApartmentLink: 'View apartments for sale',
 };

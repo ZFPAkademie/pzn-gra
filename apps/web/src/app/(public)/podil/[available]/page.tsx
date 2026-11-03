@@ -14,6 +14,7 @@ import { getApartmentImages, getApartmentHeroImage } from '@/data/apartment-imag
 import { AlpineOrnament } from '@/components/ui/ornaments';
 import { ShareRequestForm } from '../client';
 import { getPodilTexts, getPodilApartment, getPodilApartmentView, PODIL_APARTMENT_SLUG } from '../texts';
+import { PodilContacts } from '../contacts';
 
 export const dynamic = 'force-dynamic';
 
@@ -445,6 +446,7 @@ export default async function PodilDynamicPage({ params }: PageProps) {
             </p>
           </div>
           <ShareRequestForm locale={locale} />
+          <PodilContacts locale={locale} />
         </div>
       </section>
 
