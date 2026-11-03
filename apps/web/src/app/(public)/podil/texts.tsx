@@ -16,6 +16,9 @@ import {
 
 type Locale = 'cs' | 'en';
 
+/** Cena jednoho podílu (2 % apartmánu) — shodně s mailingem do sítě ZFP, 11/2026. */
+const PODIL_PRICE_CZK = 200_000;
+
 export interface PodilTexts {
   metaTitle: string;
   metaDescription: string;
@@ -37,6 +40,7 @@ export interface PodilTexts {
   steps: { title: string; description: string }[];
   apartmentLabel: string;
   apartmentTitle: string;
+  apartmentIntro: string;
   heroImageAlt: string;
   photoAlt: (n: number) => string;
   aboutTitle: string;
@@ -61,17 +65,17 @@ export interface PodilTexts {
 
 const cs: PodilTexts = {
   metaTitle: 'Družstevní podíl na apartmánu | Pod Zlatým návrším',
-  metaDescription: 'Získejte družstevní podíl na horském apartmánu ve Špindlerově Mlýně. Podíl na výnosech z pronájmu, možnost vlastního využití se slevou.',
-  metaDescriptionShort: 'Získejte družstevní podíl na horském apartmánu ve Špindlerově Mlýně.',
+  metaDescription: 'Mějte svůj kousek hor ve Špindlerově Mlýně. Družstevní podíl na horském apartmánu: podíl na výnosu z pronájmu, sleva 20 % na vlastní pobyt a jen jedna smlouva.',
+  metaDescriptionShort: 'Družstevní podíl na horském apartmánu ve Špindlerově Mlýně: výnos z pronájmu, sleva 20 % na vlastní pobyt, jedna smlouva.',
   notFound: 'Apartmán nenalezen',
   heroLabel: 'Družstevní podíl',
-  heroTitle: 'Kupte si podíl na apartmánu ve Špindlu',
+  heroTitle: 'Mějte svůj kousek hor ve Špindlerově Mlýně',
   heroText: (
     <>
-      Získejte <strong className="text-white">družstevní podíl</strong> na horském apartmánu
-      ve Špindlerově Mlýně. Nemovitost v prémiové lokalitě, <strong className="text-white">podíl
-      na výnosech z pronájmu</strong>, možnost <strong className="text-white">vlastního využití
-      se slevou</strong> a jednoduché smluvní řešení.
+      Vlastněte <strong className="text-white">družstevní podíl na horském apartmánu</strong>, aniž
+      byste museli kupovat celý byt a starat se o pronájem. <strong className="text-white">Podíl
+      na výnosu z pronájmu</strong>, <strong className="text-white">sleva 20 % na vlastní
+      pobyt</strong> a <strong className="text-white">jen jedna smlouva</strong>.
     </>
   ),
   videoTitle: 'Prohlídka projektu',
@@ -85,16 +89,14 @@ const cs: PodilTexts = {
   audienceUse: (
     <>Pro ty, kteří chtějí hory nejen vlastnit, ale i <strong className="text-navy">využívat</strong>.</>
   ),
-  benefitsTitle: 'Hlavní výhody',
+  benefitsTitle: 'Proč družstevní podíl',
   benefits: [
-    { title: 'Anonymita vlastnictví', description: 'Registr vlastníků družstevních podílů není veřejný.' },
-    { title: 'Jednoduchost a rychlost', description: 'Podpis jedné smlouvy' },
-    { title: 'Výnos z nájmu', description: 'Orientačně 2–5 % ročně s potenciálem růstu v čase, vypláceno pololetně' },
-    { title: '50 podílů na apartmán', description: 'Možnost koupě libovolného počtu' },
+    { title: 'Výnos z pronájmu', description: 'Orientačně 2–5 % ročně, vyplácený dvakrát ročně' },
     { title: 'Růst hodnoty nemovitostí', description: 'Ceny bytů v Královéhradeckém kraji rostly v letech 2015–2025 v průměru o 11 % ročně, v roce 2023 ale meziročně klesly.¹' },
-    { title: 'Podíl na zisku', description: 'Z turistického pronájmu' },
-    { title: '20% sleva na ubytování', description: 'Pro držitele podílu' },
-    { title: 'Diverzifikace majetku', description: 'O podíl na reálné nemovitosti' },
+    { title: 'Žádné starosti', description: 'O pronájem, správu i výplatu výnosů se postará družstvo' },
+    { title: 'Jednoduchost a diskrétnost', description: 'Podpis jediné smlouvy a neveřejný registr vlastníků' },
+    { title: 'Sleva 20 % na vlastní pobyt', description: 'Hory můžete nejen vlastnit, ale i využívat' },
+    { title: 'Součást finančního portfolia', description: 'Podíl na reálné nemovitosti jako diverzifikace majetku' },
   ],
   legalNote:
     'Uvedené výnosy a zhodnocení jsou orientační a mohou se lišit v závislosti na obsazenosti a tržních podmínkách. ' +
@@ -106,15 +108,18 @@ const cs: PodilTexts = {
     'v letech 2023 a 2024 téměř 190 000 Kč/m² (Aktuálně.cz 28. 1. 2024, Echo24 2. 8. 2025). ' +
     'Údaje se týkají minulosti. Minulý vývoj cen není spolehlivým ukazatelem budoucího vývoje ' +
     'ani zárukou budoucího zhodnocení. Hodnota nemovitosti i podílu může klesat. Nejde o investiční doporučení.',
-  stepsTitle: 'Jak to funguje',
+  stepsTitle: 'Jak to probíhá',
   steps: [
-    { title: 'Nezávazná konzultace', description: 'Zjistíte vše potřebné o produktu a odpovíme na vaše dotazy.' },
-    { title: 'Výběr počtu podílů', description: 'Vyberete si konkrétní počet podílů, které chcete získat.' },
-    { title: 'Podpis jedné smlouvy', description: 'Jednoduché smluvní řešení bez zbytečné administrativy.' },
-    { title: 'Správa a výplata výnosů', description: 'O vše se postaráme. Výnosy vyplácíme pololetně.' },
+    { title: 'Nezávazná konzultace', description: 'Vysvětlíme vám produkt a odpovíme na vaše dotazy.' },
+    { title: 'Výběr počtu podílů', description: 'Jeden, nebo kolik chcete.' },
+    { title: 'Podpis jedné smlouvy', description: 'Bez zbytečné administrativy.' },
+    { title: 'Správa a výplata výnosů', description: 'O provoz se stará družstvo, výnosy se vyplácejí pololetně.' },
   ],
   apartmentLabel: 'Nabízený apartmán',
   apartmentTitle: 'Apartmán ve Špindlerově Mlýně',
+  apartmentIntro:
+    'Zařízený apartmán 50 metrů od lanovky a sjezdovky Labská ve Špindlerově Mlýně, jedné z nejoblíbenějších ' +
+    'horských destinací v Česku. Turisté sem jezdí po celý rok: v zimě lyžovat, v létě na turistiku do Krkonoš.',
   heroImageAlt: 'Apartmán ve Špindlerově Mlýně',
   photoAlt: (n) => `Apartmán - foto ${n}`,
   aboutTitle: 'O apartmánu',
@@ -128,8 +133,9 @@ const cs: PodilTexts = {
   specLivingKitchen: 'Pokoj s kuchyní',
   sharesTitle: 'Tento apartmán je nabízen v rámci družstevního vlastnictví',
   sharesText: (total, percent) =>
-    `Můžete si koupit jeden podíl nebo celých ${total}. Každý podíl představuje ${percent} % vlastnictví apartmánu a odpovídající podíl na výnosech z pronájmu.`,
-  sold: 'Prodáno',
+    `Apartmán je rozdělen na ${total} družstevních podílů. Každý odpovídá ${percent} % apartmánu a stojí ` +
+    `${PODIL_PRICE_CZK.toLocaleString('cs-CZ')} Kč. Můžete začít jedním podílem, nebo jich získat víc.`,
+  sold: 'Rezervováno',
   available: 'Dostupných',
   ofTotal: (total) => `z celkových ${total} podílů`,
   formTitle: 'Máte zájem o družstevní podíl?',
@@ -140,17 +146,17 @@ const cs: PodilTexts = {
 
 const en: PodilTexts = {
   metaTitle: 'Cooperative share in an apartment | Pod Zlatým návrším',
-  metaDescription: 'Acquire a cooperative share in a mountain apartment in Špindlerův Mlýn. A share in rental income, the option of personal use at a discount.',
-  metaDescriptionShort: 'Acquire a cooperative share in a mountain apartment in Špindlerův Mlýn.',
+  metaDescription: 'Own your piece of the mountains in Špindlerův Mlýn. A cooperative share in a mountain apartment: a share in rental income, a 20% discount on your own stays and just one contract.',
+  metaDescriptionShort: 'A cooperative share in a mountain apartment in Špindlerův Mlýn: rental income, a 20% discount on your own stays, one contract.',
   notFound: 'Apartment not found',
   heroLabel: 'Cooperative share',
-  heroTitle: 'Buy a share in an apartment in Špindlerův Mlýn',
+  heroTitle: 'Own your piece of the mountains in Špindlerův Mlýn',
   heroText: (
     <>
-      Acquire a <strong className="text-white">cooperative share</strong> in a mountain apartment
-      in Špindlerův Mlýn. Property in a premium location, a <strong className="text-white">share
-      in rental income</strong>, the option of <strong className="text-white">personal use
-      at a discount</strong> and a simple contractual arrangement.
+      Own a <strong className="text-white">cooperative share in a mountain apartment</strong> without
+      having to buy a whole flat or look after renting it out. <strong className="text-white">A share
+      in rental income</strong>, <strong className="text-white">a 20% discount on your own
+      stays</strong> and <strong className="text-white">just one contract</strong>.
     </>
   ),
   videoTitle: 'Project tour',
@@ -164,16 +170,14 @@ const en: PodilTexts = {
   audienceUse: (
     <>For those who want not only to own the mountains, but also to <strong className="text-navy">use them</strong>.</>
   ),
-  benefitsTitle: 'Key benefits',
+  benefitsTitle: 'Why a cooperative share',
   benefits: [
-    { title: 'Anonymity of ownership', description: 'The register of cooperative share owners is not public.' },
-    { title: 'Simplicity and speed', description: 'Signing a single contract' },
-    { title: 'Rental income', description: 'Indicatively 2–5% per year with potential for growth over time, paid out semi-annually' },
-    { title: '50 shares per apartment', description: 'Any number of shares can be purchased' },
+    { title: 'Rental income', description: 'Indicatively 2–5% per year, paid out twice a year' },
     { title: 'Growth in property values', description: 'Flat prices in the Hradec Králové Region rose by an average of 11% per year in 2015–2025, but fell year-on-year in 2023.¹' },
-    { title: 'Share in profits', description: 'From tourist rentals' },
-    { title: '20% discount on accommodation', description: 'For shareholders' },
-    { title: 'Asset diversification', description: 'Through a share in real property' },
+    { title: 'No worries', description: 'The cooperative takes care of renting, management and payout of returns' },
+    { title: 'Simplicity and discretion', description: 'A single contract to sign and a non-public register of owners' },
+    { title: '20% discount on your own stays', description: 'Not only own the mountains, but also enjoy them' },
+    { title: 'Part of a financial portfolio', description: 'A share in real property as asset diversification' },
   ],
   legalNote:
     'The returns and appreciation stated are indicative and may vary depending on occupancy and market conditions. ' +
@@ -187,13 +191,16 @@ const en: PodilTexts = {
     'nor a guarantee of future appreciation. The value of the property and of the share may fall. This is not an investment recommendation.',
   stepsTitle: 'How it works',
   steps: [
-    { title: 'Non-binding consultation', description: 'You will find out everything you need to know about the product and we will answer your questions.' },
-    { title: 'Choosing the number of shares', description: 'You choose the specific number of shares you wish to acquire.' },
-    { title: 'Signing a single contract', description: 'A simple contractual arrangement without unnecessary paperwork.' },
-    { title: 'Management and payout of returns', description: 'We take care of everything. Returns are paid out semi-annually.' },
+    { title: 'Non-binding consultation', description: 'We explain the product and answer your questions.' },
+    { title: 'Choosing the number of shares', description: 'One, or as many as you like.' },
+    { title: 'Signing a single contract', description: 'Without unnecessary paperwork.' },
+    { title: 'Management and payout of returns', description: 'The cooperative runs everything, returns are paid out semi-annually.' },
   ],
   apartmentLabel: 'The apartment on offer',
   apartmentTitle: 'Apartment in Špindlerův Mlýn',
+  apartmentIntro:
+    'A furnished apartment 50 metres from the Labská chairlift and slope in Špindlerův Mlýn, one of the most popular ' +
+    'mountain destinations in the Czech Republic. Visitors come all year round: skiing in winter, hiking in the Krkonoše in summer.',
   heroImageAlt: 'Apartment in Špindlerův Mlýn',
   photoAlt: (n) => `Apartment - photo ${n}`,
   aboutTitle: 'About the apartment',
@@ -207,8 +214,9 @@ const en: PodilTexts = {
   specLivingKitchen: 'Living room with kitchen',
   sharesTitle: 'This apartment is offered under cooperative ownership',
   sharesText: (total, percent) =>
-    `You can buy a single share or all ${total}. Each share represents ${percent}% ownership of the apartment and a corresponding share in rental income.`,
-  sold: 'Sold',
+    `The apartment is divided into ${total} cooperative shares. Each corresponds to ${percent}% of the apartment and costs ` +
+    `CZK ${PODIL_PRICE_CZK.toLocaleString('en-GB')}. You can start with one share or acquire more.`,
+  sold: 'Reserved',
   available: 'Available',
   ofTotal: (total) => `out of a total of ${total} shares`,
   formTitle: 'Interested in a cooperative share?',

@@ -83,13 +83,11 @@ const icons = {
 
 // Ikony výhod — texty v texts.tsx (stejné pořadí)
 const benefitIcons = [
-  'shield',
-  'scroll',
   'coins',
-  'grid',
   'mountain',
-  'percent',
   'home',
+  'shield',
+  'percent',
   'layers',
 ];
 
@@ -254,7 +252,7 @@ export default async function PodilDynamicPage({ params }: PageProps) {
           <h2 className="text-sm text-navy/40 uppercase tracking-widest text-center mb-16">
             {t.benefitsTitle}
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {t.benefits.map((benefit, index) => (
               <div key={index} className="py-6 border-b border-navy/10">
                 <div className="flex items-start gap-4">
@@ -311,6 +309,9 @@ export default async function PodilDynamicPage({ params }: PageProps) {
             <h2 className="text-3xl md:text-4xl font-light text-white">
               {t.apartmentTitle}
             </h2>
+            <p className="text-white/60 max-w-2xl mx-auto mt-6 leading-relaxed">
+              {t.apartmentIntro}
+            </p>
           </div>
 
           {/* Hero image */}
