@@ -17,7 +17,7 @@ export const OPERATOR = {
   registerCs: 'C 438329 vedená u Městského soudu v Praze',
   registerEn: 'C 438329, Municipal Court in Prague',
   registerPl: 'C 438329, Sąd Miejski w Pradze',
-  email: 'rezervace@podzlatymnavrsim.cz',
+  email: 'info@podzlatymnavrsim.cz',
 } as const;
 
 export const LEGAL_EFFECTIVE = { cs: '3. listopadu 2026', en: '3 November 2026', pl: '3 listopada 2026' } as const;
@@ -78,7 +78,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Zrušení rezervace',
         items: [
-          'Host může rezervaci zrušit zdarma nejpozději 14 dnů před dnem příjezdu, a to e-mailem na rezervace@podzlatymnavrsim.cz nebo odkazem na rezervační kartě. Uhrazenou cenu vrátíme bez zbytečného odkladu, nejpozději do 14 dnů od zrušení, na účet, ze kterého byla zaplacena.',
+          'Host může rezervaci zrušit zdarma nejpozději 14 dnů před dnem příjezdu, a to e-mailem na info@podzlatymnavrsim.cz nebo odkazem na rezervační kartě. Uhrazenou cenu vrátíme bez zbytečného odkladu, nejpozději do 14 dnů od zrušení, na účet, ze kterého byla zaplacena.',
           'Při zrušení později než 14 dnů před příjezdem, při nenastoupení pobytu nebo při předčasném odjezdu se cena pobytu nevrací.',
           'Pokud ubytovatel nemůže ubytování poskytnout z důvodů, které nemohl ovlivnit (například havárie v apartmánu nebo zásah vyšší moci), nabídne hostovi jiný apartmán nebo termín, a pokud host nabídku nepřijme, vrátí mu celou uhrazenou cenu.',
           'Spotřebitel nemůže od smlouvy o ubytování odstoupit ve lhůtě 14 dnů bez udání důvodu, protože jde o službu poskytovanou ve sjednaném termínu (§ 1837 písm. j) občanského zákoníku). Bezplatné zrušení podle prvního bodu tím není dotčeno.',
@@ -104,7 +104,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Reklamace',
         paragraphs: [
-          'Pokud něco v apartmánu nefunguje nebo neodpovídá rezervaci, dejte nám vědět během pobytu na rezervace@podzlatymnavrsim.cz, abychom to mohli hned napravit. Reklamaci vyřídíme bez zbytečného odkladu, nejpozději do 30 dnů od jejího uplatnění.',
+          'Pokud něco v apartmánu nefunguje nebo neodpovídá rezervaci, dejte nám vědět během pobytu na info@podzlatymnavrsim.cz, abychom to mohli hned napravit. Reklamaci vyřídíme bez zbytečného odkladu, nejpozději do 30 dnů od jejího uplatnění.',
         ],
       },
       {
@@ -162,7 +162,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Cancellation',
         items: [
-          'The guest may cancel the booking free of charge no later than 14 days before the day of arrival, by e-mail to rezervace@podzlatymnavrsim.cz or via the link on the booking card. We will refund the amount paid without undue delay, within 14 days of cancellation at the latest, to the account from which it was paid.',
+          'The guest may cancel the booking free of charge no later than 14 days before the day of arrival, by e-mail to info@podzlatymnavrsim.cz or via the link on the booking card. We will refund the amount paid without undue delay, within 14 days of cancellation at the latest, to the account from which it was paid.',
           'If the booking is cancelled later than 14 days before arrival, if the guest does not arrive, or if the guest leaves early, the price of the stay is not refunded.',
           'If the provider cannot provide the accommodation for reasons beyond its control (for example a technical failure in the apartment or force majeure), it will offer the guest another apartment or dates; if the guest declines, the full amount paid will be refunded.',
           'Consumers cannot withdraw from an accommodation contract within 14 days without giving a reason, as it is a service provided on agreed dates (Section 1837(j) of the Czech Civil Code). This does not affect free cancellation under the first point.',
@@ -188,7 +188,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Complaints',
         paragraphs: [
-          'If something in the apartment does not work or does not match the booking, please let us know during your stay at rezervace@podzlatymnavrsim.cz so that we can fix it straight away. We will handle complaints without undue delay, within 30 days at the latest.',
+          'If something in the apartment does not work or does not match the booking, please let us know during your stay at info@podzlatymnavrsim.cz so that we can fix it straight away. We will handle complaints without undue delay, within 30 days at the latest.',
         ],
       },
       {
@@ -246,7 +246,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Anulowanie rezerwacji',
         items: [
-          'Gość może bezpłatnie anulować rezerwację najpóźniej 14 dni przed dniem przyjazdu, e-mailem na adres rezervace@podzlatymnavrsim.cz lub przez odnośnik na karcie rezerwacji. Zapłaconą kwotę zwrócimy niezwłocznie, najpóźniej w ciągu 14 dni od anulowania, na konto, z którego została zapłacona.',
+          'Gość może bezpłatnie anulować rezerwację najpóźniej 14 dni przed dniem przyjazdu, e-mailem na adres info@podzlatymnavrsim.cz lub przez odnośnik na karcie rezerwacji. Zapłaconą kwotę zwrócimy niezwłocznie, najpóźniej w ciągu 14 dni od anulowania, na konto, z którego została zapłacona.',
           'W przypadku anulowania później niż 14 dni przed przyjazdem, nieprzybycia lub wcześniejszego wyjazdu cena pobytu nie podlega zwrotowi.',
           'Jeśli usługodawca nie może zapewnić zakwaterowania z przyczyn od niego niezależnych (na przykład awaria w apartamencie lub siła wyższa), zaproponuje gościowi inny apartament lub termin, a jeśli gość odmówi, zwróci całą zapłaconą kwotę.',
           'Konsument nie może odstąpić od umowy o zakwaterowanie w ciągu 14 dni bez podania przyczyny, ponieważ jest to usługa świadczona w uzgodnionym terminie (§ 1837 lit. j) czeskiego kodeksu cywilnego). Nie wpływa to na bezpłatne anulowanie zgodnie z pierwszym punktem.',
@@ -272,7 +272,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
       {
         title: 'Reklamacje',
         paragraphs: [
-          'Jeśli coś w apartamencie nie działa lub nie odpowiada rezerwacji, prosimy o informację w trakcie pobytu na adres rezervace@podzlatymnavrsim.cz, abyśmy mogli od razu to naprawić. Reklamacje rozpatrujemy niezwłocznie, najpóźniej w ciągu 30 dni.',
+          'Jeśli coś w apartamencie nie działa lub nie odpowiada rezerwacji, prosimy o informację w trakcie pobytu na adres info@podzlatymnavrsim.cz, abyśmy mogli od razu to naprawić. Reklamacje rozpatrujemy niezwłocznie, najpóźniej w ciągu 30 dni.',
         ],
       },
       {

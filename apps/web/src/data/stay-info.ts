@@ -246,9 +246,9 @@ export const FAQ: { key: string; q: Record<Locale, string>; a: Record<Locale, st
     key: 'cancel',
     q: { cs: 'Jak zruším rezervaci?', en: 'How do I cancel a booking?', pl: 'Jak anulować rezerwację?' },
     a: {
-      cs: 'Do 14 dnů před příjezdem zdarma, stačí napsat na rezervace@podzlatymnavrsim.cz nebo využít odkaz na rezervační kartě.',
-      en: 'Free of charge up to 14 days before arrival. Just e-mail rezervace@podzlatymnavrsim.cz or use the link on your booking card.',
-      pl: 'Bezpłatnie do 14 dni przed przyjazdem. Wystarczy napisać na rezervace@podzlatymnavrsim.cz lub skorzystać z odnośnika na karcie rezerwacji.',
+      cs: 'Do 14 dnů před příjezdem zdarma, stačí napsat na info@podzlatymnavrsim.cz nebo využít odkaz na rezervační kartě.',
+      en: 'Free of charge up to 14 days before arrival. Just e-mail info@podzlatymnavrsim.cz or use the link on your booking card.',
+      pl: 'Bezpłatnie do 14 dni przed przyjazdem. Wystarczy napisać na info@podzlatymnavrsim.cz lub skorzystać z odnośnika na karcie rezerwacji.',
     },
   },
   {

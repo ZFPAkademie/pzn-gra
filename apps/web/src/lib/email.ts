@@ -6,7 +6,7 @@ function getResend() {
 }
 
 const FROM = process.env.EMAIL_FROM ?? 'noreply@podzlatymnavrsim.cz';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'rezervace@podzlatymnavrsim.cz';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'info@podzlatymnavrsim.cz';
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://pzn-gra.vercel.app';
 
 type EmailLocale = 'cs' | 'en' | 'pl';
@@ -223,7 +223,7 @@ export async function sendBookingReceivedEmail(params: {
     ${divider()}
     <p style="margin:0;color:rgba(11,22,38,0.35);font-size:11px;">
       ${t.questions}
-      <a href="mailto:rezervace@podzlatymnavrsim.cz" style="color:#C9A24D;">rezervace@podzlatymnavrsim.cz</a>
+      <a href="mailto:info@podzlatymnavrsim.cz" style="color:#C9A24D;">info@podzlatymnavrsim.cz</a>
     </p>
   `, locale);
 
@@ -422,7 +422,7 @@ export async function sendBookingConfirmedEmail(params: {
     ${divider()}
     <p style="margin:0;color:rgba(11,22,38,0.35);font-size:11px;">
       ${t.help}
-      <a href="mailto:rezervace@podzlatymnavrsim.cz" style="color:#C9A24D;">rezervace@podzlatymnavrsim.cz</a>
+      <a href="mailto:info@podzlatymnavrsim.cz" style="color:#C9A24D;">info@podzlatymnavrsim.cz</a>
     </p>
   `, locale);
 

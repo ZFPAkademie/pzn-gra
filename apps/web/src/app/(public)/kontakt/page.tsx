@@ -47,7 +47,7 @@ export default async function ContactPage() {
     
     rentalTitle: 'Pronájem',
     rentalDesc: 'Pro rezervace a dotazy k ubytování:',
-    rentalEmail: 'rezervace@podzlatymnavrsim.cz',
+    rentalEmail: 'info@podzlatymnavrsim.cz',
     // Telefon pro pronájem zatím nemáme potvrzený — prázdný = nezobrazuje se (dřív „+420 XXX XXX XXX")
     rentalPhone: '',
     
@@ -74,7 +74,7 @@ export default async function ContactPage() {
     
     rentalTitle: 'Rentals',
     rentalDesc: 'For bookings and accommodation enquiries:',
-    rentalEmail: 'rezervace@podzlatymnavrsim.cz',
+    rentalEmail: 'info@podzlatymnavrsim.cz',
     rentalPhone: '',
     
     address: 'Address',

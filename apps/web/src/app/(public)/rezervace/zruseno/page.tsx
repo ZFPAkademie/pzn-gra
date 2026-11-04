@@ -83,8 +83,8 @@ export default function BookingCancelledPage() {
 
           <p className="text-xs text-navy/40 text-center">
             {t.trouble}{' '}
-            <a href="mailto:rezervace@podzlatymnavrsim.cz" className="underline">
-              rezervace@podzlatymnavrsim.cz
+            <a href="mailto:info@podzlatymnavrsim.cz" className="underline">
+              info@podzlatymnavrsim.cz
             </a>
           </p>
         </div>

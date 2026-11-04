@@ -69,7 +69,7 @@ function fmtShort(d: string, locale: Locale) {
 
 const BANK_IBAN   = process.env.BANK_IBAN  ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME   = process.env.BANK_NAME  ?? 'Pod Zlatým návrším s.r.o.';
-const CONTACT_EMAIL = 'rezervace@podzlatymnavrsim.cz';
+const CONTACT_EMAIL = 'info@podzlatymnavrsim.cz';
 const CONTACT_PHONE = '+420 777 000 000';
 
 export default async function BookingTokenPage({ params }: Props) {

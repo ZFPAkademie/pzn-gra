@@ -276,13 +276,13 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                   <div className="border-t border-white/10 pt-6 mt-6">
                     <p className="text-white/50 text-sm mb-4">{t.orContact}</p>
                     <a
-                      href="mailto:rezervace@podzlatymnavrsim.cz"
+                      href="mailto:info@podzlatymnavrsim.cz"
                       className="flex items-center text-white hover:text-gold transition-colors text-sm"
                     >
                       <svg className="w-4 h-4 mr-2 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                       </svg>
-                      rezervace@podzlatymnavrsim.cz
+                      info@podzlatymnavrsim.cz
                     </a>
                   </div>
                 </div>

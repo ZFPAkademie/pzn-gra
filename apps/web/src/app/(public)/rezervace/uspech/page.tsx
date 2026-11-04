@@ -129,10 +129,10 @@ export default function BookingSuccessPage({ searchParams }: Props) {
                   <p className="text-sm text-navy/50">
                     {t.step3Text}{' '}
                     <a
-                      href="mailto:rezervace@podzlatymnavrsim.cz"
+                      href="mailto:info@podzlatymnavrsim.cz"
                       className="text-navy underline hover:no-underline"
                     >
-                      rezervace@podzlatymnavrsim.cz
+                      info@podzlatymnavrsim.cz
                     </a>
                     .
                   </p>
