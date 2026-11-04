@@ -283,6 +283,46 @@ export async function sendAdminNewBookingEmail(params: {
   });
 }
 
+// ─── Admin: Zpráva z kontaktního formuláře ───────────────────────
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+export async function sendAdminContactEmail(params: {
+  leadId: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  language?: string;
+}) {
+  const adminUrl = `${BASE_URL}/admin/leads/${params.leadId}`;
+
+  const html = layout(`
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:300;color:#0B1626;">Nová zpráva z webu</h1>
+    <p style="margin:0 0 28px;color:rgba(11,22,38,0.5);font-size:14px;">
+      Kontaktní formulář na stránce Kontakt. Odpovězte přímo na e-mail odesílatele.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+      ${row('Jméno', esc(params.name))}
+      ${row('E-mail', esc(params.email))}
+      ${params.phone ? row('Telefon', esc(params.phone)) : ''}
+      ${row('Jazyk', params.language === 'en' ? 'EN' : params.language === 'pl' ? 'PL' : 'CZ')}
+    </table>
+
+    <p style="margin:0 0 28px;color:#0B1626;font-size:15px;line-height:1.6;white-space:pre-wrap;">${esc(params.message)}</p>
+
+    ${btn(adminUrl, 'Otevřít v adminu')}
+  `);
+
+  return sendSafe({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    replyTo: params.email,
+    subject: `Zpráva z webu — ${params.name}`,
+    html,
+  });
+}
+
 // ─── 3. Host: Platba potvrzena ────────────────────────────────────
 export async function sendBookingConfirmedEmail(params: {
   guestEmail: string;
@@ -395,7 +435,7 @@ export async function sendBookingConfirmedEmail(params: {
 }
 
 // ─── Soft-fail wrapper ────────────────────────────────────────────
-async function sendSafe(params: { from: string; to: string; subject: string; html: string }) {
+async function sendSafe(params: { from: string; to: string; subject: string; html: string; replyTo?: string }) {
   try {
     const { error } = await getResend().emails.send(params);
     if (error) console.error('[email] Resend error:', error);

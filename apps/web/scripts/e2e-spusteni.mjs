@@ -5,7 +5,7 @@
  * rezervační formulář a patička), neznámá adresa vrací 404 s rozcestníkem, sitemapa a
  * canonical míří na www a každá stránka má náhled pro sdílení.
  */
-import { BASE, check, summary } from "./qa-env.mjs"
+import { BASE, admin, check, summary } from "./qa-env.mjs"
 
 const get = (path) => fetch(`${BASE}${path}`, { redirect: "manual" })
 const html = async (path) => (await (await fetch(`${BASE}${path}`)).text()).replace(/<!-- -->/g, "")
@@ -61,6 +61,19 @@ for (const [from, to] of REDIRECTS) {
   check("og:title + og:image", lokalita.includes('property="og:title"') && /property="og:image" content="https?:\/\/[^"]+\/opengraph-image"/.test(lokalita))
   const og = await fetch(`${BASE}/opengraph-image`)
   check("výchozí náhled je PNG", og.status === 200 && og.headers.get("content-type") === "image/png", `${og.status} ${og.headers.get("content-type")}`)
+}
+
+// ── Kontaktní formulář ukládá (do 4. 11. 2026 jen console.log + úspěch) ─────────
+{
+  const marker = `QA-KONTAKT-${Date.now()}`
+  const r = await fetch(`${BASE}/api/v1/contact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "QA Kontakt", email: "qa-kontakt@example.com", phone: "", message: marker }),
+  })
+  const { data } = await admin.from("leads").select("id, type, first_name, last_name").eq("message", marker)
+  check("kontaktní formulář → leads", r.status === 201 && data?.length === 1 && data[0].type === "general_inquiry", `${r.status} řádků ${data?.length}`)
+  if (data?.length) await admin.from("leads").delete().in("id", data.map((d) => d.id))
 }
 
 // ── Odstraněná tvrzení se nevrací ─────────────────────────────────────────────
