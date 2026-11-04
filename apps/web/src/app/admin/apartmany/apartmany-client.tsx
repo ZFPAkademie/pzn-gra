@@ -313,7 +313,7 @@ export function AddApartmentForm() {
         </div>
         <div>
           <label className="block text-xs text-slate-500 mb-1">Název *</label>
-          <input name="title" required placeholder="Golden Ridge apartmán č. 5" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+          <input name="title" required placeholder="Golden Ridge apartmán B2A5" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
         </div>
         <div>
           <label className="block text-xs text-slate-500 mb-1">Číslo jednotky</label>

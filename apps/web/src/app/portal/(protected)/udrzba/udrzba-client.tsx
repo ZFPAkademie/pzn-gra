@@ -56,7 +56,7 @@ export function NewRequestForm({ apartments }: { apartments: ApartmentOption[] }
               className="w-full border border-[#0B1626]/15 rounded-sm px-3 py-2 text-sm text-[#0B1626] font-light focus:outline-none focus:border-[#C9A24D]"
             >
               {apartments.map((a) => (
-                <option key={a.id} value={a.id}>{a.building} {a.unit}</option>
+                <option key={a.id} value={a.id}>B{a.building}A{a.unit}</option>
               ))}
             </select>
           </div>

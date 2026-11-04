@@ -88,7 +88,7 @@ export default async function MaintenancePage() {
                       <span className="text-red-600 text-xs tracking-wider uppercase">Urgentní</span>
                     )}
                     {apts.length > 1 && apt && (
-                      <span className="text-[#0B1626]/40 text-xs">{apt.building} {apt.unit}</span>
+                      <span className="text-[#0B1626]/40 text-xs">B{apt.building}A{apt.unit}</span>
                     )}
                   </div>
                   <span className="text-[#0B1626]/30 text-xs whitespace-nowrap">{formatDate(req.created_at)}</span>

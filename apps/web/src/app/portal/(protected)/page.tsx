@@ -41,7 +41,7 @@ export default async function PortalHomePage() {
           {apts.map((apt) => (
             <div key={apt.id} className="bg-white border border-[#0B1626]/10 rounded-sm p-6">
               <h2 className="text-[#0B1626] font-light text-lg mb-5 pb-3 border-b border-[#0B1626]/10">
-                {apts.length > 1 ? `${apt.building} — ${apt.unit}` : 'Základní informace'}
+                {apts.length > 1 ? `B${apt.building}A${apt.unit}` : 'Základní informace'}
               </h2>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div>

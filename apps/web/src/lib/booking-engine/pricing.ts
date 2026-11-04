@@ -94,49 +94,67 @@ async function calculateFdmPrice(
   return priceFdmStay(byDate, checkIn, checkOut) ?? { missing: true };
 }
 
-/** Batch varianta getFdmPriceFrom pro seznamy (sync → async: listy nemohou awaitovat v .map()). */
-export async function getFdmPriceFromMany(
-  apartmentIds: string[]
-): Promise<Record<string, { cents: number; currency: BookingCurrency }>> {
-  if (apartmentIds.length === 0) return {};
-  const admin = createSupabaseAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
-  const { data } = await admin
-    .from('fdm_calendar')
-    .select('apartment_id, price_cents, currency')
-    .in('apartment_id', apartmentIds)
-    .gte('date', today)
-    .eq('available', true)
-    .not('price_cents', 'is', null);
-  const out: Record<string, { cents: number; currency: BookingCurrency }> = {};
-  for (const row of data ?? []) {
-    const id = row.apartment_id as string;
-    const cents = row.price_cents as number;
-    if (!out[id] || cents < out[id].cents) {
-      out[id] = { cents, currency: row.currency === 'CZK' ? 'CZK' : 'EUR' };
-    }
+/**
+ * Kolik volných nocí musí cena v příštím roce pokrýt, aby šla na web jako „od“.
+ * FDM má jednorázové slevy na jednu noc (např. neděle mezi pobyty za 65 € při běžných 95 €),
+ * které host s min. pobytem prakticky nezarezervuje — „od 65“ pak klame.
+ */
+const PRICE_FROM_MIN_NIGHTS = 7;
+
+/** Nejnižší cena platná aspoň PRICE_FROM_MIN_NIGHTS volných nocí; když žádná, nejnižší vůbec. */
+function pickPriceFrom(
+  rows: { price_cents: number | null; currency: string | null }[]
+): { cents: number; currency: BookingCurrency } | null {
+  const counts = new Map<number, number>();
+  let currency: BookingCurrency = 'EUR';
+  for (const r of rows) {
+    if (r.price_cents == null) continue;
+    counts.set(r.price_cents, (counts.get(r.price_cents) ?? 0) + 1);
+    if (r.currency === 'CZK') currency = 'CZK';
   }
-  return out;
+  if (counts.size === 0) return null;
+  const prices = Array.from(counts.keys()).sort((a, b) => a - b);
+  const regular = prices.find((p) => (counts.get(p) ?? 0) >= PRICE_FROM_MIN_NIGHTS);
+  return { cents: regular ?? prices[0], currency };
 }
 
-/** Nejnižší cena za noc v příštím roce (pro „Pronájem od“). Null = apartmán není na FDM nebo bez cen. */
-export async function getFdmPriceFrom(
-  apartmentId: string
-): Promise<{ cents: number; currency: BookingCurrency } | null> {
+/**
+ * Cena „od“ pro jeden apartmán — volné, neuzavřené noci příštího roku.
+ * Dotaz per apartmán: ~365 řádků, pod limitem PostgREST 1000 (dávkový .in() ho přetékal).
+ */
+async function fetchPriceFrom(apartmentId: string, today: string) {
   const admin = createSupabaseAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
   const { data } = await admin
     .from('fdm_calendar')
     .select('price_cents, currency')
     .eq('apartment_id', apartmentId)
     .gte('date', today)
     .eq('available', true)
-    .not('price_cents', 'is', null)
-    .order('price_cents', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!data?.price_cents) return null;
-  return { cents: data.price_cents, currency: data.currency === 'CZK' ? 'CZK' : 'EUR' };
+    .eq('closed', false)
+    .not('price_cents', 'is', null);
+  return pickPriceFrom(data ?? []);
+}
+
+/** Batch varianta getFdmPriceFrom pro seznamy (sync → async: listy nemohou awaitovat v .map()). */
+export async function getFdmPriceFromMany(
+  apartmentIds: string[]
+): Promise<Record<string, { cents: number; currency: BookingCurrency }>> {
+  if (apartmentIds.length === 0) return {};
+  const today = new Date().toISOString().slice(0, 10);
+  const results = await Promise.all(apartmentIds.map((id) => fetchPriceFrom(id, today)));
+  const out: Record<string, { cents: number; currency: BookingCurrency }> = {};
+  apartmentIds.forEach((id, i) => {
+    const r = results[i];
+    if (r) out[id] = r;
+  });
+  return out;
+}
+
+/** Cena za noc „Pronájem od“ v příštím roce. Null = apartmán není na FDM nebo bez cen. */
+export async function getFdmPriceFrom(
+  apartmentId: string
+): Promise<{ cents: number; currency: BookingCurrency } | null> {
+  return fetchPriceFrom(apartmentId, new Date().toISOString().slice(0, 10));
 }
 
 export async function calculatePrice(

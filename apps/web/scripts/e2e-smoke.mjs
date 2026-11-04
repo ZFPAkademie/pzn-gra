@@ -76,6 +76,8 @@ check("homepage 200 s obsahem", r.status === 200 && html.length > 5000, `${r.sta
 r = await fetch(`${BASE}/apartmany-spindleruv-mlyn-pronajem`, { headers: { cookie: "NEXT_LOCALE=cs" } })
 const rentHtml = await r.text()
 check("pronájem: podmínky pobytu + hodnocení hostů", r.status === 200 && rentHtml.includes("Podmínky pobytu") && rentHtml.includes("Booking.com"), String(r.status))
+check("pronájem: v hlavičce značka Golden Ridge Apartments", rentHtml.includes('alt="Golden Ridge Apartments"'), "alt loga chybí")
+check("homepage: v hlavičce zůstává Pod Zlatým návrším", html.includes('alt="Pod Zlatým návrším"'), "alt loga chybí")
 r = await fetch(`${BASE}/lokalita`, { headers: { cookie: "NEXT_LOCALE=cs" } })
 const locHtml = await r.text()
 check("lokalita: centrum 2,2 km, ne 500 m", r.status === 200 && locHtml.includes("2,2 km") && !locHtml.includes("500 m"), String(r.status))

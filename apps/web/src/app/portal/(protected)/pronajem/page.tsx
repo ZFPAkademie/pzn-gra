@@ -159,7 +159,7 @@ export default async function PronaJemPage() {
                 <div key={booking.id} className="px-6 py-4 flex items-center justify-between">
                   <div className="space-y-1">
                     {rentalApts.length > 1 && apt && (
-                      <p className="text-[#0B1626]/40 text-xs">{apt.building} {apt.unit}</p>
+                      <p className="text-[#0B1626]/40 text-xs">B{apt.building}A{apt.unit}</p>
                     )}
                     <p className="text-[#0B1626] font-light text-sm">
                       {formatDate(booking.check_in)} – {formatDate(booking.check_out)}

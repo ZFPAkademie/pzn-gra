@@ -6,13 +6,27 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from './language-switcher';
 
+const RENTAL_PATHS = [
+  '/apartmany-spindleruv-mlyn-pronajem',
+  '/golden-ridge-apartments',
+  '/volne-terminy',
+  '/rezervace',
+];
+
 export function Header() {
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname() ?? '';
+  // Pronájem má vlastní značku Golden Ridge Apartments (4. 11. 2026), prodej a projekt zůstávají Pod Zlatým návrším
+  const isRental = RENTAL_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
+  const brand = isRental
+    ? { strong: 'Golden Ridge', light: 'Apartments', alt: 'Golden Ridge Apartments' }
+    : { strong: 'Pod Zlatým', light: 'návrším', alt: 'Pod Zlatým návrším' };
 
   // Pronájem na prvním místě; prodej, o projektu a investice jsou pod „Prodej" (13. 10. 2026)
   const navItems = [
@@ -35,14 +49,14 @@ export function Header() {
         <Link href="/" className="flex items-center">
           <Image
             src="/images/logo-nove.png"
-            alt="Pod Zlatým návrším"
+            alt={brand.alt}
             width={50}
             height={50}
             className="mr-3"
           />
           <span className="hidden sm:block">
-            <span className="text-lg font-medium text-navy">Pod Zlatým</span>
-            <span className="text-lg font-light text-navy/70 ml-1">návrším</span>
+            <span className="text-lg font-medium text-navy">{brand.strong}</span>
+            <span className="text-lg font-light text-navy/70 ml-1">{brand.light}</span>
           </span>
         </Link>
 
