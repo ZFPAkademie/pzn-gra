@@ -300,7 +300,7 @@ export async function getPodilApartment(locale: Locale): Promise<ApartmentDB | n
     id: s.slug, slug: s.slug, title: s.title, subtitle: s.subtitle, layout: s.layout,
     area_m2: Number.isFinite(area) ? area : null, floor: s.floor, orientation: s.orientation,
     description: s.description, features: s.features, rooms: s.rooms,
-    max_guests: null, base_price_cents: null, fdm_room_use_id: null,
+    max_guests: null, extra_beds: null, bathroom: null, floors_total: null, base_price_cents: null, fdm_room_use_id: null,
     for_sale: true, for_rent: false, in_rental_program: false, status: s.status,
     title_en: null, subtitle_en: null, orientation_en: null, description_en: null, features_en: null,
     title_pl: null, subtitle_pl: null, orientation_pl: null, description_pl: null, features_pl: null,

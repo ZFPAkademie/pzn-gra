@@ -22,6 +22,10 @@ export interface ApartmentDB {
   features: string[] | null;
   rooms: { hall: string; bathroom: string; bedroom: string | null; livingKitchen: string } | null;
   max_guests: number | null;
+  // Tabulka správce (020): místa na pohovce, sprcha/vana, podlaží budovy
+  extra_beds: number | null;
+  bathroom: 'shower' | 'bath' | null;
+  floors_total: number | null;
   base_price_cents: number | null;
   fdm_room_use_id: number | null;
   for_sale: boolean;
@@ -43,7 +47,7 @@ export interface ApartmentDB {
 }
 
 const DB_SELECT =
-  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status, title_en, subtitle_en, orientation_en, description_en, features_en, title_pl, subtitle_pl, orientation_pl, description_pl, features_pl' as const;
+  'id, slug, title, subtitle, layout, area_m2, floor, orientation, description, features, rooms, max_guests, extra_beds, bathroom, floors_total, base_price_cents, fdm_room_use_id, for_sale, for_rent, in_rental_program, status, title_en, subtitle_en, orientation_en, description_en, features_en, title_pl, subtitle_pl, orientation_pl, description_pl, features_pl' as const;
 
 /**
  * Texty apartmánu v jazyce návštěvníka — 'en' přepíše title/subtitle/orientation/description/features

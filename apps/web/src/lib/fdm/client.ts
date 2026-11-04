@@ -63,6 +63,8 @@ export interface FdmCreateReservationInput {
   checkOut: string; // YYYY-MM-DD
   guests: number;
   totalPrice: number; // v měně property, za celý pobyt
+  /** Cena po nocích (check_in … check_out − 1). Chybí-li nebo nesedí součet, total se rozdělí rovnoměrně. */
+  nightly?: { date: string; price: number }[];
   note?: string;
   guest: FdmReservationGuest;
 }
@@ -243,6 +245,27 @@ function dropEmpty<T extends Record<string, unknown>>(o: T): Partial<T> {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== undefined && v !== '')) as Partial<T>;
 }
 
+/** Ceny po nocích: z input.nightly, když pokrývá všechny noci a sedí součet; jinak total rovnoměrně (zbytek na poslední noc). */
+export function splitNights(input: FdmCreateReservationInput, nights: number): { date: string; price: number }[] {
+  const totalCents = Math.round(input.totalPrice * 100);
+  const dates: string[] = [];
+  const d = new Date(input.checkIn + 'T00:00:00Z');
+  for (let i = 0; i < nights; i++) {
+    dates.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  const given = new Map((input.nightly ?? []).map((n) => [n.date, Math.round(n.price * 100)]));
+  const fromInput = dates.map((date) => given.get(date));
+  if (fromInput.every((c) => c != null) && fromInput.reduce((a, c) => a + (c as number), 0) === totalCents) {
+    return dates.map((date, i) => ({ date, price: (fromInput[i] as number) / 100 }));
+  }
+  const base = Math.floor(totalCents / Math.max(nights, 1));
+  return dates.map((date, i) => ({
+    date,
+    price: (i === nights - 1 ? totalCents - base * (nights - 1) : base) / 100,
+  }));
+}
+
 export function buildFdmReservationBody(
   input: FdmCreateReservationInput,
   variant: FdmBodyVariant = 'mirror'
@@ -280,20 +303,20 @@ export function buildFdmReservationBody(
         ChannexPCIToken: '',
       },
     },
-    Nights: [
-      {
-        Day: toFdmDate(input.checkIn),
-        Beds: input.guests,
-        Nights: nights,
-        Price: price,
-        OriginalPrice: price,
-        RoomUseId: input.roomUseId,
-        RoomUseName: input.roomUseName,
-        RoomsCount: 1,
-        RoomsIndex: 0,
-        RateId: input.rateId,
-      },
-    ],
+    // FDM zakládá noci podle počtu prvků Nights[] — jeden prvek = jedna noc (Nights: 1),
+    // jako jeho vlastní formulář. Jeden prvek s Nights: 2 uložil jen 1 noc (4. 11. 2026).
+    Nights: splitNights(input, nights).map((n) => ({
+      Day: toFdmDate(n.date),
+      Beds: input.guests,
+      Nights: 1,
+      Price: n.price,
+      OriginalPrice: n.price,
+      RoomUseId: input.roomUseId,
+      RoomUseName: input.roomUseName,
+      RoomsCount: 1,
+      RoomsIndex: 0,
+      RateId: input.rateId,
+    })),
     Extras: [],
     IsFromBookLocal: false,
     PaymentViaBankTransfer: variant === 'mirror-bank',

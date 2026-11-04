@@ -77,6 +77,21 @@ CREATE TABLE IF NOT EXISTS "public"."apartments" (
     "orientation" "text",
     "rooms" "jsonb",
     "subtitle" "text",
+    "fdm_room_use_id" integer,
+    "title_en" "text",
+    "subtitle_en" "text",
+    "orientation_en" "text",
+    "description_en" "text",
+    "features_en" "jsonb",
+    "title_pl" "text",
+    "subtitle_pl" "text",
+    "orientation_pl" "text",
+    "description_pl" "text",
+    "features_pl" "jsonb",
+    "extra_beds" smallint,
+    "bathroom" "text",
+    "floors_total" smallint,
+    CONSTRAINT "apartments_bathroom_check" CHECK ((("bathroom" IS NULL) OR ("bathroom" = ANY (ARRAY['shower'::"text", 'bath'::"text"])))),
     CONSTRAINT "apartments_status_check" CHECK (("status" = ANY (ARRAY['available'::"text", 'reserved'::"text", 'sold'::"text"])))
 );
 
@@ -169,6 +184,14 @@ CREATE TABLE IF NOT EXISTS "public"."bookings" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "checkin_info" "jsonb",
+    "fdm_reservation_code" "text",
+    "fdm_guest_account_id" "text",
+    "fdm_sync_status" "text" DEFAULT 'skipped'::"text" NOT NULL,
+    "fdm_sync_error" "text",
+    "fdm_synced_at" timestamp with time zone,
+    "language" "text" DEFAULT 'cs'::"text" NOT NULL,
+    CONSTRAINT "bookings_fdm_sync_status_check" CHECK (("fdm_sync_status" = ANY (ARRAY['pending'::"text", 'synced'::"text", 'failed'::"text", 'skipped'::"text"]))),
+    CONSTRAINT "bookings_language_check" CHECK (("language" = ANY (ARRAY['cs'::"text", 'en'::"text", 'pl'::"text"]))),
     CONSTRAINT "bookings_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['bank_transfer'::"text", 'stripe'::"text"]))),
     CONSTRAINT "bookings_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'confirmed'::"text", 'cancelled'::"text", 'completed'::"text"])))
 );
@@ -194,6 +217,34 @@ CREATE TABLE IF NOT EXISTS "public"."channel_connections" (
 
 
 ALTER TABLE "public"."channel_connections" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."fdm_calendar" (
+    "apartment_id" "uuid" NOT NULL,
+    "date" "date" NOT NULL,
+    "available" boolean DEFAULT false NOT NULL,
+    "price_cents" integer,
+    "currency" "text" DEFAULT 'EUR'::"text" NOT NULL,
+    "min_stay" integer,
+    "closed" boolean DEFAULT false NOT NULL,
+    "synced_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."fdm_calendar" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."fdm_sync_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "started_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "finished_at" timestamp with time zone,
+    "apartments" integer DEFAULT 0 NOT NULL,
+    "days" integer DEFAULT 0 NOT NULL,
+    "error" "text"
+);
+
+
+ALTER TABLE "public"."fdm_sync_log" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."leads" (
@@ -382,6 +433,11 @@ ALTER TABLE ONLY "public"."apartment_images"
 
 
 ALTER TABLE ONLY "public"."apartments"
+    ADD CONSTRAINT "apartments_fdm_room_use_id_key" UNIQUE ("fdm_room_use_id");
+
+
+
+ALTER TABLE ONLY "public"."apartments"
     ADD CONSTRAINT "apartments_ical_export_token_key" UNIQUE ("ical_export_token");
 
 
@@ -433,6 +489,16 @@ ALTER TABLE ONLY "public"."channel_connections"
 
 ALTER TABLE ONLY "public"."channel_connections"
     ADD CONSTRAINT "channel_connections_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."fdm_calendar"
+    ADD CONSTRAINT "fdm_calendar_pkey" PRIMARY KEY ("apartment_id", "date");
+
+
+
+ALTER TABLE ONLY "public"."fdm_sync_log"
+    ADD CONSTRAINT "fdm_sync_log_pkey" PRIMARY KEY ("id");
 
 
 
@@ -531,6 +597,10 @@ CREATE INDEX "bookings_dates_idx" ON "public"."bookings" USING "btree" ("apartme
 
 
 
+CREATE INDEX "bookings_fdm_reservation_code_idx" ON "public"."bookings" USING "btree" ("fdm_reservation_code") WHERE ("fdm_reservation_code" IS NOT NULL);
+
+
+
 CREATE INDEX "bookings_guest_email_idx" ON "public"."bookings" USING "btree" ("guest_email");
 
 
@@ -540,6 +610,10 @@ CREATE INDEX "bookings_status_idx" ON "public"."bookings" USING "btree" ("status
 
 
 CREATE INDEX "bookings_token_idx" ON "public"."bookings" USING "btree" ("confirmation_token");
+
+
+
+CREATE INDEX "fdm_calendar_date_idx" ON "public"."fdm_calendar" USING "btree" ("date");
 
 
 
@@ -652,6 +726,11 @@ ALTER TABLE ONLY "public"."bookings"
 
 ALTER TABLE ONLY "public"."channel_connections"
     ADD CONSTRAINT "channel_connections_apartment_id_fkey" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."fdm_calendar"
+    ADD CONSTRAINT "fdm_calendar_apartment_id_fkey" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE CASCADE;
 
 
 
@@ -793,6 +872,12 @@ CREATE POLICY "bookings_owner_select" ON "public"."bookings" FOR SELECT USING ((
 
 
 ALTER TABLE "public"."channel_connections" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."fdm_calendar" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."fdm_sync_log" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."leads" ENABLE ROW LEVEL SECURITY;
@@ -1045,6 +1130,71 @@ GRANT SELECT("subtitle") ON TABLE "public"."apartments" TO "authenticated";
 
 
 
+GRANT SELECT("title_en") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("title_en") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("subtitle_en") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("subtitle_en") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("orientation_en") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("orientation_en") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("description_en") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("description_en") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("features_en") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("features_en") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("title_pl") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("title_pl") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("subtitle_pl") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("subtitle_pl") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("orientation_pl") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("orientation_pl") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("description_pl") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("description_pl") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("features_pl") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("features_pl") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("extra_beds") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("extra_beds") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("bathroom") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("bathroom") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
+GRANT SELECT("floors_total") ON TABLE "public"."apartments" TO "anon";
+GRANT SELECT("floors_total") ON TABLE "public"."apartments" TO "authenticated";
+
+
+
 GRANT ALL ON TABLE "public"."app_settings" TO "anon";
 GRANT ALL ON TABLE "public"."app_settings" TO "authenticated";
 GRANT ALL ON TABLE "public"."app_settings" TO "service_role";
@@ -1078,6 +1228,14 @@ GRANT ALL ON TABLE "public"."bookings" TO "service_role";
 GRANT ALL ON TABLE "public"."channel_connections" TO "anon";
 GRANT ALL ON TABLE "public"."channel_connections" TO "authenticated";
 GRANT ALL ON TABLE "public"."channel_connections" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."fdm_calendar" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."fdm_sync_log" TO "service_role";
 
 
 
@@ -1172,72 +1330,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
-
-
--- ═══ Doplněno 30. 10. 2026: struktura z migrací 012–014, které jsou novější než dump z 9. 10. ═══
--- Nový dump z lokálního stacku nejde (DB host jen IPv6, kontejner v Colimě IPv6 neumí).
--- Jen DDL: seed běží jako dávka a UPDATE by se kontroloval dřív, než tabulka vznikne.
--- Shodu s produkcí ověřuje os/qa/parity.sh.
-
--- ─── 012_fdm_integration.sql ───
-ALTER TABLE public.apartments
-  ADD COLUMN IF NOT EXISTS fdm_room_use_id int UNIQUE;
-CREATE TABLE IF NOT EXISTS public.fdm_calendar (
-  apartment_id uuid NOT NULL REFERENCES public.apartments(id) ON DELETE CASCADE,
-  date date NOT NULL,
-  available boolean NOT NULL DEFAULT false,
-  price_cents int,                       -- Standard Rate, v měně currency
-  currency text NOT NULL DEFAULT 'EUR',
-  min_stay int,                          -- MinStayArrival z FDM restrictions
-  closed boolean NOT NULL DEFAULT false, -- Closed / ClosedOnArrival
-  synced_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (apartment_id, date)
-);
-ALTER TABLE public.fdm_calendar ENABLE ROW LEVEL SECURITY;
-GRANT ALL ON public.fdm_calendar TO service_role;
-REVOKE ALL ON public.fdm_calendar FROM anon, authenticated;
-CREATE INDEX IF NOT EXISTS fdm_calendar_date_idx ON public.fdm_calendar (date);
-CREATE TABLE IF NOT EXISTS public.fdm_sync_log (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  started_at timestamptz NOT NULL DEFAULT now(),
-  finished_at timestamptz,
-  apartments int NOT NULL DEFAULT 0,
-  days int NOT NULL DEFAULT 0,
-  error text
-);
-ALTER TABLE public.fdm_sync_log ENABLE ROW LEVEL SECURITY;
-GRANT ALL ON public.fdm_sync_log TO service_role;
-REVOKE ALL ON public.fdm_sync_log FROM anon, authenticated;
-ALTER TABLE public.bookings
-  ADD COLUMN IF NOT EXISTS fdm_reservation_code text,
-  ADD COLUMN IF NOT EXISTS fdm_guest_account_id text,
-  ADD COLUMN IF NOT EXISTS fdm_sync_status text NOT NULL DEFAULT 'skipped'
-    CHECK (fdm_sync_status IN ('pending', 'synced', 'failed', 'skipped')),
-  ADD COLUMN IF NOT EXISTS fdm_sync_error text,
-  ADD COLUMN IF NOT EXISTS fdm_synced_at timestamptz;
-CREATE INDEX IF NOT EXISTS bookings_fdm_reservation_code_idx
-  ON public.bookings (fdm_reservation_code) WHERE fdm_reservation_code IS NOT NULL;
-
--- ─── 013_i18n_en.sql ───
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS title_en text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS subtitle_en text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS orientation_en text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS description_en text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS features_en jsonb;
-ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'cs';
-DO $$ BEGIN
-  ALTER TABLE public.bookings ADD CONSTRAINT bookings_language_check CHECK (language IN ('cs', 'en'));
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-grant select (title_en, subtitle_en, orientation_en, description_en, features_en)
-  on public.apartments to anon, authenticated;
-
--- ─── 014_i18n_pl.sql ───
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS title_pl text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS subtitle_pl text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS orientation_pl text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS description_pl text;
-ALTER TABLE public.apartments ADD COLUMN IF NOT EXISTS features_pl jsonb;
-ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_language_check;
-ALTER TABLE public.bookings ADD CONSTRAINT bookings_language_check CHECK (language IN ('cs', 'en', 'pl'));
-grant select (title_pl, subtitle_pl, orientation_pl, description_pl, features_pl)
-  on public.apartments to anon, authenticated;

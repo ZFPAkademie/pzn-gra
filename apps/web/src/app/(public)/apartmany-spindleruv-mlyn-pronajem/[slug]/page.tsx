@@ -75,6 +75,10 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
     layout: 'Dispozice',
     maxGuestsLabel: 'Max. hostů',
     orientation: 'Orientace',
+    floor: 'Podlaží',
+    floorValue: (n: number, total: number | null) => `${n}. NP${total ? ` ze ${total}` : ''}`,
+    bathType: 'Koupelna',
+    bathTypeValue: { shower: 'Sprchový kout', bath: 'Vana' },
     beds: 'Lůžka',
     about: 'O apartmánu',
     rooms: 'Členění',
@@ -103,6 +107,10 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
     layout: 'Layout',
     maxGuestsLabel: 'Max. guests',
     orientation: 'Orientation',
+    floor: 'Level',
+    floorValue: (n: number, total: number | null) => `${n}${total ? ` of ${total}` : ''}`,
+    bathType: 'Bathroom',
+    bathTypeValue: { shower: 'Walk-in shower', bath: 'Bathtub' },
     beds: 'Beds',
     about: 'About the apartment',
     rooms: 'Room breakdown',
@@ -131,6 +139,10 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
       layout: 'Układ',
       maxGuestsLabel: 'Maks. gości',
       orientation: 'Orientacja',
+      floor: 'Kondygnacja',
+      floorValue: (n: number, total: number | null) => `${n}${total ? ` z ${total}` : ''}`,
+      bathType: 'Łazienka',
+      bathTypeValue: { shower: 'Prysznic', bath: 'Wanna' },
       beds: 'Łóżka',
       about: 'O apartamencie',
       rooms: 'Pomieszczenia',
@@ -215,7 +227,7 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
               </div>
 
               {/* Key Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-16">
                 <div className="border-b border-navy/10 pb-4">
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.area}</p>
                   <p className="text-2xl font-light text-navy">{totalArea}</p>
@@ -232,6 +244,18 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
                   <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.orientation}</p>
                   <p className="text-2xl font-light text-navy">{apt.orientation ?? '—'}</p>
                 </div>
+                {apt.floor != null && (
+                  <div className="border-b border-navy/10 pb-4">
+                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.floor}</p>
+                    <p className="text-2xl font-light text-navy">{t.floorValue(apt.floor, apt.floors_total)}</p>
+                  </div>
+                )}
+                {apt.bathroom && (
+                  <div className="border-b border-navy/10 pb-4">
+                    <p className="text-xs text-navy/40 uppercase tracking-widest mb-2">{t.bathType}</p>
+                    <p className="text-2xl font-light text-navy">{t.bathTypeValue[apt.bathroom]}</p>
+                  </div>
+                )}
               </div>
 
               {/* Beds — konfigurace shodná s Booking.com, odvozená z dispozice a kapacity */}

@@ -65,6 +65,18 @@ j = await r.json().catch(() => ({}))
 check("měsíční přehled zná blokované noci", Array.isArray(j.blockedDates) && j.blockedDates.length === 3, JSON.stringify(j.blockedDates))
 await admin.from("bookings").delete().eq("apartment_id", APT_ID)
 
+// Kapacita: apartmán pro 4 nejde zarezervovat pro 5 (správce 4. 11. 2026) — zastaví se před zápisem
+r = await fetch(`${BASE}/api/v1/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", cookie: "NEXT_LOCALE=cs" },
+  body: JSON.stringify({
+    apartmentId: APT_ID, checkIn: "2031-05-10", checkOut: "2031-05-13", guests: 5,
+    firstName: "QA", lastName: "Kapacita", email: "qa-kapacita@example.com", gdprConsent: true,
+  }),
+})
+j = await r.json().catch(() => ({}))
+check("rezervace nad kapacitu → 400", r.status === 400 && /nejvýše pro 4/.test(j.error ?? ""), `${r.status} ${JSON.stringify(j)}`)
+
 r = await fetch(`${BASE}/api/v1/apartments/neexistuje/availability?year=2031&month=3`)
 check("neznámý apartmán → 404", r.status === 404, String(r.status))
 

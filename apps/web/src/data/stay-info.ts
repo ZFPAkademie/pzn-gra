@@ -264,29 +264,35 @@ export const FAQ: { key: string; q: Record<Locale, string>; a: Record<Locale, st
 
 /** Konfigurace lůžek odvozená z dispozice a kapacity (údaje shodné s Booking.com) */
 export function bedConfiguration(
-  apt: { layout: string | null; max_guests: number | null },
+  apt: { layout: string | null; max_guests: number | null; extra_beds?: number | null },
   locale: Locale,
 ): string {
   const twoRooms = (apt.layout ?? '').startsWith('2');
-  const couple = (apt.max_guests ?? 4) <= 2;
+  // extra_beds z tabulky správce (020); bez něj odhad z kapacity jako dřív
+  const extra = apt.extra_beds ?? Math.max((apt.max_guests ?? 4) - 2, 0);
   const T = {
     cs: {
-      two: 'Ložnice s manželskou postelí king (extra dlouhá) a rozkládací pohovka v obývacím pokoji',
+      two: 'Ložnice s manželskou postelí king (extra dlouhá) a rozkládací pohovka pro 2 osoby v obývacím pokoji',
       couple: 'Manželská postel king (extra dlouhá)',
+      one: 'Manželská postel king (extra dlouhá) a rozkládací pohovka pro 1 osobu',
       studio: 'Manželská postel king (extra dlouhá) a rozkládací pohovka pro 2 osoby',
     },
     en: {
-      two: 'Bedroom with an extra-long king bed and a sofa bed in the living room',
+      two: 'Bedroom with an extra-long king bed and a sofa bed for 2 in the living room',
       couple: 'Extra-long king bed',
+      one: 'Extra-long king bed and a sofa bed for 1',
       studio: 'Extra-long king bed and a sofa bed for 2',
     },
     pl: {
-      two: 'Sypialnia z łóżkiem king (bardzo długim) i rozkładana sofa w salonie',
+      two: 'Sypialnia z łóżkiem king (bardzo długim) i rozkładana sofa dla 2 osób w salonie',
       couple: 'Łóżko king (bardzo długie)',
+      one: 'Łóżko king (bardzo długie) i rozkładana sofa dla 1 osoby',
       studio: 'Łóżko king (bardzo długie) i rozkładana sofa dla 2 osób',
     },
   }[locale];
-  return twoRooms ? T.two : couple ? T.couple : T.studio;
+  if (extra === 0) return T.couple;
+  if (twoRooms) return T.two;
+  return extra === 1 ? T.one : T.studio;
 }
 
 export function formatScore(score: number, locale: Locale): string {

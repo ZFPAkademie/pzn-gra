@@ -18,6 +18,7 @@ const ERR = {
     noPrice: 'Nelze vypočítat cenu',
     minNights: (n: number) => `Minimální délka pobytu jsou ${n} ${n === 1 ? 'noc' : n < 5 ? 'noci' : 'nocí'}`,
     notAvailable: 'Vybrané termíny nejsou volné',
+    tooManyGuests: (n: number) => `Apartmán je nejvýše pro ${n} ${n === 1 ? 'osobu' : n <= 4 ? 'osoby' : 'osob'}`,
     createFailed: null as string | null,
     internal: 'Interní chyba serveru',
   },
@@ -27,6 +28,7 @@ const ERR = {
     noPrice: 'The price could not be calculated',
     minNights: (n: number) => `The minimum stay is ${n} ${n === 1 ? 'night' : 'nights'}`,
     notAvailable: 'The selected dates are not available',
+    tooManyGuests: (n: number) => `The apartment sleeps at most ${n} ${n === 1 ? 'guest' : 'guests'}`,
     createFailed: 'The reservation could not be created' as string | null,
     internal: 'Internal server error',
   },
@@ -36,6 +38,7 @@ const ERR = {
     noPrice: 'Nie można obliczyć ceny',
     minNights: (n: number) => `Minimalna długość pobytu to ${n} ${plNights(n)}`,
     notAvailable: 'Wybrane terminy nie są dostępne',
+    tooManyGuests: (n: number) => `Apartament mieści maksymalnie ${n} ${n === 1 ? 'osobę' : n <= 4 ? 'osoby' : 'osób'}`,
     createFailed: 'Nie udało się utworzyć rezerwacji' as string | null,
     internal: 'Wewnętrzny błąd serwera',
   },
@@ -76,6 +79,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: e.noPrice }, { status: 500 });
     }
 
+    // Počet hostů: apartmán pro 2 nesmí jít zarezervovat pro 4 (zpětná vazba správce 4. 11. 2026)
+    const guestsCount = Number(guests ?? 1);
+    if (!Number.isInteger(guestsCount) || guestsCount < 1 || (apartment.max_guests && guestsCount > apartment.max_guests)) {
+      return NextResponse.json({ error: e.tooManyGuests(apartment.max_guests ?? 1) }, { status: 400 });
+    }
+
     if (price.nights < price.minNights) {
       return NextResponse.json(
         { error: e.minNights(price.minNights) },
@@ -111,7 +120,7 @@ export async function POST(req: NextRequest) {
       checkIn,
       checkOut,
       nights: price.nights,
-      guestsCount: guests ?? 1,
+      guestsCount,
       firstName,
       lastName,
       email,
@@ -139,42 +148,44 @@ export async function POST(req: NextRequest) {
       if (!pushed.ok) console.error('[bookings] FDM push failed:', pushed.error);
     }
 
-    // Emails — soft-fail via sendSafe wrapper
-    sendBookingReceivedEmail({
-      guestEmail: email,
-      guestName: `${firstName} ${lastName}`,
-      apartmentTitle:
-        (locale === 'pl' ? apartment.title_pl ?? apartment.title_en : locale === 'en' ? apartment.title_en : null) ??
-        apartment.title ??
-        apartment.slug,
-      checkIn,
-      checkOut,
-      nights: price.nights,
-      guestsCount: guests ?? 1,
-      totalAmountCents: price.totalCents,
-      currency: price.currency,
-      confirmationToken: booking.confirmationToken,
-      bankIban: BANK_IBAN,
-      bankName: BANK_NAME,
-      reference,
-      locale,
-    });
-
-    sendAdminNewBookingEmail({
-      bookingId: booking.bookingId,
-      guestName: `${firstName} ${lastName}`,
-      guestEmail: email,
-      guestPhone: phone ?? null,
-      apartmentTitle: apartment.title ?? apartment.slug,
-      checkIn,
-      checkOut,
-      nights: price.nights,
-      totalAmountCents: price.totalCents,
-      currency: price.currency,
-      reference,
-      fdmNote,
-      guestLanguage: locale,
-    });
+    // E-maily — soft-fail přes sendSafe. Musí se await-ovat: bez toho Vercel funkci po odeslání
+    // odpovědi ukončí a požadavek na Resend se ztratí (host 4. 11. 2026 nedostal nic).
+    await Promise.allSettled([
+      sendBookingReceivedEmail({
+        guestEmail: email,
+        guestName: `${firstName} ${lastName}`,
+        apartmentTitle:
+          (locale === 'pl' ? apartment.title_pl ?? apartment.title_en : locale === 'en' ? apartment.title_en : null) ??
+          apartment.title ??
+          apartment.slug,
+        checkIn,
+        checkOut,
+        nights: price.nights,
+        guestsCount,
+        totalAmountCents: price.totalCents,
+        currency: price.currency,
+        confirmationToken: booking.confirmationToken,
+        bankIban: BANK_IBAN,
+        bankName: BANK_NAME,
+        reference,
+        locale,
+      }),
+      sendAdminNewBookingEmail({
+        bookingId: booking.bookingId,
+        guestName: `${firstName} ${lastName}`,
+        guestEmail: email,
+        guestPhone: phone ?? null,
+        apartmentTitle: apartment.title ?? apartment.slug,
+        checkIn,
+        checkOut,
+        nights: price.nights,
+        totalAmountCents: price.totalCents,
+        currency: price.currency,
+        reference,
+        fdmNote,
+        guestLanguage: locale,
+      }),
+    ]);
 
     return NextResponse.json({
       bookingId: booking.bookingId,

@@ -41,7 +41,8 @@ export async function updateBookingStatus(
     if (booking) {
       const apt = booking.apartments as { title?: string; title_en?: string | null; title_pl?: string | null; slug?: string } | null;
       const locale = booking.language === 'en' ? 'en' : booking.language === 'pl' ? 'pl' : 'cs';
-      sendBookingConfirmedEmail({
+      // await — jinak se odeslání po skončení akce na Vercelu ztratí
+      await sendBookingConfirmedEmail({
         guestEmail: booking.guest_email,
         guestName: `${booking.guest_first_name} ${booking.guest_last_name}`,
         apartmentTitle:

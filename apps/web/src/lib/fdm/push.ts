@@ -16,7 +16,7 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
   const { data: b, error } = await admin
     .from('bookings')
     .select(
-      'id, status, check_in, check_out, guests_count, guest_first_name, guest_last_name, guest_email, guest_phone, total_amount_cents, currency, notes, fdm_reservation_code, confirmation_token, apartments ( slug, title, fdm_room_use_id )'
+      'id, apartment_id, status, check_in, check_out, guests_count, guest_first_name, guest_last_name, guest_email, guest_phone, total_amount_cents, currency, notes, fdm_reservation_code, confirmation_token, apartments ( slug, title, fdm_room_use_id )'
     )
     .eq('id', bookingId)
     .maybeSingle();
@@ -54,6 +54,17 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
   const roomUseName =
     (roomUses.ok ? roomUses.data.find((r) => r.Id === roomUseId)?.Name : undefined) ?? `${apt?.title ?? apt?.slug ?? ''}`;
 
+  // Ceny po nocích z cache FDM — FDM chce každou noc zvlášť (součet musí sedět s total, jinak rovnoměrně)
+  const { data: nightRows } = await admin
+    .from('fdm_calendar')
+    .select('date, price_cents')
+    .eq('apartment_id', b.apartment_id)
+    .gte('date', b.check_in)
+    .lt('date', b.check_out);
+  const nightly = (nightRows ?? [])
+    .filter((n) => n.price_cents != null)
+    .map((n) => ({ date: n.date as string, price: (n.price_cents as number) / 100 }));
+
   const res = await fdmCreateReservation({
     roomUseId,
     roomUseName,
@@ -62,6 +73,7 @@ export async function pushBookingToFdm(bookingId: string): Promise<PushResult> {
     checkOut: b.check_out,
     guests: b.guests_count ?? 1,
     totalPrice: (b.total_amount_cents ?? 0) / 100,
+    nightly,
     note,
     guest: {
       firstName: b.guest_first_name,
