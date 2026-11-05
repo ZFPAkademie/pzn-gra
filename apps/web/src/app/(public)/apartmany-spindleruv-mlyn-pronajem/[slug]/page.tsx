@@ -70,7 +70,7 @@ export default async function RentalApartmentDetailPage({ params, searchParams }
     cs: {
     back: 'Zpět na přehled',
     alsoForSale: 'I k prodeji',
-    maxGuests: (n: number | null) => `max. ${n} hostů`,
+    maxGuests: (n: number | null) => `max. ${n} ${n === 1 ? 'host' : n != null && n < 5 ? 'hosté' : 'hostů'}`,
     area: 'Plocha',
     layout: 'Dispozice',
     maxGuestsLabel: 'Max. hostů',

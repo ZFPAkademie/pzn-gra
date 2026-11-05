@@ -89,6 +89,7 @@ r = await fetch(`${BASE}/apartmany-spindleruv-mlyn-pronajem`, { headers: { cooki
 const rentHtml = await r.text()
 check("pronájem: podmínky pobytu + hodnocení hostů", r.status === 200 && rentHtml.includes("Podmínky pobytu") && rentHtml.includes("Booking.com"), String(r.status))
 check("pronájem: v hlavičce značka Golden Ridge Apartments", rentHtml.includes('alt="Golden Ridge Apartments"'), "alt loga chybí")
+check("pronájem: skloňování „max. 2–4 hosté“, ne „hostů“", !/max\. [234] hostů/.test(rentHtml), (rentHtml.match(/max\. \d hostů/) ?? [""])[0])
 check("homepage: v hlavičce zůstává Pod Zlatým návrším", html.includes('alt="Pod Zlatým návrším"'), "alt loga chybí")
 r = await fetch(`${BASE}/lokalita`, { headers: { cookie: "NEXT_LOCALE=cs" } })
 const locHtml = await r.text()

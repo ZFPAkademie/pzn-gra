@@ -98,7 +98,7 @@ const T = {
     errorTitle: 'Dostupnost se teď nepodařilo načíst',
     errorText: 'Zkuste to prosím za chvíli, nebo se nám ozvěte a termín ověříme.',
     contact: 'Kontaktovat nás',
-    guests: 'hostů',
+    guests: (n: number) => (n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'),
     perNight: 'noc',
     average: 'průměr',
     book: 'Rezervovat',
@@ -123,7 +123,7 @@ const T = {
     errorTitle: 'We could not load availability just now',
     errorText: 'Please try again in a moment, or contact us and we will check your dates.',
     contact: 'Contact us',
-    guests: 'guests',
+    guests: (n: number) => (n === 1 ? 'guest' : 'guests'),
     perNight: 'night',
     average: 'average',
     book: 'Book',
@@ -148,7 +148,7 @@ const T = {
     errorTitle: 'Nie udało się teraz wczytać dostępności',
     errorText: 'Prosimy spróbować za chwilę lub skontaktować się z nami, a sprawdzimy termin.',
     contact: 'Kontakt',
-    guests: 'gości',
+    guests: (n: number) => (n === 1 ? 'gość' : 'gości'),
     perNight: 'noc',
     average: 'średnio',
     book: 'Zarezerwuj',
@@ -237,7 +237,7 @@ function OfferCard({
         <p className="text-sm text-navy/50 mb-5">
           {layoutLabel(apt.layout, locale)}
           {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString(numLocale)} m²` : ''}
-          {apt.max_guests ? ` · ${apt.max_guests} ${t.guests}` : ''}
+          {apt.max_guests ? ` · ${apt.max_guests} ${t.guests(apt.max_guests)}` : ''}
         </p>
 
         <div className="space-y-2">

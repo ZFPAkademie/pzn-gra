@@ -59,7 +59,7 @@ export default async function RentalApartmentsPage() {
     statGuests: 'hosté',
     statLift: 'od lanovky',
     alsoForSale: 'I k prodeji',
-    maxGuests: (n: number | null) => `max. ${n} hostů`,
+    maxGuests: (n: number | null) => `max. ${n} ${n === 1 ? 'host' : n != null && n < 5 ? 'hosté' : 'hostů'}`,
     from: 'od',
     perNight: 'za noc',
     priceOnRequest: 'Cena na dotaz',

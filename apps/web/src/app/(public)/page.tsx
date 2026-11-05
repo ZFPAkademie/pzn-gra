@@ -74,7 +74,7 @@ export default async function HomePage() {
     priceFrom: 'od',
     perNight: 'za noc',
     priceOnRequest: 'Cena na dotaz',
-    guests: 'hostů',
+    guests: (n: number) => (n === 1 ? 'host' : n < 5 ? 'hosté' : 'hostů'),
     section1Link: 'Zobrazit apartmány k pronájmu',
     
     section2Title: 'Dlouhodobá investice i rychlý výnos',
@@ -146,7 +146,7 @@ export default async function HomePage() {
     priceFrom: 'from',
     perNight: 'per night',
     priceOnRequest: 'Price on request',
-    guests: 'guests',
+    guests: (n: number) => (n === 1 ? 'guest' : 'guests'),
     section1Link: 'View rental apartments',
     
     section2Title: 'Long-term investment and a quick return',
@@ -368,7 +368,7 @@ export default async function HomePage() {
                       <p className="text-xs text-navy/50 mt-1">
                         {layoutLabel(apt.layout, locale)}
                         {apt.area_m2 ? ` · ${Number(apt.area_m2).toLocaleString(locale === 'en' ? 'en-GB' : 'cs-CZ')} m²` : ''}
-                        {apt.max_guests ? ` · ${apt.max_guests} ${t.guests}` : ''}
+                        {apt.max_guests ? ` · ${apt.max_guests} ${t.guests(apt.max_guests)}` : ''}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
