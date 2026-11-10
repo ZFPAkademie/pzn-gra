@@ -88,7 +88,7 @@ export default async function PodilPrezentacePage() {
       title: 'Úvod',
       content: (
         <div className="relative min-h-full flex flex-col">
-          <Image src="/images/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+          <Image src="/images/zima/chaty-panorama.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/85 to-navy/40" />
           <SlideFrame className="relative flex-1">
             <p className="text-sm tracking-wide mb-16">
@@ -128,8 +128,8 @@ export default async function PodilPrezentacePage() {
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div className="relative aspect-[4/3] overflow-hidden">
               <Image
-                src="/images/building-lift.jpg"
-                alt="Lanovka Labská a apartmánové domy Pod Zlatým návrším"
+                src="/images/zima/chaty-lyzar-blue.jpg"
+                alt="Sjezdovka a lanovka Labská u apartmánových domů Pod Zlatým návrším"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"

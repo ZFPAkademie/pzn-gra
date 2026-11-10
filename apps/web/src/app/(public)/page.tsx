@@ -122,7 +122,7 @@ export default async function HomePage() {
     labelInvestment: '04 · Investiční příležitost',
     altHero: 'Pod Zlatým návrším - Krkonoše',
     altBuilding: 'Apartmány Pod Zlatým návrším',
-    altLift: 'Apartmány u lanovky',
+    altLift: 'Apartmány u lanovky a sjezdovky Labská v zimě',
   } : {
     // Hero — rental
     heroClaim: 'Stay by the Labská chairlift',
@@ -194,7 +194,7 @@ export default async function HomePage() {
     labelInvestment: '04 · Investment opportunity',
     altHero: 'Pod Zlatým návrším - the Krkonoše (Giant Mountains)',
     altBuilding: 'Pod Zlatým návrším apartments',
-    altLift: 'Apartments by the chairlift',
+    altLift: 'Apartments by the Labská chairlift and slope in winter',
   };
 
   return (
@@ -204,10 +204,10 @@ export default async function HomePage() {
       <section className="relative min-h-screen min-h-[100svh] pt-20 flex flex-col">
         <div className="absolute inset-0">
           <Image
-            src="/images/hero.jpg"
+            src="/images/zima/chaty-panorama.jpg"
             alt={t.altHero}
             fill
-            className="object-cover"
+            className="object-cover object-[70%_50%] md:object-center"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-b from-navy/70 via-navy/50 to-navy/80" />
@@ -306,7 +306,7 @@ export default async function HomePage() {
               </div>
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
-                  src="/images/building-front.jpg"
+                  src="/images/zima/chaty-pohled-na-dve.jpg"
                   alt={t.altBuilding}
                   fill
                   className="object-cover"
@@ -510,7 +510,7 @@ export default async function HomePage() {
               </div>
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
-                  src="/images/building-lift.jpg"
+                  src="/images/zima/chaty-lyzar-blue.jpg"
                   alt={t.altLift}
                   fill
                   className="object-cover"
