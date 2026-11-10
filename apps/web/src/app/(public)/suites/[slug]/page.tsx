@@ -166,14 +166,15 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
   return (
     <>
       {/* ── Úvod ─────────────────────────────────────────────── */}
-      <section className="relative bg-navy pt-28 md:pt-32 pb-16 md:pb-24 overflow-hidden">
+      {/* md:min-h = o ~50 % vyšší než obsah (zadání 10. 11.), text u spodní hrany, ať je vidět fotka */}
+      <section className="relative bg-navy pt-28 md:pt-32 pb-16 md:pb-24 overflow-hidden md:min-h-[50rem] md:flex md:flex-col md:justify-end">
         {heroImage && (
           <div className="absolute inset-0">
             <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/85 to-navy/40" />
           </div>
         )}
-        <div className="relative max-w-6xl mx-auto px-6">
+        <div className="relative max-w-6xl mx-auto px-6 w-full">
           <Link href="/suites" className="inline-flex items-center text-white/50 hover:text-white mb-10 transition-colors">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
