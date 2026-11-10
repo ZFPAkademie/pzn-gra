@@ -72,7 +72,9 @@ CREATE TABLE IF NOT EXISTS "public"."apartment_images" (
     "storage_path" "text" NOT NULL,
     "sort_order" integer DEFAULT 0 NOT NULL,
     "alt_text" "text",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "category" "text",
+    CONSTRAINT "apartment_images_category_check" CHECK (("category" = ANY (ARRAY['interior'::"text", 'winter'::"text", 'exterior'::"text", 'plan'::"text"])))
 );
 
 
