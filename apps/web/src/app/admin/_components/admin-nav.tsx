@@ -11,6 +11,7 @@ const primaryItems = [
 ];
 
 const secondaryItems = [
+  { href: '/admin/druzstvo', label: 'Družstvo' },
   { href: '/admin/majitele', label: 'Majitelé' },
   { href: '/admin/ceniky', label: 'Ceníky' },
   { href: '/admin/blokace', label: 'Blokace' },

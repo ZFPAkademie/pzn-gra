@@ -1,11 +1,12 @@
 /**
- * Správa počtu volných družstevních podílů — pro asistentku, chráněno PINem.
- * /sprava-podilu — hodnota se propíše na veřejnou stránku /podil.
+ * Přehled volných družstevních podílů — pro asistentku, chráněno PINem.
+ * /sprava-podilu — od 11/2026 jen zobrazení: počet se počítá z evidence v admin
+ * sekci Družstvo (Rezervace + Vlastník), ručně se už nemění.
  */
 
-import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getCoopShareSummary } from '@/lib/coop';
 import { hasPodilAccess } from './auth';
-import { PinForm, SharesEditor } from './sprava-client';
+import { PinForm, SharesStatus } from './sprava-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,19 +20,15 @@ export const metadata = {
 export default async function SpravaPodiluPage() {
   const authorized = hasPodilAccess();
 
-  let current = TOTAL_SHARES;
-  let updatedAt: string | null = null;
+  let summary: { available: number; owned: number; reserved: number } | null = null;
+  let loadError = false;
 
   if (authorized) {
-    const supabase = createSupabaseAdminClient();
-    const { data } = await supabase
-      .from('app_settings')
-      .select('value, updated_at')
-      .eq('key', 'podil_available')
-      .maybeSingle();
-    const parsed = parseInt(data?.value ?? '', 10);
-    if (!Number.isNaN(parsed)) current = Math.min(Math.max(parsed, 0), TOTAL_SHARES);
-    updatedAt = data?.updated_at ?? null;
+    try {
+      summary = await getCoopShareSummary();
+    } catch {
+      loadError = true;
+    }
   }
 
   return (
@@ -46,14 +43,14 @@ export default async function SpravaPodiluPage() {
 
         <div className="bg-white rounded-sm p-8">
           {authorized ? (
-            <SharesEditor current={current} total={TOTAL_SHARES} updatedAt={updatedAt} />
+            <SharesStatus summary={summary} total={TOTAL_SHARES} loadError={loadError} />
           ) : (
             <PinForm />
           )}
         </div>
 
         <p className="text-white/30 text-xs text-center mt-6">
-          Změna se ihned projeví na stránce /podil.
+          Stejné číslo je na stránce /podil.
         </p>
       </div>
     </div>

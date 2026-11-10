@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLead, LeadInput } from '@/lib/leads-service';
 import { getRequestLocale } from '@/lib/i18n-server';
+import { createCoopContactFromLead } from '@/lib/coop';
 
 // Hlášky vracené návštěvníkovi — jazyk podle cookie NEXT_LOCALE
 const MESSAGES = {
@@ -85,6 +86,11 @@ async function sendNotificationEmail(lead: any) {
     ? `\nLokalizace: ${lead.metadata.geo.city || 'N/A'}, ${lead.metadata.geo.country || 'N/A'} (PSČ: ${lead.metadata.geo.postal || 'N/A'})`
     : '';
 
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.podzlatymnavrsim.cz').replace(/\/$/, '');
+  const adminLink = lead.coop_id
+    ? `\nKontakt v administraci (Družstvo): ${appUrl}/admin/druzstvo/${lead.coop_id}`
+    : '\nKontakt se nepodařilo založit v administraci (Družstvo) — zadejte ho prosím ručně.';
+
   const emailBody = `
 Nová poptávka investičního podílu
 
@@ -97,6 +103,7 @@ ${geoInfo}
 
 Zdroj: ${lead.metadata?.source || 'web'}
 Jazyk: ${lead.metadata?.locale || 'cs'}
+${adminLink}
   `.trim();
 
   try {
@@ -199,8 +206,23 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Send notification email for investment share requests
-    if (body.type === 'investment_share_request') {
+    // Žádost o podíl → kontakt v Družstvu (stav Nový) + notifikace s odkazem do adminu
+    if (body.type === 'investment_share_request' && result.lead_id) {
+      const shareCount = Number.parseInt(String(body.share_count ?? ''), 10);
+      const geo = body.metadata?.geo ?? null;
+      const coopId = await createCoopContactFromLead({
+        leadId: result.lead_id,
+        firstName: leadInput.first_name.trim(),
+        lastName: leadInput.last_name?.trim() || null,
+        email: leadInput.email,
+        phone: typeof body.phone === 'string' ? body.phone : null,
+        shareCount: Number.isFinite(shareCount) ? shareCount : null,
+        postalCode: typeof geo?.postal === 'string' ? geo.postal : null,
+        message: typeof body.message === 'string' ? body.message : null,
+        language: leadInput.language ?? null,
+        geo,
+      });
+
       await sendNotificationEmail({
         name: body.name || `${body.first_name} ${body.last_name}`,
         email: body.email,
@@ -208,6 +230,7 @@ export async function POST(request: NextRequest) {
         share_count: body.share_count,
         message: body.message,
         metadata: body.metadata,
+        coop_id: coopId,
       });
     }
     

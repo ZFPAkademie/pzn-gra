@@ -133,24 +133,12 @@ const steps = [
 const TOTAL_SHARES = 50;
 
 /**
- * Počet volných podílů čteme z app_settings (edituje asistentka na
- * /sprava-podilu). Fallback 50 při výpadku DB — stránka nesmí spadnout.
+ * Počet volných podílů = 50 − Rezervace − Vlastník z evidence v admin sekci Družstvo
+ * (dřív ruční číslo v app_settings přes /sprava-podilu). Fallback 50 při výpadku DB.
  */
 async function getAvailableShares(): Promise<number> {
-  try {
-    const { createSupabaseAdminClient } = await import('@/lib/supabase-server');
-    const supabase = createSupabaseAdminClient();
-    const { data } = await supabase
-      .from('app_settings')
-      .select('value')
-      .eq('key', 'podil_available')
-      .maybeSingle();
-    const parsed = parseInt(data?.value ?? '', 10);
-    if (Number.isNaN(parsed)) return TOTAL_SHARES;
-    return Math.min(Math.max(parsed, 0), TOTAL_SHARES);
-  } catch {
-    return TOTAL_SHARES;
-  }
+  const { getCoopAvailableShares } = await import('@/lib/coop');
+  return Math.min(await getCoopAvailableShares(), TOTAL_SHARES);
 }
 
 export default async function PodilPage() {

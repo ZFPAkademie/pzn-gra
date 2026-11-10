@@ -1,41 +1,57 @@
 /**
  * Admin Authentication
- * Simple password-based auth with signed cookies
+ * Heslo z env ADMIN_DASH_PASSWORD, session cookie = `{timestamp}.{HMAC-SHA256}`.
+ *
+ * Dřív byla cookie Base64 textu obsahujícího samotné heslo (dekódovatelné, padělatelné
+ * při znalosti formátu) — viz CLAUDE.md, anti-pattern base64-admin-auth. Klíč podpisu:
+ * ADMIN_SESSION_SECRET, jinak odvozený z hesla; změna kteréhokoli zneplatní všechny session.
  */
 
 import { cookies } from 'next/headers';
+import { createHash, createHmac, timingSafeEqual } from 'crypto';
 
 const ADMIN_COOKIE_NAME = 'admin_session';
 const COOKIE_MAX_AGE = 12 * 60 * 60; // 12 hours in seconds
+const COOKIE_PATH = '/admin';
 
-// Simple token generation (in production, use proper JWT)
-function generateToken(timestamp: number): string {
-  const secret = process.env.ADMIN_DASH_PASSWORD || 'default-secret';
-  const data = `admin:${timestamp}:${secret}`;
-  // Simple base64 encoding with timestamp validation
-  return Buffer.from(data).toString('base64');
+function signingKey(): string | null {
+  const explicit = process.env.ADMIN_SESSION_SECRET?.trim();
+  if (explicit) return explicit;
+  const password = process.env.ADMIN_DASH_PASSWORD;
+  if (!password) return null;
+  return createHash('sha256').update(`admin-session-key-v2:${password}`).digest('hex');
+}
+
+function sign(key: string, timestamp: number): string {
+  return createHmac('sha256', key).update(`admin-session-v2:${timestamp}`).digest('hex');
+}
+
+function safeEqual(a: string, b: string): boolean {
+  // Porovnání hashů stejné délky v konstantním čase (délka vstupu neprozradí nic)
+  const ha = createHash('sha256').update(a).digest();
+  const hb = createHash('sha256').update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+function generateToken(timestamp: number): string | null {
+  const key = signingKey();
+  if (!key) return null;
+  return `${timestamp}.${sign(key, timestamp)}`;
 }
 
 function validateToken(token: string): boolean {
   try {
-    const secret = process.env.ADMIN_DASH_PASSWORD || 'default-secret';
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
-    const [prefix, timestampStr, tokenSecret] = decoded.split(':');
-    
-    if (prefix !== 'admin' || tokenSecret !== secret) {
-      return false;
-    }
-    
+    const key = signingKey();
+    if (!key) return false;
+
+    const [timestampStr, signature] = token.split('.');
+    if (!timestampStr || !signature || !/^\d+$/.test(timestampStr)) return false;
+
     const timestamp = parseInt(timestampStr, 10);
-    const now = Date.now();
-    const age = (now - timestamp) / 1000;
-    
-    // Check if token is expired (12 hours)
-    if (age > COOKIE_MAX_AGE) {
-      return false;
-    }
-    
-    return true;
+    const age = (Date.now() - timestamp) / 1000;
+    if (age < 0 || age > COOKIE_MAX_AGE) return false;
+
+    return safeEqual(signature, sign(key, timestamp));
   } catch {
     return false;
   }
@@ -52,13 +68,16 @@ export async function adminLogin(password: string): Promise<{ success: boolean; 
     return { success: false, error: 'Admin access not configured' };
   }
   
-  if (password !== adminPassword) {
+  if (typeof password !== 'string' || !safeEqual(password, adminPassword)) {
+    // Zpomalení hádání hesla
+    await new Promise((resolve) => setTimeout(resolve, 800));
     return { success: false, error: 'Invalid password' };
   }
-  
+
   // Generate session token
   const token = generateToken(Date.now());
-  
+  if (!token) return { success: false, error: 'Admin access not configured' };
+
   // Set cookie
   const cookieStore = cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, token, {
@@ -66,7 +85,7 @@ export async function adminLogin(password: string): Promise<{ success: boolean; 
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: COOKIE_MAX_AGE,
-    path: '/admin',
+    path: COOKIE_PATH,
   });
   
   return { success: true };
@@ -90,8 +109,9 @@ export async function isAdminAuthenticated(): Promise<boolean> {
  * Logout admin session
  */
 export async function adminLogout(): Promise<void> {
+  // Cookie má path /admin — smazat se musí se stejnou cestou, jinak v prohlížeči zůstane
   const cookieStore = cookies();
-  cookieStore.delete(ADMIN_COOKIE_NAME);
+  cookieStore.set(ADMIN_COOKIE_NAME, '', { path: COOKIE_PATH, maxAge: 0, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
 }
 
 /**

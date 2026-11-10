@@ -7,6 +7,7 @@ import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { getLeadById } from '@/lib/leads-service';
+import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { LeadStatusForm } from './status-form';
 
 // Force dynamic rendering
@@ -48,6 +49,17 @@ export default async function AdminLeadDetailPage({
   
   if (!lead) {
     notFound();
+  }
+
+  // Poptávka podílu → odkaz na kontakt v Družstvu (zakládá se automaticky z /podil)
+  let coopContactId: string | null = null;
+  if (lead.type === 'investment_share_request') {
+    const { data } = await createSupabaseAdminClient()
+      .from('coop_contacts')
+      .select('id')
+      .eq('lead_id', lead.id)
+      .maybeSingle();
+    coopContactId = data?.id ?? null;
   }
 
   return (
@@ -120,6 +132,16 @@ export default async function AdminLeadDetailPage({
                   {typeLabels[lead.type] || lead.type}
                 </dd>
               </div>
+              {coopContactId && (
+                <div>
+                  <dt className="text-sm text-slate-500">Družstvo</dt>
+                  <dd>
+                    <Link href={`/admin/druzstvo/${coopContactId}`} className="text-sky-600 hover:text-sky-800">
+                      Otevřít kontakt v evidenci Družstva
+                    </Link>
+                  </dd>
+                </div>
+              )}
               {lead.apartment_title && (
                 <div>
                   <dt className="text-sm text-slate-500">Apartmán</dt>

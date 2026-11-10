@@ -23,6 +23,32 @@ COMMENT ON SCHEMA "public" IS 'standard public schema';
 
 
 
+CREATE OR REPLACE FUNCTION "public"."coop_check_capacity"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+  taken int;
+BEGIN
+  IF NEW.archived_at IS NULL AND NEW.status IN ('reservation', 'owner') THEN
+    PERFORM pg_advisory_xact_lock(hashtext('coop_contacts_capacity'));
+    SELECT COALESCE(SUM(share_count), 0) INTO taken
+      FROM public.coop_contacts
+     WHERE archived_at IS NULL
+       AND status IN ('reservation', 'owner')
+       AND id <> NEW.id;
+    IF taken + COALESCE(NEW.share_count, 0) > 50 THEN
+      RAISE EXCEPTION 'COOP_CAPACITY:%', 50 - taken USING ERRCODE = 'check_violation';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."coop_check_capacity"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_leads_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -217,6 +243,82 @@ CREATE TABLE IF NOT EXISTS "public"."channel_connections" (
 
 
 ALTER TABLE "public"."channel_connections" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."coop_contact_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "contact_id" "uuid" NOT NULL,
+    "kind" "text" NOT NULL,
+    "body" "text",
+    "old_status" "text",
+    "new_status" "text",
+    "occurred_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "coop_contact_events_kind_check" CHECK (("kind" = ANY (ARRAY['created'::"text", 'status'::"text", 'note'::"text", 'call'::"text", 'meeting'::"text", 'email'::"text", 'file_added'::"text", 'file_removed'::"text", 'archived'::"text", 'restored'::"text"])))
+);
+
+
+ALTER TABLE "public"."coop_contact_events" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."coop_contact_files" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "contact_id" "uuid" NOT NULL,
+    "category" "text" DEFAULT 'other'::"text" NOT NULL,
+    "title" "text" NOT NULL,
+    "file_path" "text" NOT NULL,
+    "file_size_bytes" bigint,
+    "mime_type" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "coop_contact_files_category_check" CHECK (("category" = ANY (ARRAY['application'::"text", 'contract'::"text", 'id_document'::"text", 'payment'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."coop_contact_files" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."coop_contacts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "status" "text" DEFAULT 'new'::"text" NOT NULL,
+    "first_name" "text" NOT NULL,
+    "last_name" "text",
+    "email" "text",
+    "phone" "text",
+    "street" "text",
+    "city" "text",
+    "postal_code" "text",
+    "country" "text",
+    "birth_date" "date",
+    "company_name" "text",
+    "company_id" "text",
+    "share_count" integer,
+    "source" "text" DEFAULT 'other'::"text" NOT NULL,
+    "referred_by" "text",
+    "assigned_to" "text",
+    "next_step" "text",
+    "next_step_date" "date",
+    "reserved_at" "date",
+    "contract_signed_at" "date",
+    "paid_at" "date",
+    "paid_amount" numeric(12,2),
+    "gdpr_consent" boolean DEFAULT false NOT NULL,
+    "gdpr_consent_at" timestamp with time zone,
+    "marketing_consent" boolean DEFAULT false NOT NULL,
+    "notes" "text",
+    "language" "text",
+    "lead_id" "uuid",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "archived_at" timestamp with time zone,
+    CONSTRAINT "coop_contacts_share_count_check" CHECK ((("share_count" IS NULL) OR (("share_count" >= 1) AND ("share_count" <= 50)))),
+    CONSTRAINT "coop_contacts_shares_required" CHECK ((("status" <> ALL (ARRAY['reservation'::"text", 'owner'::"text"])) OR ("share_count" IS NOT NULL))),
+    CONSTRAINT "coop_contacts_source_check" CHECK (("source" = ANY (ARRAY['web'::"text", 'referral'::"text", 'advisor'::"text", 'other'::"text"]))),
+    CONSTRAINT "coop_contacts_status_check" CHECK (("status" = ANY (ARRAY['new'::"text", 'contacted'::"text", 'reservation'::"text", 'owner'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."coop_contacts" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."fdm_calendar" (
@@ -492,6 +594,26 @@ ALTER TABLE ONLY "public"."channel_connections"
 
 
 
+ALTER TABLE ONLY "public"."coop_contact_events"
+    ADD CONSTRAINT "coop_contact_events_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."coop_contact_files"
+    ADD CONSTRAINT "coop_contact_files_file_path_key" UNIQUE ("file_path");
+
+
+
+ALTER TABLE ONLY "public"."coop_contact_files"
+    ADD CONSTRAINT "coop_contact_files_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."coop_contacts"
+    ADD CONSTRAINT "coop_contacts_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."fdm_calendar"
     ADD CONSTRAINT "fdm_calendar_pkey" PRIMARY KEY ("apartment_id", "date");
 
@@ -613,6 +735,26 @@ CREATE INDEX "bookings_token_idx" ON "public"."bookings" USING "btree" ("confirm
 
 
 
+CREATE INDEX "coop_contact_events_contact_idx" ON "public"."coop_contact_events" USING "btree" ("contact_id", "occurred_at" DESC);
+
+
+
+CREATE INDEX "coop_contact_files_contact_idx" ON "public"."coop_contact_files" USING "btree" ("contact_id", "created_at" DESC);
+
+
+
+CREATE INDEX "coop_contacts_created_idx" ON "public"."coop_contacts" USING "btree" ("created_at" DESC);
+
+
+
+CREATE UNIQUE INDEX "coop_contacts_lead_uniq" ON "public"."coop_contacts" USING "btree" ("lead_id") WHERE ("lead_id" IS NOT NULL);
+
+
+
+CREATE INDEX "coop_contacts_status_idx" ON "public"."coop_contacts" USING "btree" ("status") WHERE ("archived_at" IS NULL);
+
+
+
 CREATE INDEX "fdm_calendar_date_idx" ON "public"."fdm_calendar" USING "btree" ("date");
 
 
@@ -685,6 +827,10 @@ CREATE INDEX "svj_posts_type_idx" ON "public"."svj_posts" USING "btree" ("type")
 
 
 
+CREATE OR REPLACE TRIGGER "coop_contacts_capacity" BEFORE INSERT OR UPDATE OF "status", "share_count", "archived_at" ON "public"."coop_contacts" FOR EACH ROW EXECUTE FUNCTION "public"."coop_check_capacity"();
+
+
+
 CREATE OR REPLACE TRIGGER "leads_updated_at" BEFORE UPDATE ON "public"."leads" FOR EACH ROW EXECUTE FUNCTION "public"."update_leads_updated_at"();
 
 
@@ -726,6 +872,21 @@ ALTER TABLE ONLY "public"."bookings"
 
 ALTER TABLE ONLY "public"."channel_connections"
     ADD CONSTRAINT "channel_connections_apartment_id_fkey" FOREIGN KEY ("apartment_id") REFERENCES "public"."apartments"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."coop_contact_events"
+    ADD CONSTRAINT "coop_contact_events_contact_id_fkey" FOREIGN KEY ("contact_id") REFERENCES "public"."coop_contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."coop_contact_files"
+    ADD CONSTRAINT "coop_contact_files_contact_id_fkey" FOREIGN KEY ("contact_id") REFERENCES "public"."coop_contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."coop_contacts"
+    ADD CONSTRAINT "coop_contacts_lead_id_fkey" FOREIGN KEY ("lead_id") REFERENCES "public"."leads"("id") ON DELETE SET NULL;
 
 
 
@@ -874,6 +1035,15 @@ CREATE POLICY "bookings_owner_select" ON "public"."bookings" FOR SELECT USING ((
 ALTER TABLE "public"."channel_connections" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."coop_contact_events" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."coop_contact_files" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."coop_contacts" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."fdm_calendar" ENABLE ROW LEVEL SECURITY;
 
 
@@ -1000,6 +1170,11 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."coop_check_capacity"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."coop_check_capacity"() TO "service_role";
 
 
 
@@ -1228,6 +1403,18 @@ GRANT ALL ON TABLE "public"."bookings" TO "service_role";
 GRANT ALL ON TABLE "public"."channel_connections" TO "anon";
 GRANT ALL ON TABLE "public"."channel_connections" TO "authenticated";
 GRANT ALL ON TABLE "public"."channel_connections" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."coop_contact_events" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."coop_contact_files" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."coop_contacts" TO "service_role";
 
 
 

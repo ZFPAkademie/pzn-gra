@@ -40,23 +40,12 @@ export const PODIL_CONTACTS = [
 export const telHref = (phone: string) => `tel:${phone.replace(/\s/g, '')}`;
 
 /**
- * Počet volných podílů z app_settings (edituje asistentka na /sprava-podilu).
+ * Počet volných podílů z evidence v admin sekci Družstvo (50 − Rezervace − Vlastník).
  * Fallback = všechny podíly při výpadku DB — stránka nesmí spadnout.
  */
 export async function getPodilAvailableShares(): Promise<number> {
-  try {
-    const { createSupabaseAdminClient } = await import('@/lib/supabase-server');
-    const { data } = await createSupabaseAdminClient()
-      .from('app_settings')
-      .select('value')
-      .eq('key', 'podil_available')
-      .maybeSingle();
-    const parsed = parseInt(data?.value ?? '', 10);
-    if (Number.isNaN(parsed)) return PODIL_TOTAL_SHARES;
-    return Math.min(Math.max(parsed, 0), PODIL_TOTAL_SHARES);
-  } catch {
-    return PODIL_TOTAL_SHARES;
-  }
+  const { getCoopAvailableShares } = await import('@/lib/coop');
+  return Math.min(await getCoopAvailableShares(), PODIL_TOTAL_SHARES);
 }
 
 export interface PodilTexts {
