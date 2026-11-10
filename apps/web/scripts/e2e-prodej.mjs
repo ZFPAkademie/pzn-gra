@@ -38,15 +38,24 @@ check("prodejní stránka 200", res.status === 200, String(res.status))
 check("cena Na dotaz", html.includes("Na dotaz"))
 check("pronájem v číslech z FDM dvojčete", html.includes("Ceník a obsazenost přímo z kalendáře správce"))
 check("odkaz na pronájem dvojčete", html.includes("/apartmany-spindleruv-mlyn-pronajem/qa-apartman-fdm"))
-// Seed: obsazené dny dnes +20 až +22 — mohou padnout do dvou měsíců, počítej po měsících
+// Seed: obsazené dny dnes +20 až +22. Stránka ukazuje obsazenost jen v okně sezóny
+// (říjen–únor → prosinec–únor, jinak dnes + 90 dní) — počítej stejně, po měsících.
 const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Prague" })
+const addDays = (iso, n) => { const d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
+const [y, mo] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))]
+let from = today, to = addDays(today, 89)
+if (mo >= 10 || mo <= 2) {
+  const sy = mo >= 10 ? y : y - 1
+  from = today > `${sy}-12-01` ? today : `${sy}-12-01`
+  to = addDays(`${sy + 1}-03-01`, -1)
+}
 const bookedByMonth = {}
 for (const n of [20, 21, 22]) {
-  const d = new Date(today + "T00:00:00Z")
-  d.setUTCDate(d.getUTCDate() + n)
-  const m = d.toISOString().slice(0, 7)
-  bookedByMonth[m] = (bookedByMonth[m] ?? 0) + 1
+  const day = addDays(today, n)
+  if (day < from || day > to) continue
+  bookedByMonth[day.slice(0, 7)] = (bookedByMonth[day.slice(0, 7)] ?? 0) + 1
 }
+check("průměr domu v sezóně", html.includes("Průměr celého domu"))
 const plain = html.replace(/<!-- -->/g, "")
 for (const [m, c] of Object.entries(bookedByMonth)) {
   const ok = new RegExp(`>${c} z \\d+<`).test(plain)

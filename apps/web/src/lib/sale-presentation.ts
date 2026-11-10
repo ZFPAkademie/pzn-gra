@@ -67,6 +67,34 @@ export interface RentalMonth {
   partial: boolean;
 }
 
+export interface SeasonMonth {
+  month: string;
+  booked: number;
+  nights: number;
+  houseBooked: number;
+  houseNights: number;
+}
+
+/**
+ * Obsazenost jen pro nejbližší sezónu, kde už rezervace jsou (zadání 10. 11.: měsíce
+ * „0 z 31“ na jaře a v létě působily, jako by tam nikdo nebyl — na ně se zatím nerezervuje).
+ * Říjen–únor = hlavní zimní sezóna prosinec–únor, jinak nejbližších 90 dní.
+ * Průměr domu = všechny apartmány napojené na FDM ve stejném období.
+ */
+export interface RentalSeason {
+  kind: 'winter' | 'next90';
+  /** '2026/27' u zimy */
+  label: string;
+  from: string;
+  to: string;
+  booked: number;
+  nights: number;
+  houseBooked: number;
+  houseNights: number;
+  houseUnits: number;
+  months: SeasonMonth[];
+}
+
 export interface RentalSnapshot {
   /** Slug pronájemního záznamu (odkaz „Vyzkoušejte jako host“), null = není veřejně k pronájmu */
   rentalSlug: string | null;
@@ -74,9 +102,28 @@ export interface RentalSnapshot {
   currency: string;
   /** Kdy FDM data naposledy přišla (ISO) */
   syncedAt: string | null;
+  /** Ceník po měsících na rok dopředu (obsazenost se z nich na stránce neukazuje) */
   months: RentalMonth[];
-  /** Zimní sezóna prosinec–březen nejbližší zimy (od dneška) */
-  winter: { label: string; nights: number; booked: number } | null;
+  season: RentalSeason | null;
+}
+
+function addDays(iso: string, n: number): string {
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Okno sezóny podle dnešního data (viz RentalSeason) */
+function seasonWindow(today: string): { kind: 'winter' | 'next90'; label: string; from: string; to: string } {
+  const year = Number(today.slice(0, 4));
+  const month = Number(today.slice(5, 7));
+  if (month >= 10 || month <= 2) {
+    const startYear = month >= 10 ? year : year - 1;
+    const start = `${startYear}-12-01`;
+    const end = addDays(`${startYear + 1}-03-01`, -1); // poslední den února i v přestupném roce
+    return { kind: 'winter', label: `${startYear}/${String(startYear + 1).slice(2)}`, from: today > start ? today : start, to: end };
+  }
+  return { kind: 'next90', label: '', from: today, to: addDays(today, 89) };
 }
 
 /** FDM vrací 999 € jako zástupnou cenu u dnů bez ceníku — do statistik nepatří. */
@@ -161,19 +208,50 @@ export async function getRentalSnapshot(apartment: {
       // Poslední neúplný měsíc kalendáře (FDM posílá rok dopředu) by zkresloval
       .filter((m) => m.partial || m.nights >= 28);
 
-    // Nejbližší zima: prosinec–březen sezóny, která ještě neskončila
-    const year = Number(today.slice(0, 4));
-    const monthNo = Number(today.slice(5, 7));
-    const startYear = monthNo <= 3 ? year - 1 : year;
-    const winterKeys = [`${startYear}-12`, `${startYear + 1}-01`, `${startYear + 1}-02`, `${startYear + 1}-03`];
-    const winterMonths = months.filter((m) => winterKeys.includes(m.month));
-    const winter = winterMonths.length
-      ? {
-          label: `${startYear}/${String(startYear + 1).slice(2)}`,
-          nights: winterMonths.reduce((s, m) => s + m.nights, 0),
-          booked: winterMonths.reduce((s, m) => s + m.booked, 0),
-        }
-      : null;
+    // Sezóna: tento apartmán + průměr celého domu (všechny apartmány s FDM kalendářem)
+    const win = seasonWindow(today);
+    const houseRows: { apartment_id: string; date: string; available: boolean }[] = [];
+    for (let offset = 0; offset < 20_000; offset += 1000) {
+      const { data: page } = await supabase
+        .from('fdm_calendar')
+        .select('apartment_id, date, available')
+        .gte('date', win.from)
+        .lte('date', win.to)
+        .order('date', { ascending: true })
+        .order('apartment_id', { ascending: true })
+        .range(offset, offset + 999);
+      houseRows.push(...((page ?? []) as typeof houseRows));
+      if (!page || page.length < 1000) break;
+    }
+
+    const seasonMonths = new Map<string, SeasonMonth>();
+    const units = new Set<string>();
+    for (const r of houseRows) {
+      const m = r.date.slice(0, 7);
+      const e = seasonMonths.get(m) ?? { month: m, booked: 0, nights: 0, houseBooked: 0, houseNights: 0 };
+      units.add(r.apartment_id);
+      e.houseNights += 1;
+      if (!r.available) e.houseBooked += 1;
+      if (r.apartment_id === twin.id) {
+        e.nights += 1;
+        if (!r.available) e.booked += 1;
+      }
+      seasonMonths.set(m, e);
+    }
+    const sm = Array.from(seasonMonths.values()).sort((a, b) => a.month.localeCompare(b.month));
+    const sum = (k: keyof Omit<SeasonMonth, 'month'>) => sm.reduce((s, m) => s + m[k], 0);
+    const season: RentalSeason | null =
+      sum('nights') > 0
+        ? {
+            ...win,
+            booked: sum('booked'),
+            nights: sum('nights'),
+            houseBooked: sum('houseBooked'),
+            houseNights: sum('houseNights'),
+            houseUnits: units.size,
+            months: sm,
+          }
+        : null;
 
     return {
       rentalSlug: twin.for_rent ? twin.slug : null,
@@ -181,7 +259,7 @@ export async function getRentalSnapshot(apartment: {
       currency,
       syncedAt,
       months,
-      winter,
+      season,
     };
   } catch {
     return null;

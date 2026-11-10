@@ -26,7 +26,8 @@ import { getGalleryChapters, getRentalSnapshot, type RentalMonth } from '@/lib/s
 import { withSeo } from '@/lib/seo';
 import { getSaleTexts } from './texts';
 import { ChapterGallery } from './chapter-gallery';
-import { RentalMonths } from './rental-months';
+import { SeasonOccupancy, PriceYear } from './rental-months';
+import { todayPrague } from '@/lib/booking-engine/dates';
 
 interface Props {
   params: { slug: string };
@@ -107,6 +108,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
   const locale = getRequestLocale();
   const en = locale === 'en';
   const t = getSaleTexts(locale);
+  const today = todayPrague();
   const raw = await getApartmentBySlugDB(params.slug);
 
   if (!raw || !raw.for_sale) {
@@ -254,37 +256,56 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
             <h2 className="text-3xl md:text-4xl font-light text-white mt-4 mb-4 max-w-3xl">{t.rentalTitle}</h2>
             <p className="text-white/60 leading-relaxed max-w-3xl mb-12">{t.rentalLead}</p>
 
-            <div className="grid sm:grid-cols-3 gap-px bg-white/10 mb-12">
-              {rental.winter && (
-                <div className="bg-navy p-6 md:p-8">
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.winterBooked(rental.winter.label)}</p>
-                  <p className="text-3xl md:text-4xl font-extralight text-white">
-                    {Math.round((rental.winter.booked / rental.winter.nights) * 100)}
-                    <span className="text-gold text-2xl ml-1">%</span>
-                  </p>
-                  <p className="text-white/50 text-sm mt-1">{t.winterOf(rental.winter.booked, rental.winter.nights)}</p>
+            {rental.season && (
+              <>
+                <p className="text-gold text-xs uppercase tracking-widest mb-4">
+                  {rental.season.kind === 'winter' ? t.seasonWinter(rental.season.label) : t.seasonNext90}
+                </p>
+                <div className="grid sm:grid-cols-2 gap-px bg-white/10 mb-10">
+                  <div className="bg-navy p-6 md:p-8">
+                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.kpiThis}</p>
+                    <p className="text-5xl md:text-6xl font-extralight text-white">
+                      {Math.round((rental.season.booked / rental.season.nights) * 100)}
+                      <span className="text-gold text-3xl ml-1">%</span>
+                    </p>
+                    <p className="text-white/50 text-sm mt-2">{t.nightsTotal(rental.season.booked, rental.season.nights)}</p>
+                  </div>
+                  <div className="bg-navy p-6 md:p-8">
+                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.kpiHouse(rental.season.houseUnits)}</p>
+                    <p className="text-5xl md:text-6xl font-extralight text-white">
+                      {Math.round((rental.season.houseBooked / rental.season.houseNights) * 100)}
+                      <span className="text-gold text-3xl ml-1">%</span>
+                    </p>
+                    <p className="text-white/50 text-sm mt-2">{t.nightsTotal(rental.season.houseBooked, rental.season.houseNights)}</p>
+                  </div>
                 </div>
-              )}
-              {peak && (
-                <div className="bg-navy p-6 md:p-8">
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.peakPrice}</p>
-                  <p className="text-3xl md:text-4xl font-extralight text-white whitespace-nowrap">{peak}</p>
-                </div>
-              )}
-              {offSeason && (
-                <div className="bg-navy p-6 md:p-8">
-                  <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.offPrice}</p>
-                  <p className="text-3xl md:text-4xl font-extralight text-white whitespace-nowrap">{offSeason}</p>
-                </div>
-              )}
-            </div>
 
-            <RentalMonths
-              months={rental.months}
-              currency={rental.currency}
-              locale={locale}
-              labels={{ colMonth: t.colMonth, colPrice: t.colPrice, colPriceShort: t.colPriceShort, colBooked: t.colBooked, fromToday: t.fromToday, upTo: t.upTo, nightsOf: t.nightsOf }}
-            />
+                <SeasonOccupancy
+                  months={rental.season.months}
+                  today={today}
+                  locale={locale}
+                  labels={{ thisApt: t.thisApt, house: t.houseAvg, fromToday: t.fromToday, nightsOf: t.nightsOf }}
+                />
+                <p className="text-white/50 text-sm mt-4 mb-16">{t.seasonNote}</p>
+              </>
+            )}
+
+            <div className="flex flex-wrap items-baseline justify-between gap-x-10 gap-y-4 mb-6">
+              <h3 className="text-2xl font-light text-white">{t.priceTitle}</h3>
+              <div className="flex flex-wrap gap-x-10 gap-y-2 text-sm">
+                {peak && (
+                  <span className="text-white/50">
+                    {t.peakPrice} <span className="text-white text-lg ml-2 whitespace-nowrap">{peak}</span>
+                  </span>
+                )}
+                {offSeason && (
+                  <span className="text-white/50">
+                    {t.offPrice} <span className="text-white text-lg ml-2 whitespace-nowrap">{offSeason}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            <PriceYear months={rental.months} currency={rental.currency} locale={locale} upTo={t.upTo} />
 
             <p className="text-white/40 text-xs leading-relaxed mt-6 max-w-4xl">
               {t.rentalNote(rental.syncedAt ? formatDate(rental.syncedAt, locale, true) : formatDate(new Date().toISOString(), locale))}
