@@ -40,6 +40,9 @@ interface ListRow {
   archived_at: string | null;
 }
 
+// Sloupce desktopového výpisu: kontakt | stav | podíly | další krok | zdroj | založeno
+const DESKTOP_GRID = 'grid grid-cols-[minmax(0,2.2fr)_7.5rem_4.5rem_minmax(0,1.6fr)_7rem_9rem]';
+
 function sharesLabel(n: number): string {
   return `${n} ${n === 1 ? 'podíl' : n < 5 ? 'podíly' : 'podílů'}`;
 }
@@ -198,51 +201,49 @@ export default async function AdminDruzstvoPage({
             </p>
           ) : (
             <>
-              {/* Desktop tabulka */}
-              <table className="w-full text-sm hidden md:table">
-                <thead>
-                  <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
-                    <th className="px-5 py-2 font-normal">Kontakt</th>
-                    <th className="px-3 py-2 font-normal">Stav</th>
-                    <th className="px-3 py-2 font-normal text-right">Podíly</th>
-                    <th className="px-3 py-2 font-normal">Další krok</th>
-                    <th className="px-3 py-2 font-normal">Zdroj</th>
-                    <th className="px-5 py-2 font-normal text-right">Založeno</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              {/* Desktop — řádek = celý odkaz na detail (mřížka místo tabulky, <a> v <tr> nejde) */}
+              <div className="hidden md:block text-sm">
+                <div className={`${DESKTOP_GRID} text-xs text-slate-400 border-b border-slate-100`}>
+                  <span className="px-5 py-2">Kontakt</span>
+                  <span className="px-3 py-2">Stav</span>
+                  <span className="px-3 py-2 text-right">Podíly</span>
+                  <span className="px-3 py-2">Další krok</span>
+                  <span className="px-3 py-2">Zdroj</span>
+                  <span className="px-5 py-2 text-right">Založeno</span>
+                </div>
+                <ul className="divide-y divide-slate-100">
                   {rows.map((c) => {
                     const overdue = c.next_step_date && c.next_step_date < todayPrague && !['owner', 'cancelled'].includes(c.status);
                     const files = filesByContact.get(c.id) ?? 0;
                     return (
-                      <tr key={c.id} className="hover:bg-cream">
-                        <td className="px-5 py-3">
-                          <Link href={`/admin/druzstvo/${c.id}`} className="text-navy hover:text-gold">
-                            {coopFullName(c)}
-                          </Link>
-                          {c.company_name && <span className="text-slate-400"> · {c.company_name}</span>}
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {[c.email, c.phone].filter(Boolean).join(' · ') || '—'}
-                            {files > 0 && ` · ${files} ${files === 1 ? 'příloha' : files < 5 ? 'přílohy' : 'příloh'}`}
-                          </p>
-                        </td>
-                        <td className="px-3 py-3"><CoopStatusBadge status={c.status} /></td>
-                        <td className="px-3 py-3 text-right text-navy">{c.share_count ?? '—'}</td>
-                        <td className="px-3 py-3 text-slate-600 max-w-xs">
-                          <span className="line-clamp-1">{c.next_step ?? ''}</span>
-                          {c.next_step_date && (
-                            <span className={`text-xs ${overdue ? 'text-red-600' : 'text-slate-400'}`}>
-                              {formatDateOnly(c.next_step_date)}{overdue ? ' · po termínu' : ''}
+                      <li key={c.id}>
+                        <Link href={`/admin/druzstvo/${c.id}`} className={`${DESKTOP_GRID} items-center hover:bg-cream transition-colors group`}>
+                          <span className="px-5 py-3 min-w-0">
+                            <span className="text-navy group-hover:text-gold">{coopFullName(c)}</span>
+                            {c.company_name && <span className="text-slate-400"> · {c.company_name}</span>}
+                            <span className="block text-xs text-slate-400 mt-0.5 truncate">
+                              {[c.email, c.phone].filter(Boolean).join(' · ') || '—'}
+                              {files > 0 && ` · ${files} ${files === 1 ? 'příloha' : files < 5 ? 'přílohy' : 'příloh'}`}
                             </span>
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-slate-500">{coopSourceLabels[c.source as keyof typeof coopSourceLabels] ?? c.source}</td>
-                        <td className="px-5 py-3 text-right text-xs text-slate-400 whitespace-nowrap">{formatDateTime(c.created_at)}</td>
-                      </tr>
+                          </span>
+                          <span className="px-3 py-3"><CoopStatusBadge status={c.status} /></span>
+                          <span className="px-3 py-3 text-right text-navy">{c.share_count ?? '—'}</span>
+                          <span className="px-3 py-3 text-slate-600 min-w-0">
+                            <span className="block truncate">{c.next_step ?? ''}</span>
+                            {c.next_step_date && (
+                              <span className={`text-xs ${overdue ? 'text-red-600' : 'text-slate-400'}`}>
+                                {formatDateOnly(c.next_step_date)}{overdue ? ' · po termínu' : ''}
+                              </span>
+                            )}
+                          </span>
+                          <span className="px-3 py-3 text-slate-500">{coopSourceLabels[c.source as keyof typeof coopSourceLabels] ?? c.source}</span>
+                          <span className="px-5 py-3 text-right text-xs text-slate-400 whitespace-nowrap">{formatDateTime(c.created_at)}</span>
+                        </Link>
+                      </li>
                     );
                   })}
-                </tbody>
-              </table>
+                </ul>
+              </div>
 
               {/* Mobil karty */}
               <ul className="md:hidden divide-y divide-slate-100">
