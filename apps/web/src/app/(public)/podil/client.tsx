@@ -112,7 +112,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
   if (status === 'success') {
     return (
-      <div className="text-center py-12 bg-white border border-navy/10 p-10">
+      <div className="text-center py-12 bg-white border border-navy/10 p-6 sm:p-10" role="status">
         <svg className="w-16 h-16 text-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -122,13 +122,14 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-navy/10 p-10 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white border border-navy/10 p-6 sm:p-10 space-y-6">
       {/* Name */}
       <div>
-        <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+        <label htmlFor="podil-name" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
           {t.name} *
         </label>
         <input
+          id="podil-name"
           type="text"
           required
           value={formData.name}
@@ -139,10 +140,11 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
       {/* Email */}
       <div>
-        <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+        <label htmlFor="podil-email" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
           {t.email} *
         </label>
         <input
+          id="podil-email"
           type="email"
           required
           value={formData.email}
@@ -153,10 +155,11 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
       {/* Phone */}
       <div>
-        <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+        <label htmlFor="podil-phone" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
           {t.phone}
         </label>
         <input
+          id="podil-phone"
           type="tel"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -167,10 +170,11 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Postal Code */}
         <div>
-          <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+          <label htmlFor="podil-postalCode" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
             {t.postalCode}
           </label>
           <input
+            id="podil-postalCode"
             type="text"
             placeholder={t.postalCodePlaceholder}
             value={formData.postalCode}
@@ -181,10 +185,11 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
         {/* Share count */}
         <div>
-          <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+          <label htmlFor="podil-shares" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
             {t.shares}
           </label>
           <input
+            id="podil-shares"
             type="number"
             min="1"
             max="50"
@@ -198,10 +203,11 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
       {/* Message */}
       <div>
-        <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
+        <label htmlFor="podil-message" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
           {t.message}
         </label>
         <textarea
+          id="podil-message"
           rows={3}
           placeholder={t.messagePlaceholder}
           value={formData.message}

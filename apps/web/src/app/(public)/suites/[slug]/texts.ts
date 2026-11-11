@@ -240,6 +240,22 @@ export const SALE_TEXTS = {
   },
 } as const;
 
+/** Postup koupě — převzato ze starého webu, bez rezervační zálohy (zadání 3. 11. 2026). Sdílí výpis /suites i detail. */
+export const PURCHASE_STEPS = {
+  cs: [
+    { title: 'Rezervace', text: 'Vybraný apartmán vám nezávazně rezervujeme na dobu deseti dnů.' },
+    { title: 'Rezervační smlouva', text: 'V této lhůtě svůj zájem potvrdíte podpisem rezervační smlouvy.' },
+    { title: 'Kupní smlouva', text: 'Po podpisu kupní smlouvy uhradíte kupní cenu podle sjednaných platebních podmínek.' },
+    { title: 'Zápis do katastru', text: 'Prodávající podá návrh na vklad vlastnického práva do katastru nemovitostí a apartmán vám předá.' },
+  ],
+  en: [
+    { title: 'Reservation', text: 'We will reserve the apartment of your choice for ten days, with no obligation.' },
+    { title: 'Reservation agreement', text: 'Within this period, you confirm your interest by signing a reservation agreement.' },
+    { title: 'Purchase agreement', text: 'After signing the purchase agreement, you pay the purchase price according to the agreed payment terms.' },
+    { title: 'Land register', text: 'The seller files the application to register your ownership in the Land Register and hands the apartment over to you.' },
+  ],
+} as const;
+
 export function getSaleTexts(locale: BaseLocale) {
   return SALE_TEXTS[locale];
 }

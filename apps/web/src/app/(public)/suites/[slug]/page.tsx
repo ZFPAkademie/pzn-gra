@@ -21,10 +21,10 @@ import { ApartmentTitle } from '@/components/features/apartment-title';
 import { SectionLabel } from '@/components/ui/ornaments';
 import { GUEST_RATING, NEARBY, formatScore, formatCount } from '@/data/stay-info';
 import { MARKET_FACTS } from '@/data/market-facts';
-import { formatMoney } from '@/lib/booking-engine/money';
-import { getGalleryChapters, getRentalSnapshot, type RentalMonth } from '@/lib/sale-presentation';
+import { getGalleryChapters, getRentalSnapshot } from '@/lib/sale-presentation';
 import { withSeo } from '@/lib/seo';
-import { getSaleTexts } from './texts';
+import { getSaleTexts, PURCHASE_STEPS } from './texts';
+import { floorLabel, parseArea, priceRange, formatDate } from '@/lib/sale-format';
 import { ChapterGallery } from './chapter-gallery';
 import { SeasonOccupancy, PriceYear } from './rental-months';
 import { todayPrague } from '@/lib/booking-engine/dates';
@@ -45,63 +45,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${apt.title} | ${locale === 'en' ? 'For sale' : 'Na prodej'} | Pod Zlatým návrším`,
     description: apt.description ?? undefined,
   }, `/suites/${params.slug}`, { ownImage: true });
-}
-
-/** Postup koupě — převzato ze starého webu, bez rezervační zálohy (zadání 3. 11. 2026) */
-const PURCHASE_STEPS = {
-  cs: [
-    { title: 'Rezervace', text: 'Vybraný apartmán vám nezávazně rezervujeme na dobu deseti dnů.' },
-    { title: 'Rezervační smlouva', text: 'V této lhůtě svůj zájem potvrdíte podpisem rezervační smlouvy.' },
-    { title: 'Kupní smlouva', text: 'Po podpisu kupní smlouvy uhradíte kupní cenu podle sjednaných platebních podmínek.' },
-    { title: 'Zápis do katastru', text: 'Prodávající podá návrh na vklad vlastnického práva do katastru nemovitostí a apartmán vám předá.' },
-  ],
-  en: [
-    { title: 'Reservation', text: 'We will reserve the apartment of your choice for ten days, with no obligation.' },
-    { title: 'Reservation agreement', text: 'Within this period, you confirm your interest by signing a reservation agreement.' },
-    { title: 'Purchase agreement', text: 'After signing the purchase agreement, you pay the purchase price according to the agreed payment terms.' },
-    { title: 'Land register', text: 'The seller files the application to register your ownership in the Land Register and hands the apartment over to you.' },
-  ],
-} as const;
-
-/** Podlaží: CZ „2. NP“, EN britsky (1. NP = ground floor, 2. NP = 1st floor) */
-function floorLabel(floor: number, locale: 'cs' | 'en'): string {
-  if (locale !== 'en') return `${floor}. NP`;
-  if (floor === 1) return 'Ground floor';
-  const n = floor - 1;
-  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : n % 10 === 1 ? 'st' : n % 10 === 2 ? 'nd' : n % 10 === 3 ? 'rd' : 'th';
-  return `${n}${suffix} floor`;
-}
-
-/** „6,25 m²“ → 6.25 (plochy místností jsou v DB jako text) */
-function parseArea(v: string | null | undefined): number | null {
-  if (!v) return null;
-  const n = Number(v.replace(/[^\d,.]/g, '').replace(',', '.'));
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-/** Rozpětí mediánů vybraných měsíců: „129–159 €“, jedna hodnota bez pomlčky */
-function priceRange(months: RentalMonth[], pick: (monthNo: number) => boolean, currency: string, locale: 'cs' | 'en') {
-  const vals = months
-    .filter((m) => pick(Number(m.month.slice(5, 7))) && m.medianCents)
-    .map((m) => m.medianCents as number);
-  if (!vals.length) return null;
-  const lo = Math.min(...vals);
-  const hi = Math.max(...vals);
-  if (lo === hi) return formatMoney(lo, currency, locale);
-  return locale === 'en'
-    ? `${formatMoney(lo, currency, locale)}–${formatMoney(hi, currency, locale).replace('€', '')}`
-    : `${formatMoney(lo, currency, locale).replace(' €', '')}–${formatMoney(hi, currency, locale)}`;
-}
-
-function formatDate(iso: string, locale: 'cs' | 'en', withTime = false) {
-  const d = new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso);
-  return d.toLocaleString(locale === 'en' ? 'en-GB' : 'cs-CZ', {
-    day: 'numeric',
-    month: locale === 'en' ? 'long' : 'numeric',
-    year: 'numeric',
-    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
-    timeZone: 'Europe/Prague',
-  });
 }
 
 export default async function SaleApartmentDetailPage({ params }: Props) {

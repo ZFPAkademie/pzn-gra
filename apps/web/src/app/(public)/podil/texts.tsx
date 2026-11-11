@@ -93,6 +93,37 @@ export interface PodilTexts {
   contactEmail: string;
   wholeApartmentText: string;
   wholeApartmentLink: string;
+  // Redesign 11/2026 — popisky sekcí, čísla v úvodu a přehled podílů (obsah beze změny)
+  ctaInterest: string;
+  priceLabel: string;
+  availableLabel: string;
+  availableOf: (available: number, total: number) => string;
+  price: string;
+  numbersLabel: string;
+  stats: {
+    price: string;
+    shareSize: string;
+    shareSizeValue: (percent: string) => string;
+    discount: string;
+    discountValue: string;
+    payout: string;
+    payoutValue: string;
+    contract: string;
+    contractValue: string;
+    area: string;
+    completed: string;
+    completedValue: string;
+  };
+  audienceLabel: string;
+  benefitsLabel: string;
+  noteLabel: string;
+  stepsLabel: string;
+  videoLabel: string;
+  sharesLabel: string;
+  sharesAria: (reserved: number, available: number, total: number) => string;
+  featuresTitle: string;
+  roomsTitle: string;
+  formLabel: string;
 }
 
 const cs: PodilTexts = {
@@ -178,6 +209,36 @@ const cs: PodilTexts = {
   contactEmail: 'e-mail',
   wholeApartmentText: 'Máte zájem o koupi celého apartmánu?',
   wholeApartmentLink: 'Zobrazit apartmány k prodeji',
+  ctaInterest: 'Mám zájem o podíl',
+  priceLabel: 'Cena podílu',
+  availableLabel: 'Volné podíly',
+  availableOf: (available, total) => `${available} z ${total}`,
+  price: `${PODIL_PRICE_CZK.toLocaleString('cs-CZ')} Kč`,
+  numbersLabel: 'V číslech',
+  stats: {
+    price: 'Cena jednoho podílu',
+    shareSize: 'Jeden podíl',
+    shareSizeValue: (percent) => `${percent} % apartmánu`,
+    discount: 'Sleva na vlastní pobyt',
+    discountValue: '20 %',
+    payout: 'Výplata výnosů',
+    payoutValue: '2× ročně',
+    contract: 'Smluv k podpisu',
+    contractValue: '1',
+    area: 'Plocha apartmánu',
+    completed: 'Dokončení domu',
+    completedValue: '2023',
+  },
+  audienceLabel: 'Pro koho',
+  benefitsLabel: 'Výhody',
+  noteLabel: 'Upozornění',
+  stepsLabel: 'Postup',
+  videoLabel: 'Video',
+  sharesLabel: 'Podíly',
+  sharesAria: (reserved, available, total) => `Z ${total} podílů je ${reserved} rezervováno a ${available} dostupných.`,
+  featuresTitle: 'Vybavení',
+  roomsTitle: 'Členění podle půdorysu',
+  formLabel: 'Poptávka',
 };
 
 const en: PodilTexts = {
@@ -263,6 +324,36 @@ const en: PodilTexts = {
   contactEmail: 'e-mail',
   wholeApartmentText: 'Interested in buying a whole apartment?',
   wholeApartmentLink: 'View apartments for sale',
+  ctaInterest: 'I am interested in a share',
+  priceLabel: 'Price per share',
+  availableLabel: 'Shares available',
+  availableOf: (available, total) => `${available} of ${total}`,
+  price: `CZK ${PODIL_PRICE_CZK.toLocaleString('en-GB')}`,
+  numbersLabel: 'In figures',
+  stats: {
+    price: 'Price of one share',
+    shareSize: 'One share',
+    shareSizeValue: (percent) => `${percent}% of the apartment`,
+    discount: 'Discount on your own stays',
+    discountValue: '20%',
+    payout: 'Payout of returns',
+    payoutValue: 'Twice a year',
+    contract: 'Contracts to sign',
+    contractValue: '1',
+    area: 'Apartment area',
+    completed: 'Building completed',
+    completedValue: '2023',
+  },
+  audienceLabel: 'Who it suits',
+  benefitsLabel: 'Benefits',
+  noteLabel: 'Please note',
+  stepsLabel: 'Process',
+  videoLabel: 'Video',
+  sharesLabel: 'Shares',
+  sharesAria: (reserved, available, total) => `Of ${total} shares, ${reserved} are reserved and ${available} are available.`,
+  featuresTitle: 'Features',
+  roomsTitle: 'Room breakdown from the floor plan',
+  formLabel: 'Enquiry',
 };
 
 export function getPodilTexts(locale: Locale): PodilTexts {

@@ -65,6 +65,21 @@ check("kapitoly galerie", html.includes("Dům v zimě") && html.includes("Půdor
 check("plochy podle půdorysu", html.includes("Členění podle půdorysu") && html.includes("30 m²"))
 check("bez výnosu v % a kalkulačky", !/výnos\s*\d|Kalkulačk/i.test(html))
 
+// ── Výpis /suites (11. 11. 2026): karta apartmánu, pronájem v číslech z FDM, bez výnosu ──
+const listRes = await fetch(`${BASE}/suites`, { headers: { Cookie: "NEXT_LOCALE=cs" } })
+const list = (await listRes.text()).replace(/<!-- -->/g, "")
+check("výpis 200", listRes.status === 200, String(listRes.status))
+check("výpis: karta apartmánu s odkazem na prezentaci", list.includes(`href="/suites/${SALE_SLUG}"`) && list.includes("Otevřít prezentaci"))
+check("výpis: cena Na dotaz", list.includes("Na dotaz"))
+check("výpis: plocha z DB", list.includes("40 m²"))
+check("výpis: obsazenost z FDM dvojčete", /Obsazeno, (zima|příštích 90 dní)/.test(list) && list.includes("Průměr domu"))
+check("výpis: poznámka o stavu kalendáře", list.includes("ne o výsledek minulých let ani o záruku budoucího příjmu"))
+check("výpis: počet fotek bez půdorysů", list.includes("2 fotografie") && list.includes("1 půdorys"))
+check("výpis: postup koupě a kontakt", list.includes("Zápis do katastru") && list.includes('id="kontakt"'))
+check("výpis: bez výnosu v %", !/výnos\s*\d/i.test(list))
+const listEn = await fetch(`${BASE}/suites`, { headers: { Cookie: "NEXT_LOCALE=en" } }).then((x) => x.text())
+check("výpis EN", listEn.includes("Open the presentation") && listEn.includes("On request"))
+
 const notSale = await fetch(`${BASE}/suites/qa-apartman`)
 check("byt mimo prodej → 404", notSale.status === 404, String(notSale.status))
 
