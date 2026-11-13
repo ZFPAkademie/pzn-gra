@@ -12,6 +12,7 @@
     "qa": "$HOME/Documents/moje-weby/__vibekodex/os/qa/run.sh ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.39.0",
     "@types/qrcode": "^1.5.6",

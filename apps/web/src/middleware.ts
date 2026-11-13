@@ -6,12 +6,14 @@
  * - /portal/* → chráněno Supabase auth, redirect na /portal/login
  * - Vše ostatní → pass-through (veřejný web, API)
  * - ?lang=cs|en|pl → cookie NEXT_LOCALE + redirect bez parametru
+ * - crawleři → vk_crawler_hits (Vibekodex Insight), /vk-hp = honeypot
  * - *.vercel.app → 308 na NEXT_PUBLIC_APP_URL (jen produkce, mimo /api), jinak noindex
  */
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextFetchEvent, NextRequest } from 'next/server';
+import { vkEdge } from '@vk/edge';
 
 // Kanonická doména z NEXT_PUBLIC_APP_URL (adresa v e-mailech). Dokud míří na *.vercel.app, přesměrování je vypnuté.
 const APP_HOST = (() => {
@@ -19,8 +21,12 @@ const APP_HOST = (() => {
 })();
 const CANONICAL_ACTIVE = APP_HOST !== '' && !APP_HOST.endsWith('.vercel.app');
 
-export async function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
+
+  // Vibekodex Insight: log AI/vyhledávacích crawlerů + honeypot /vk-hp (soft fail, request nezdržuje)
+  const hp = vkEdge(request, event);
+  if (hp) return hp;
 
   // *.vercel.app: produkce → 308 na kanonickou doménu se zachováním cesty (odkazy v odeslaných e-mailech),
   // /api zůstává (crony, iCal feedy pro OTA); preview a vše před přepnutím domény → jen noindex

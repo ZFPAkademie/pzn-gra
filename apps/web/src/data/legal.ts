@@ -21,8 +21,12 @@ export const OPERATOR = {
 } as const;
 
 export const LEGAL_EFFECTIVE = { cs: '3. listopadu 2026', en: '3 November 2026', pl: '3 listopada 2026' } as const;
+/** Zásady ochrany osobních údajů — změna 13. 11. 2026: analytika se souhlasem (lišta cookies). */
+export const PRIVACY_EFFECTIVE = { cs: '13. listopadu 2026', en: '13 November 2026', pl: '13 listopada 2026' } as const;
 
 export interface LegalSection {
+  /** Kotva v URL (např. #cookies z lišty souhlasu). */
+  id?: string;
   title: string;
   paragraphs?: string[];
   items?: string[];
@@ -47,7 +51,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
     tagline: 'Pronájem apartmánů',
     title: 'Obchodní podmínky',
     intro: `Tyto obchodní podmínky upravují ubytování v apartmánech Pod Zlatým návrším (${ACCOMMODATION}) rezervovaném přes web podzlatymnavrsim.cz.`,
-    effective: `Účinné od ${LEGAL_EFFECTIVE.cs}`,
+    effective: `Účinné od ${PRIVACY_EFFECTIVE.cs}`,
     sections: [
       {
         title: 'Ubytovatel',
@@ -131,7 +135,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
     tagline: 'Apartment rentals',
     title: 'Terms and conditions',
     intro: `These terms and conditions govern accommodation in the Pod Zlatým návrším apartments (${ACCOMMODATION}) booked through the podzlatymnavrsim.cz website.`,
-    effective: `Effective from ${LEGAL_EFFECTIVE.en}`,
+    effective: `Effective from ${PRIVACY_EFFECTIVE.en}`,
     sections: [
       {
         title: 'Accommodation provider',
@@ -215,7 +219,7 @@ export const TERMS: Record<Locale, LegalDocument> = {
     tagline: 'Wynajem apartamentów',
     title: 'Regulamin',
     intro: `Niniejszy regulamin określa zasady zakwaterowania w apartamentach Pod Zlatým návrším (${ACCOMMODATION}) rezerwowanych przez stronę podzlatymnavrsim.cz.`,
-    effective: `Obowiązuje od ${LEGAL_EFFECTIVE.pl}`,
+    effective: `Obowiązuje od ${PRIVACY_EFFECTIVE.pl}`,
     sections: [
       {
         title: 'Usługodawca',
@@ -339,14 +343,17 @@ export const PRIVACY: Record<Locale, LegalDocument> = {
       {
         title: 'Kdo s údaji pracuje',
         paragraphs: [
-          'Údaje nikomu neprodáváme. Pro provoz webu a rezervací využíváme tyto zpracovatele: Supabase (databáze a přihlašování), Vercel (hosting webu), Resend (odesílání e-mailů) a rezervační systém Front Desk Master. Dále naši účetní a banku. Pokud rezervujete přes Booking.com nebo Airbnb, předává nám údaje daný portál.',
+          'Údaje nikomu neprodáváme. Pro provoz webu a rezervací využíváme tyto zpracovatele: Supabase (databáze a přihlašování), Vercel (hosting webu), Resend (odesílání e-mailů), rezervační systém Front Desk Master a s vaším souhlasem Google (Google Analytics). Dále naši účetní a banku. Pokud rezervujete přes Booking.com nebo Airbnb, předává nám údaje daný portál.',
           'Některé z těchto služeb mohou zpracovávat údaje i mimo Evropskou unii, zejména v USA. Předání je v takovém případě zajištěno rozhodnutím Evropské komise o odpovídající ochraně (EU-U.S. Data Privacy Framework) nebo standardními smluvními doložkami.',
         ],
       },
       {
-        title: 'Cookies',
+        id: 'cookies',
+        title: 'Cookies a měření návštěvnosti',
         paragraphs: [
-          'Web používá jen technické cookies nutné pro jeho fungování: zapamatování zvoleného jazyka (NEXT_LOCALE, 1 rok) a přihlášení do klientského portálu a administrace. Analytické ani reklamní cookies nepoužíváme, proto se vás na souhlas s nimi neptáme.',
+          'Bez souhlasu web používá jen technické cookies a úložiště prohlížeče nutné pro jeho fungování: zapamatování zvoleného jazyka (NEXT_LOCALE, 1 rok), přihlášení do klientského portálu a administrace a uložení vaší volby k cookies (pzn-cookie-consent).',
+          'Analytické nástroje spouštíme jen s vaším souhlasem, který udělíte v liště při první návštěvě (čl. 6 odst. 1 písm. a) GDPR). Používáme dva. Vlastní měření návštěvnosti ukládá do naší databáze navštívené stránky, zdroj návštěvy (například vyhledávač nebo kampaň), typ zařízení a prohlížeče a přibližnou polohu (země, město). IP adresu neukládá a návštěvníka rozlišuje jen otiskem, který se každý den mění; data mažeme po 2 letech. Google Analytics 4 od Google Ireland Limited nastavuje cookies _ga a _ga_* s platností až 2 roky, bez reklamních funkcí a s anonymizací IP adresy; Google data uchovává nejvýše 14 měsíců.',
+          'Reklamní cookies nepoužíváme. Souhlas můžete kdykoli změnit nebo odvolat odkazem Cookies v patičce webu.',
         ],
       },
       {
@@ -400,14 +407,17 @@ export const PRIVACY: Record<Locale, LegalDocument> = {
       {
         title: 'Who works with the data',
         paragraphs: [
-          'We do not sell your data. To run the website and bookings, we use these processors: Supabase (database and login), Vercel (website hosting), Resend (sending e-mails) and the Front Desk Master booking system, as well as our accountant and bank. If you book through Booking.com or Airbnb, that platform passes your details to us.',
+          'We do not sell your data. To run the website and bookings, we use these processors: Supabase (database and login), Vercel (website hosting), Resend (sending e-mails), the Front Desk Master booking system and, with your consent, Google (Google Analytics), as well as our accountant and bank. If you book through Booking.com or Airbnb, that platform passes your details to us.',
           'Some of these services may process data outside the European Union, in particular in the USA. In that case, the transfer is covered by the European Commission’s adequacy decision (EU-U.S. Data Privacy Framework) or by standard contractual clauses.',
         ],
       },
       {
-        title: 'Cookies',
+        id: 'cookies',
+        title: 'Cookies and visitor statistics',
         paragraphs: [
-          'The website only uses technical cookies required for it to work: remembering your chosen language (NEXT_LOCALE, 1 year) and logging in to the owner portal and administration. We do not use analytics or advertising cookies, which is why we do not ask for your consent.',
+          'Without your consent, the website only uses technical cookies and browser storage required for it to work: remembering your chosen language (NEXT_LOCALE, 1 year), logging in to the owner portal and administration, and storing your cookie choice (pzn-cookie-consent).',
+          'We only run analytics with your consent, which you give in the banner on your first visit (Art. 6(1)(a) GDPR). We use two tools. Our own visitor measurement stores in our database the pages visited, the source of the visit (for example a search engine or a campaign), the type of device and browser and an approximate location (country, city). It does not store your IP address and distinguishes visitors only by a fingerprint that changes every day; we delete the data after 2 years. Google Analytics 4 by Google Ireland Limited sets the _ga and _ga_* cookies, valid for up to 2 years, without advertising features and with IP anonymisation; Google keeps the data for no more than 14 months.',
+          'We do not use advertising cookies. You can change or withdraw your consent at any time via the Cookies link in the website footer.',
         ],
       },
       {
@@ -461,14 +471,17 @@ export const PRIVACY: Record<Locale, LegalDocument> = {
       {
         title: 'Kto ma dostęp do danych',
         paragraphs: [
-          'Nie sprzedajemy Państwa danych. Do obsługi strony i rezerwacji korzystamy z podmiotów przetwarzających: Supabase (baza danych i logowanie), Vercel (hosting strony), Resend (wysyłka e-maili) oraz system rezerwacyjny Front Desk Master, a także z usług naszej księgowej i banku. W przypadku rezerwacji przez Booking.com lub Airbnb dane przekazuje nam dany portal.',
+          'Nie sprzedajemy Państwa danych. Do obsługi strony i rezerwacji korzystamy z podmiotów przetwarzających: Supabase (baza danych i logowanie), Vercel (hosting strony), Resend (wysyłka e-maili), system rezerwacyjny Front Desk Master oraz, za Państwa zgodą, Google (Google Analytics), a także z usług naszej księgowej i banku. W przypadku rezerwacji przez Booking.com lub Airbnb dane przekazuje nam dany portal.',
           'Niektóre z tych usług mogą przetwarzać dane poza Unią Europejską, w szczególności w USA. Przekazanie jest wtedy zabezpieczone decyzją Komisji Europejskiej stwierdzającą odpowiedni stopień ochrony (EU-U.S. Data Privacy Framework) lub standardowymi klauzulami umownymi.',
         ],
       },
       {
-        title: 'Pliki cookies',
+        id: 'cookies',
+        title: 'Pliki cookies i statystyki odwiedzin',
         paragraphs: [
-          'Strona używa wyłącznie technicznych plików cookies niezbędnych do jej działania: zapamiętanie wybranego języka (NEXT_LOCALE, 1 rok) oraz logowanie do portalu właścicieli i administracji. Nie używamy cookies analitycznych ani reklamowych, dlatego nie prosimy o zgodę na nie.',
+          'Bez zgody strona używa wyłącznie technicznych plików cookies i pamięci przeglądarki niezbędnych do jej działania: zapamiętanie wybranego języka (NEXT_LOCALE, 1 rok), logowanie do portalu właścicieli i administracji oraz zapisanie Państwa wyboru dotyczącego cookies (pzn-cookie-consent).',
+          'Narzędzia analityczne uruchamiamy wyłącznie za Państwa zgodą, wyrażoną na pasku przy pierwszej wizycie (art. 6 ust. 1 lit. a) RODO). Korzystamy z dwóch. Własny pomiar odwiedzin zapisuje w naszej bazie danych odwiedzone strony, źródło wizyty (np. wyszukiwarka lub kampania), typ urządzenia i przeglądarki oraz przybliżoną lokalizację (kraj, miasto). Nie zapisuje adresu IP, a odwiedzających rozróżnia jedynie odciskiem, który zmienia się codziennie; dane usuwamy po 2 latach. Google Analytics 4 od Google Ireland Limited ustawia pliki cookies _ga i _ga_* ważne do 2 lat, bez funkcji reklamowych i z anonimizacją adresu IP; Google przechowuje dane maksymalnie 14 miesięcy.',
+          'Nie używamy reklamowych plików cookies. Zgodę mogą Państwo w każdej chwili zmienić lub wycofać za pomocą odnośnika Pliki cookies w stopce strony.',
         ],
       },
       {

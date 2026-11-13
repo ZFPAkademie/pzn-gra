@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { trackConversion } from '@/components/features/site-analytics';
 
 interface ContactFormProps {
   locale: string;
@@ -53,6 +54,7 @@ export function ContactForm({ locale }: ContactFormProps) {
       });
 
       if (res.ok) {
+        trackConversion('contact_submit');
         setStatus('success');
       } else {
         setStatus('error');

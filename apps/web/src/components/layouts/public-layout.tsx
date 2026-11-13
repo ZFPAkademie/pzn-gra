@@ -5,6 +5,8 @@
 
 import { Header } from './header';
 import { Footer } from './footer';
+import { CookieConsent } from '@/components/features/cookie-consent';
+import { SiteAnalytics } from '@/components/features/site-analytics';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -16,6 +18,8 @@ export function PublicLayout({ children }: PublicLayoutProps) {
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />
+      <CookieConsent />
+      <SiteAnalytics />
     </div>
   );
 }

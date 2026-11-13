@@ -50,6 +50,10 @@
     {
       "route": "GET /api/v1/availability",
       "why": "veřejný vyhledávací kalendář: jen seznam dnů bez volného apartmánu, žádné osobní údaje (hledání podle termínu schváleno uživatelem 30. 10. 2026)"
+    },
+    {
+      "route": "POST /api/vk/collect",
+      "why": "vk-analytics: sběr z prohlížeče, jen po souhlasu s analytickými cookies (Origin check, validace, rate limit) — stejně jako HUB a KJM, nasazení schváleno uživatelem 13. 11. 2026"
     }
   ],
   "allow_insert": [

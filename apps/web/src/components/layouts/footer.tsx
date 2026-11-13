@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/language-provider';
 import { AlpineOrnament } from '@/components/ui/ornaments';
+import { CookieSettingsButton } from '@/components/features/cookie-consent';
 import { SALES_COMPANY } from '@/data/sales-company';
 import apartmentsData from '@/data/apartments.canonical.json';
 
@@ -101,13 +102,16 @@ export function Footer() {
               {locale === 'cs' ? `sp. zn. ${SALES_COMPANY.registerCs}` : locale === 'pl' ? `sygn. ${SALES_COMPANY.registerPl}` : `file no. ${SALES_COMPANY.registerEn}`}
             </p>
           </div>
-          <div className="flex items-center space-x-6 text-sm">
+          <div className="flex flex-wrap items-center gap-x-6 text-sm">
             <Link href="/ochrana-osobnich-udaju" className="inline-block py-2 text-white/30 hover:text-white/60 transition-colors">
               {t('footer.privacy')}
             </Link>
             <Link href="/obchodni-podminky" className="inline-block py-2 text-white/30 hover:text-white/60 transition-colors">
               {t('footer.terms')}
             </Link>
+            <CookieSettingsButton className="inline-block py-2 text-white/30 hover:text-white/60 transition-colors">
+              {locale === 'cs' ? 'Cookies' : locale === 'pl' ? 'Pliki cookies' : 'Cookies'}
+            </CookieSettingsButton>
           </div>
         </div>
       </div>

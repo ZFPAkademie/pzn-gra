@@ -21,7 +21,7 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
         <div className="max-w-3xl mx-auto px-6">
           <ol className="space-y-14">
             {doc.sections.map((section, i) => (
-              <li key={section.title}>
+              <li key={section.title} id={section.id} className="scroll-mt-28">
                 <span className="text-gold text-sm tracking-widest">{String(i + 1).padStart(2, '0')}</span>
                 <h2 className="text-2xl font-light text-navy mt-2 mb-5">{section.title}</h2>
                 {section.paragraphs?.map((p, j) => (

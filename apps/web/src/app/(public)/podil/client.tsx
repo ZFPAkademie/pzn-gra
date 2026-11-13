@@ -5,6 +5,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { trackConversion } from '@/components/features/site-analytics';
+import { getCookieConsent } from '@/components/features/cookie-consent';
 
 interface GeoData {
   country?: string;
@@ -25,8 +27,9 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
   const [geoData, setGeoData] = useState<GeoData>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // Fetch IP geolocation on mount
+  // Poloha z IP (předvyplnění PSČ) — IP jde třetí straně (ipapi.co), proto jen se souhlasem s analytikou
   useEffect(() => {
+    if (getCookieConsent()?.analytical !== true) return;
     fetch('https://ipapi.co/json/')
       .then(res => res.json())
       .then(data => {
@@ -71,6 +74,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
       });
 
       if (response.ok) {
+        trackConversion('share_request', { share_count: formData.shareCount ? parseInt(formData.shareCount) : null });
         setStatus('success');
       } else {
         setStatus('error');

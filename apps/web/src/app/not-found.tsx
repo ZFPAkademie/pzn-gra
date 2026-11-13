@@ -6,6 +6,7 @@
 
 import Link from 'next/link';
 import { PublicLayout } from '@/components/layouts';
+import { VkStatus } from '@vk/VkTracker';
 import { MountainSilhouette } from '@/components/ui/ornaments';
 import { getRequestLocaleFull } from '@/lib/i18n-server';
 
@@ -58,6 +59,7 @@ export default function NotFound() {
 
   return (
     <PublicLayout>
+      <VkStatus status={404} />
       <section className="relative overflow-hidden bg-navy pt-32 pb-40">
         <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
           <div>

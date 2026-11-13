@@ -12,6 +12,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackConversion } from '@/components/features/site-analytics';
 
 interface LeadFormProps {
   type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'investment_share_request' | 'general_inquiry';
@@ -142,6 +143,7 @@ export function LeadForm({
         return;
       }
 
+      trackConversion('lead_submit', { lead_type: type });
       setSubmitted(true);
     } catch (err) {
       setError(locale === 'cs' ? 'Chyba připojení. Zkuste to prosím znovu.' : 'Connection error. Please try again.');

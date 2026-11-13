@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/components/providers/language-provider';
+import { trackConversion } from '@/components/features/site-analytics';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
 function plPlural(n: number, one: string, few: string, many: string): string {
@@ -140,6 +141,7 @@ export function BookingForm({
         return;
       }
 
+      trackConversion('booking_submit', { guests });
       onSuccess(json.bookingId, json.confirmationToken);
     } catch {
       onError(t.unexpected);
