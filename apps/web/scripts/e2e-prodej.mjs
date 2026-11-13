@@ -36,7 +36,12 @@ const res = await fetch(`${BASE}/suites/${SALE_SLUG}`, { headers: { Cookie: "NEX
 const html = await res.text()
 check("prodejní stránka 200", res.status === 200, String(res.status))
 check("cena Na dotaz", html.includes("Na dotaz"))
-check("pronájem v číslech z FDM dvojčete", html.includes("Ceník a obsazenost přímo z kalendáře správce"))
+check("pronájem jako bonus z FDM dvojčete", html.includes("Když tam nejste, apartmán může vydělávat"))
+// Důraz na prodej (13. 11. 2026): „Co kupujete“ a kontakt před pronájmem, podrobnosti pronájmu sbalené
+const iBuy = html.indexOf("Co s apartmánem kupujete"), iContact = html.indexOf('id="kontakt"'), iRent = html.indexOf('id="pronajem"')
+check("prodej: sekce Co kupujete", iBuy > 0)
+check("prodej: Co kupujete i kontakt před pronájmem", iBuy > 0 && iContact > iBuy && iRent > iContact, `${iBuy} / ${iContact} / ${iRent}`)
+check("prodej: obsazenost po měsících sbalená", /<details[^>]*>[\s\S]*Obsazenost po měsících a ceník na rok/.test(html))
 check("odkaz na pronájem dvojčete", html.includes("/apartmany-spindleruv-mlyn-pronajem/qa-apartman-fdm"))
 // Seed: obsazené dny dnes +20 až +22. Stránka ukazuje obsazenost jen v okně sezóny
 // (říjen–únor → prosinec–únor, jinak dnes + 90 dní) — počítej stejně, po měsících.

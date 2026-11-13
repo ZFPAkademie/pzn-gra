@@ -19,6 +19,7 @@ export const SALE_TEXTS = {
     priceOnRequest: 'Na dotaz',
     ctaViewing: 'Domluvit prohlídku',
     ctaRental: 'Pronájem v číslech',
+    ctaCall: 'Zavolat',
 
     numbersLabel: 'V číslech',
     stats: {
@@ -34,6 +35,16 @@ export const SALE_TEXTS = {
       completed: 'Kolaudace domu',
       completedValue: '2023',
     },
+
+    buyLabel: 'Na prodej',
+    buyTitle: 'Co s apartmánem kupujete',
+    buyItems: [
+      { title: 'Hotový apartmán', text: 'Dům zkolaudovaný v listopadu 2023, nízkoenergetická dřevostavba D.E.E.D. Žádné čekání na stavbu.' },
+      { title: 'Vybavení vyššího standardu', text: 'Sanita Laufen, baterie Grohe, dřevěné podlahy Princ parket, podlahové vytápění v koupelně.' },
+      { title: 'Zázemí domu', text: 'Uzamykatelná lyžárna a kolárna, sklepní kóje, vnitřní a venkovní parkovací stání, 50 m k lanovce.' },
+      { title: 'Možnost pronájmu', text: 'Apartmán už hosté pronajímají pod značkou Golden Ridge Apartments. V pronájmu můžete pokračovat, nebo ho užívat jen sami.' },
+    ],
+    buyPriceNote: 'Cenu a podmínky koupě vám sdělí obchodní manažer.',
 
     personasLabel: 'Pro koho',
     personasTitle: 'Hory pro sebe, příjem z pronájmu, nebo obojí',
@@ -52,10 +63,11 @@ export const SALE_TEXTS = {
       },
     ],
 
-    rentalLabel: 'Pronájem v číslech',
-    rentalTitle: 'Ceník a obsazenost přímo z kalendáře správce',
+    rentalLabel: 'Pronájem jako bonus',
+    rentalTitle: 'Když tam nejste, apartmán může vydělávat',
     rentalLead:
-      'Apartmán je v pronájmu. Čísla níže se načítají živě z rezervačního systému správce: kolik nocí nejbližší sezóny už je obsazených, v porovnání s celým domem, a kolik stojí noc v jednotlivých měsících.',
+      'Apartmán je už v pronájmu. Obsazenost a ceny za noc se načítají živě z rezervačního systému správce.',
+    rentalMore: 'Obsazenost po měsících a ceník na rok',
     seasonWinter: (label: string) => `Hlavní sezóna ${label}, prosinec–únor`,
     seasonNext90: 'Nejbližších 90 dní',
     kpiThis: 'Už obsazeno v tomto apartmánu',
@@ -132,6 +144,7 @@ export const SALE_TEXTS = {
     priceOnRequest: 'On request',
     ctaViewing: 'Arrange a viewing',
     ctaRental: 'Rental in figures',
+    ctaCall: 'Call',
 
     numbersLabel: 'In figures',
     stats: {
@@ -147,6 +160,16 @@ export const SALE_TEXTS = {
       completed: 'Building completed',
       completedValue: '2023',
     },
+
+    buyLabel: 'For sale',
+    buyTitle: 'What you are buying',
+    buyItems: [
+      { title: 'A finished apartment', text: 'Building approved in November 2023, low-energy D.E.E.D. timber construction. No waiting for construction.' },
+      { title: 'High-standard fittings', text: 'Laufen sanitary ware, Grohe taps, Princ parket wooden floors, underfloor heating in the bathroom.' },
+      { title: 'Building facilities', text: 'Lockable ski and bike room, cellar storage, indoor and outdoor parking, 50 m to the chairlift.' },
+      { title: 'Option to let', text: 'Guests already book the apartment under the Golden Ridge Apartments brand. You can keep letting it or use it only yourself.' },
+    ],
+    buyPriceNote: 'Our sales manager will give you the price and purchase terms.',
 
     personasLabel: 'Who it suits',
     personasTitle: 'Mountains for yourself, rental income, or both',
@@ -165,10 +188,11 @@ export const SALE_TEXTS = {
       },
     ],
 
-    rentalLabel: 'Rental in figures',
-    rentalTitle: 'Prices and occupancy straight from the manager’s calendar',
+    rentalLabel: 'Rental as a bonus',
+    rentalTitle: 'While you are away, the apartment can earn',
     rentalLead:
-      'The apartment is being let. The figures below are loaded live from the manager’s booking system: how many nights of the coming season are already booked, compared with the whole building, and the nightly price in each month.',
+      'The apartment is already being let. Occupancy and nightly prices are loaded live from the manager’s booking system.',
+    rentalMore: 'Occupancy by month and prices for the year',
     seasonWinter: (label: string) => `Main season ${label}, December–February`,
     seasonNext90: 'Next 90 days',
     kpiThis: 'Already booked in this apartment',

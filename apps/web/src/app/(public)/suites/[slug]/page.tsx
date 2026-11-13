@@ -2,9 +2,10 @@
  * Apartmán na prodej — prezentace pro kupce a investory (10. 11. 2026)
  *
  * Kostra převzatá z Vibekodex „vyber-prezentace“ (ZFP Výběr), převedená do designu
- * Alpine Quiet Luxury: úvod → čísla → pro koho → pronájem v číslech (živě z FDM) →
- * apartmán → galerie po kapitolách → dům a lokalita → trh (ČSÚ, DEC-030) → postup
- * koupě a kontakt → další apartmán → zdroje.
+ * Alpine Quiet Luxury. Pořadí od 13. 11. 2026 (důraz na prodej, pronájem jen jako bonus):
+ * úvod → čísla → co kupujete → apartmán → galerie po kapitolách → postup koupě a kontakt →
+ * dům a lokalita → pro koho → pronájem jako bonus (živě z FDM, podrobnosti sbalené) →
+ * trh (ČSÚ, DEC-030) → další apartmán → zdroje. Na mobilu spodní lišta prohlídka/zavolat.
  * Cena „Na dotaz“ → bez kalkulačky, výnosu v % i ceny za m² (rozhodnutí uživatele).
  */
 
@@ -27,6 +28,7 @@ import { getSaleTexts, PURCHASE_STEPS } from './texts';
 import { floorLabel, parseArea, priceRange, formatDate } from '@/lib/sale-format';
 import { ChapterGallery } from './chapter-gallery';
 import { SeasonOccupancy, PriceYear } from './rental-months';
+import { SaleStickyBar } from './sale-sticky-bar';
 import { todayPrague } from '@/lib/booking-engine/dates';
 
 interface Props {
@@ -147,11 +149,12 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
                 <a href="#kontakt" className="px-6 py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors">
                   {t.ctaViewing}
                 </a>
-                {rental && (
-                  <a href="#pronajem" className="px-6 py-4 border border-white/30 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors">
-                    {t.ctaRental}
-                  </a>
-                )}
+                <a
+                  href={`tel:${manager.phone.replace(/\s/g, '')}`}
+                  className="px-6 py-4 border border-white/30 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors whitespace-nowrap"
+                >
+                  {manager.phone}
+                </a>
               </div>
             </div>
           </div>
@@ -174,100 +177,48 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {/* ── Pro koho ────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-stone">
-        <div className="max-w-6xl mx-auto px-6">
-          <SectionLabel>{t.personasLabel}</SectionLabel>
-          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-12 max-w-2xl">{t.personasTitle}</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {t.personas.map((p, i) => (
-              <div key={p.title} className="bg-white p-8 relative">
-                <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
-                <h3 className="text-xl font-light text-navy mt-3 mb-3">{p.title}</h3>
-                <p className="text-navy/60 leading-relaxed">{p.text}</p>
+      {/* ── Co kupujete (zadání 13. 11.: důraz na prodej) ────── */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-3 gap-12 lg:gap-16">
+          <div className="lg:col-span-2">
+            <SectionLabel>{t.buyLabel}</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-10">{t.buyTitle}</h2>
+            <div className="grid sm:grid-cols-2 gap-x-10 gap-y-8">
+              {t.buyItems.map((item, i) => (
+                <div key={item.title} className="border-t border-navy/10 pt-5">
+                  <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
+                  <h3 className="text-xl font-light text-navy mt-2 mb-2">{item.title}</h3>
+                  <p className="text-navy/60 leading-relaxed">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-navy p-8 self-start">
+            <p className="text-gold text-xs tracking-widest uppercase mb-1">{t.price}</p>
+            <p className="text-3xl font-light text-white mb-3">{t.priceOnRequest}</p>
+            <p className="text-white/50 text-sm leading-relaxed mb-8">{t.buyPriceNote}</p>
+            <div className="flex items-center mb-8">
+              <div className="w-14 h-14 rounded-full overflow-hidden mr-4 shrink-0">
+                <Image src={manager.photo} alt={manager.name} width={56} height={56} className="object-cover w-full h-full" />
               </div>
-            ))}
+              <div>
+                <p className="text-white">{manager.name}</p>
+                <p className="text-white/50 text-sm">{t.salesManager ?? manager.title}</p>
+              </div>
+            </div>
+            <a href="#kontakt" className="flex items-center justify-center w-full py-4 bg-gold text-navy text-sm uppercase tracking-widest hover:bg-gold-400 transition-colors mb-3">
+              {t.ctaViewing}
+            </a>
+            <a
+              href={`tel:${manager.phone.replace(/\s/g, '')}`}
+              className="flex items-center justify-center w-full py-4 border border-white/20 text-white text-sm uppercase tracking-widest hover:bg-white/10 transition-colors"
+            >
+              {manager.phone}
+            </a>
           </div>
         </div>
       </section>
-
-      {/* ── Pronájem v číslech (živě z FDM) ─────────────────── */}
-      {rental && rental.months.length > 0 && (
-        <section id="pronajem" className="py-16 md:py-24 bg-navy scroll-mt-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <SectionLabel light>{t.rentalLabel}</SectionLabel>
-            <h2 className="text-3xl md:text-4xl font-light text-white mt-4 mb-4 max-w-3xl">{t.rentalTitle}</h2>
-            <p className="text-white/60 leading-relaxed max-w-3xl mb-12">{t.rentalLead}</p>
-
-            {rental.season && (
-              <>
-                <p className="text-gold text-xs uppercase tracking-widest mb-4">
-                  {rental.season.kind === 'winter' ? t.seasonWinter(rental.season.label) : t.seasonNext90}
-                </p>
-                <div className="grid sm:grid-cols-2 gap-px bg-white/10 mb-10">
-                  <div className="bg-navy p-6 md:p-8">
-                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.kpiThis}</p>
-                    <p className="text-5xl md:text-6xl font-extralight text-white">
-                      {Math.round((rental.season.booked / rental.season.nights) * 100)}
-                      <span className="text-gold text-3xl ml-1">%</span>
-                    </p>
-                    <p className="text-white/50 text-sm mt-2">{t.nightsTotal(rental.season.booked, rental.season.nights)}</p>
-                  </div>
-                  <div className="bg-navy p-6 md:p-8">
-                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">{t.kpiHouse(rental.season.houseUnits)}</p>
-                    <p className="text-5xl md:text-6xl font-extralight text-white">
-                      {Math.round((rental.season.houseBooked / rental.season.houseNights) * 100)}
-                      <span className="text-gold text-3xl ml-1">%</span>
-                    </p>
-                    <p className="text-white/50 text-sm mt-2">{t.nightsTotal(rental.season.houseBooked, rental.season.houseNights)}</p>
-                  </div>
-                </div>
-
-                <SeasonOccupancy
-                  months={rental.season.months}
-                  today={today}
-                  locale={locale}
-                  labels={{ thisApt: t.thisApt, house: t.houseAvg, fromToday: t.fromToday, nightsOf: t.nightsOf }}
-                />
-                <p className="text-white/50 text-sm mt-4 mb-16">{t.seasonNote}</p>
-              </>
-            )}
-
-            <div className="flex flex-wrap items-baseline justify-between gap-x-10 gap-y-4 mb-6">
-              <h3 className="text-2xl font-light text-white">{t.priceTitle}</h3>
-              <div className="flex flex-wrap gap-x-10 gap-y-2 text-sm">
-                {peak && (
-                  <span className="text-white/50">
-                    {t.peakPrice} <span className="text-white text-lg ml-2 whitespace-nowrap">{peak}</span>
-                  </span>
-                )}
-                {offSeason && (
-                  <span className="text-white/50">
-                    {t.offPrice} <span className="text-white text-lg ml-2 whitespace-nowrap">{offSeason}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-            <PriceYear months={rental.months} currency={rental.currency} locale={locale} upTo={t.upTo} />
-
-            <p className="text-white/40 text-xs leading-relaxed mt-6 max-w-4xl">
-              {t.rentalNote(rental.syncedAt ? formatDate(rental.syncedAt, locale, true) : formatDate(new Date().toISOString(), locale))}
-            </p>
-
-            {rental.rentalSlug && (
-              <Link
-                href={`/apartmany-spindleruv-mlyn-pronajem/${rental.rentalSlug}`}
-                className="inline-flex items-center mt-8 text-gold hover:text-white transition-colors"
-              >
-                {t.tryAsGuest}
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </Link>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* ── Apartmán ────────────────────────────────────────── */}
       <section className="py-16 md:py-24 bg-cream">
@@ -340,65 +291,14 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {/* ── Dům a lokalita ──────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-stone">
-        <div className="max-w-6xl mx-auto px-6">
-          <SectionLabel>{t.locationLabel}</SectionLabel>
-          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-12 max-w-2xl">{t.locationTitle}</h2>
-
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-            <div className="space-y-8">
-              {t.house.map((h) => (
-                <div key={h.value} className="flex items-baseline gap-6 border-b border-navy/10 pb-6">
-                  <span className="text-3xl md:text-4xl font-extralight text-navy whitespace-nowrap w-36 shrink-0">{h.value}</span>
-                  <span className="text-navy/60 leading-snug">{h.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <h3 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.nearbyTitle}</h3>
-              <ul className="divide-y divide-navy/10">
-                {NEARBY.map((n) => (
-                  <li key={n.key} className="flex justify-between gap-6 py-3">
-                    <span className="text-navy/70">{n.label[locale]}</span>
-                    <span className="text-navy tabular-nums whitespace-nowrap">{en ? n.distance.replace(',', '.') : n.distance}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Trh (ČSÚ, DEC-030) ──────────────────────────────── */}
-      <section className="py-16 md:py-20 bg-cream">
-        <div className="max-w-6xl mx-auto px-6">
-          <SectionLabel>{market.label}</SectionLabel>
-          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-10">{t.marketTitle}</h2>
-          <div className="grid md:grid-cols-2 gap-10 mb-10">
-            <div>
-              <p className="text-5xl font-extralight text-navy">{market.growth}</p>
-              <p className="text-navy/60 mt-3 leading-relaxed">{market.growthNote}</p>
-            </div>
-            <div>
-              <p className="text-5xl font-extralight text-navy">{market.local}</p>
-              <p className="text-navy/60 mt-3 leading-relaxed">{market.localNote}</p>
-            </div>
-          </div>
-          <p className="text-navy/40 text-xs leading-relaxed max-w-4xl">{market.source}</p>
-          <p className="text-navy/60 text-sm leading-relaxed max-w-4xl mt-3">{market.warning}</p>
-        </div>
-      </section>
-
       {/* ── Postup koupě a kontakt ──────────────────────────── */}
-      <section id="kontakt" className="py-16 md:py-24 bg-white scroll-mt-20">
+      <section id="kontakt" className="py-16 md:py-24 bg-cream scroll-mt-20">
         <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-3 gap-12 lg:gap-16">
           <div className="lg:col-span-2">
             <h2 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.stepsTitle}</h2>
             <ol className="grid sm:grid-cols-2 gap-4">
               {PURCHASE_STEPS[locale].map((step, i) => (
-                <li key={i} className="bg-stone p-6">
+                <li key={i} className="bg-white p-6">
                   <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
                   <h3 className="text-lg font-light text-navy mt-2 mb-2">{step.title}</h3>
                   <p className="text-navy/60 text-sm leading-relaxed">{step.text}</p>
@@ -444,6 +344,165 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
               <p className="text-white/30 text-xs text-center mt-6">{t.contactNote}</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── Dům a lokalita ──────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-stone">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionLabel>{t.locationLabel}</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-12 max-w-2xl">{t.locationTitle}</h2>
+
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+            <div className="space-y-8">
+              {t.house.map((h) => (
+                <div key={h.value} className="flex items-baseline gap-6 border-b border-navy/10 pb-6">
+                  <span className="text-3xl md:text-4xl font-extralight text-navy whitespace-nowrap w-36 shrink-0">{h.value}</span>
+                  <span className="text-navy/60 leading-snug">{h.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h3 className="text-sm text-navy/40 uppercase tracking-widest mb-6">{t.nearbyTitle}</h3>
+              <ul className="divide-y divide-navy/10">
+                {NEARBY.map((n) => (
+                  <li key={n.key} className="flex justify-between gap-6 py-3">
+                    <span className="text-navy/70">{n.label[locale]}</span>
+                    <span className="text-navy tabular-nums whitespace-nowrap">{en ? n.distance.replace(',', '.') : n.distance}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pro koho ────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionLabel>{t.personasLabel}</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-12 max-w-2xl">{t.personasTitle}</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {t.personas.map((p, i) => (
+              <div key={p.title} className="bg-stone p-8 relative">
+                <span className="text-gold text-sm tracking-widest">0{i + 1}</span>
+                <h3 className="text-xl font-light text-navy mt-3 mb-3">{p.title}</h3>
+                <p className="text-navy/60 leading-relaxed">{p.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pronájem jako bonus (živě z FDM; podrobnosti sbalené, zadání 13. 11.) ── */}
+      {rental && rental.months.length > 0 && (
+        <section id="pronajem" className="py-16 md:py-20 bg-cream scroll-mt-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <SectionLabel>{t.rentalLabel}</SectionLabel>
+            <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-4 max-w-3xl">{t.rentalTitle}</h2>
+            <p className="text-navy/60 leading-relaxed max-w-3xl mb-10">{t.rentalLead}</p>
+
+            {rental.season && (
+              <p className="text-navy/50 text-xs uppercase tracking-widest mb-3">
+                {rental.season.kind === 'winter' ? t.seasonWinter(rental.season.label) : t.seasonNext90}
+              </p>
+            )}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-navy/10 border border-navy/10">
+              {rental.season && (
+                <>
+                  <div className="bg-white p-5 md:p-6">
+                    <p className="text-xs text-navy/50 leading-snug mb-2">{t.kpiThis}</p>
+                    <p className="text-3xl md:text-4xl font-extralight text-navy">
+                      {Math.round((rental.season.booked / rental.season.nights) * 100)}
+                      <span className="text-gold text-xl ml-1">%</span>
+                    </p>
+                    <p className="text-navy/40 text-xs mt-1">{t.nightsTotal(rental.season.booked, rental.season.nights)}</p>
+                  </div>
+                  <div className="bg-white p-5 md:p-6">
+                    <p className="text-xs text-navy/50 leading-snug mb-2">{t.kpiHouse(rental.season.houseUnits)}</p>
+                    <p className="text-3xl md:text-4xl font-extralight text-navy">
+                      {Math.round((rental.season.houseBooked / rental.season.houseNights) * 100)}
+                      <span className="text-gold text-xl ml-1">%</span>
+                    </p>
+                    <p className="text-navy/40 text-xs mt-1">{t.nightsTotal(rental.season.houseBooked, rental.season.houseNights)}</p>
+                  </div>
+                </>
+              )}
+              {peak && (
+                <div className="bg-white p-5 md:p-6">
+                  <p className="text-xs text-navy/50 leading-snug mb-2">{t.peakPrice}</p>
+                  <p className="text-xl md:text-2xl font-light text-navy whitespace-nowrap">{peak}</p>
+                </div>
+              )}
+              {offSeason && (
+                <div className="bg-white p-5 md:p-6">
+                  <p className="text-xs text-navy/50 leading-snug mb-2">{t.offPrice}</p>
+                  <p className="text-xl md:text-2xl font-light text-navy whitespace-nowrap">{offSeason}</p>
+                </div>
+              )}
+            </div>
+
+            <details className="group mt-6">
+              <summary className="cursor-pointer list-none inline-flex items-center min-h-[44px] text-navy text-sm uppercase tracking-widest hover:text-gold transition-colors [&::-webkit-details-marker]:hidden">
+                {t.rentalMore}
+                <svg className="w-4 h-4 ml-2 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </summary>
+              <div className="mt-4 bg-navy p-5 md:p-8">
+                {rental.season && (
+                  <>
+                    <SeasonOccupancy
+                      months={rental.season.months}
+                      today={today}
+                      locale={locale}
+                      labels={{ thisApt: t.thisApt, house: t.houseAvg, fromToday: t.fromToday, nightsOf: t.nightsOf }}
+                    />
+                    <p className="text-white/50 text-sm mt-4 mb-10">{t.seasonNote}</p>
+                  </>
+                )}
+                <h3 className="text-xl font-light text-white mb-5">{t.priceTitle}</h3>
+                <PriceYear months={rental.months} currency={rental.currency} locale={locale} upTo={t.upTo} />
+              </div>
+            </details>
+
+            <p className="text-navy/50 text-xs leading-relaxed mt-6 max-w-4xl">
+              {t.rentalNote(rental.syncedAt ? formatDate(rental.syncedAt, locale, true) : formatDate(new Date().toISOString(), locale))}
+            </p>
+
+            {rental.rentalSlug && (
+              <Link
+                href={`/apartmany-spindleruv-mlyn-pronajem/${rental.rentalSlug}`}
+                className="inline-flex items-center mt-6 text-navy hover:text-gold transition-colors"
+              >
+                {t.tryAsGuest}
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                </svg>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── Trh (ČSÚ, DEC-030) ──────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionLabel>{market.label}</SectionLabel>
+          <h2 className="text-3xl md:text-4xl font-light text-navy mt-4 mb-10">{t.marketTitle}</h2>
+          <div className="grid md:grid-cols-2 gap-10 mb-10">
+            <div>
+              <p className="text-5xl font-extralight text-navy">{market.growth}</p>
+              <p className="text-navy/60 mt-3 leading-relaxed">{market.growthNote}</p>
+            </div>
+            <div>
+              <p className="text-5xl font-extralight text-navy">{market.local}</p>
+              <p className="text-navy/60 mt-3 leading-relaxed">{market.localNote}</p>
+            </div>
+          </div>
+          <p className="text-navy/40 text-xs leading-relaxed max-w-4xl">{market.source}</p>
+          <p className="text-navy/60 text-sm leading-relaxed max-w-4xl mt-3">{market.warning}</p>
         </div>
       </section>
 
@@ -498,6 +557,7 @@ export default async function SaleApartmentDetailPage({ params }: Props) {
           </ul>
         </div>
       </section>
+      <SaleStickyBar phone={manager.phone} labels={{ viewing: t.ctaViewing, call: t.ctaCall }} />
     </>
   );
 }
