@@ -82,6 +82,9 @@ export async function sendMagicLink(ownerId: string, email: string) {
 
 export async function updateOwnerCommission(ownerId: string, commissionPercent: number) {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
+  if (isNaN(commissionPercent) || commissionPercent < 0 || commissionPercent > 100) {
+    return { ok: false, error: 'Provize musí být 0–100 %' };
+  }
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase
@@ -115,13 +118,21 @@ export async function updateOwner(ownerId: string, formData: FormData) {
   const email = formData.get('email') as string;
   const phone = formData.get('phone') as string;
   const apartmentIds = formData.getAll('apartment_ids').map(String).filter(Boolean);
+  const commissionStr = String(formData.get('commission_rate') ?? '').trim().replace(',', '.');
 
   if (!name || !email) return { ok: false, error: 'Jméno a email jsou povinné' };
+
+  let commission_rate: number | null = null;
+  if (commissionStr !== '') {
+    const pct = parseFloat(commissionStr);
+    if (isNaN(pct) || pct < 0 || pct > 100) return { ok: false, error: 'Provize musí být 0–100 %' };
+    commission_rate = pct / 100;
+  }
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase
     .from('owners')
-    .update({ name, email, phone: phone || null })
+    .update({ name, email, phone: phone || null, commission_rate })
     .eq('id', ownerId);
 
   if (error) return { ok: false, error: error.message };

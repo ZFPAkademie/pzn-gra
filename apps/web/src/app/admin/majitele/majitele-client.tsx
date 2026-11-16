@@ -3,6 +3,11 @@
 import { useState, useTransition } from 'react';
 import { createOwner, sendMagicLink, updateOwnerCommission, toggleOwnerActive, updateOwner, deleteOwner } from './actions';
 
+/** 0.2 → "20", 0.125 → "12.5" (DB vrací numeric jako string, proto Number() u volajícího) */
+function formatPercent(rate: number): string {
+  return String(Math.round(rate * 1000) / 10);
+}
+
 interface ApartmentOption {
   id: string;
   label: string;
@@ -162,23 +167,31 @@ export function InviteButton({ ownerId, email, hasPortalAccess }: { ownerId: str
 export function CommissionEditor({ ownerId, currentRate }: { ownerId: string; currentRate: number | null }) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const currentPercent = currentRate != null ? (currentRate * 100).toFixed(1) : '';
+  const [error, setError] = useState('');
+  const currentPercent = currentRate != null ? formatPercent(Number(currentRate)) : '';
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError('');
     const fd = new FormData(e.currentTarget);
-    const val = parseFloat(fd.get('commission') as string);
-    if (isNaN(val)) return;
+    const val = parseFloat(String(fd.get('commission') ?? '').replace(',', '.'));
+    if (isNaN(val)) { setError('Zadejte číslo'); return; }
     startTransition(async () => {
-      await updateOwnerCommission(ownerId, val);
+      const result = await updateOwnerCommission(ownerId, val);
+      if (!result.ok) { setError(result.error ?? 'Chyba'); return; }
       setEditing(false);
     });
   }
 
   if (!editing) {
     return (
-      <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-navy">
-        {currentPercent ? `${currentPercent} %` : 'nastavit %'}
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        title="Upravit provizi"
+        className="text-xs text-navy border-b border-dashed border-slate-400 hover:border-navy"
+      >
+        {currentPercent ? `${currentPercent} %` : 'nastavit'}
       </button>
     );
   }
@@ -199,7 +212,8 @@ export function CommissionEditor({ ownerId, currentRate }: { ownerId: string; cu
       <button type="submit" disabled={isPending} className="text-xs text-navy hover:text-navy/70">
         {isPending ? '…' : 'OK'}
       </button>
-      <button type="button" onClick={() => setEditing(false)} className="text-xs text-slate-400">zrušit</button>
+      <button type="button" onClick={() => { setEditing(false); setError(''); }} className="text-xs text-slate-400">zrušit</button>
+      {error && <span className="text-xs text-red-600">{error}</span>}
     </form>
   );
 }
@@ -225,7 +239,7 @@ export function EditOwnerForm({
   apartments,
   selectedApartmentIds,
 }: {
-  owner: { id: string; name: string; email: string; phone: string | null };
+  owner: { id: string; name: string; email: string; phone: string | null; commission_rate: number | null };
   apartments: ApartmentOption[];
   selectedApartmentIds: string[];
 }) {
@@ -254,7 +268,7 @@ export function EditOwnerForm({
 
   return (
     <form onSubmit={handleSubmit} className="mt-3 p-4 bg-stone border border-stone space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div>
           <label className="block text-xs text-slate-500 mb-1">Jméno *</label>
           <input name="name" required defaultValue={owner.name} className="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
@@ -266,6 +280,19 @@ export function EditOwnerForm({
         <div>
           <label className="block text-xs text-slate-500 mb-1">Telefon</label>
           <input name="phone" defaultValue={owner.phone ?? ''} className="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">Provize (%)</label>
+          <input
+            type="number"
+            name="commission_rate"
+            min="0"
+            max="100"
+            step="0.5"
+            defaultValue={owner.commission_rate != null ? formatPercent(Number(owner.commission_rate)) : ''}
+            placeholder="např. 20"
+            className="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white"
+          />
         </div>
       </div>
       <div>

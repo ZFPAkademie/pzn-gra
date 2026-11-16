@@ -115,7 +115,7 @@ export default async function AdminMajitelePage() {
                   <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-stone">
                     <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
                     <EditOwnerForm
-                      owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }}
+                      owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null, commission_rate: owner.commission_rate ?? null }}
                       apartments={aptOptions(owner.id)}
                       selectedApartmentIds={ownerApts.map(a => a.id)}
                     />

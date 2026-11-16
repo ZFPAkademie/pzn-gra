@@ -6,5 +6,9 @@
   "prod_ref": "nudiugowvzflokflcokd",
   "schema": "dump",
   "keychain_service": "vibekodex QA gra3",
-  "seed": "scripts/seed-qa.mjs"
+  "seed": "scripts/seed-qa.mjs",
+  "env": {
+    "ADMIN_DASH_PASSWORD": "qa-admin-heslo",
+    "ADMIN_SESSION_SECRET": "qa-session-secret-jen-pro-lokalni-stack-0000000000"
+  }
 }
