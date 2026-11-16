@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withCronRun } from '@/lib/cron-run';
 import { syncAllConnections } from '@/lib/ical-sync';
 
 // Called by Vercel Cron — secured via CRON_SECRET header
-export async function GET(req: NextRequest) {
+async function handler(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,3 +19,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Sync selhal' }, { status: 500 });
   }
 }
+
+// Evidence běhu do cron_runs (Vibekodex SHIP-04) — čte ji týdenní kontrola produkce.
+export const GET = withCronRun('ical-sync', handler);
