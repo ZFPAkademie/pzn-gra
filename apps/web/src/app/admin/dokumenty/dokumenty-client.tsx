@@ -120,6 +120,7 @@ export function UploadOwnerDocForm({ owners }: { owners: OwnerOption[] }) {
             <option key={a.id} value={a.id}>{a.label}</option>
           ))}
         </select>
+        <p className="text-xs text-slate-400 mt-1">S apartmánem uvidí dokument i jeho spolumajitelé, bez něj jen tento majitel.</p>
       </div>
       <div>
         <label className="block text-xs text-slate-500 mb-1">Kategorie</label>

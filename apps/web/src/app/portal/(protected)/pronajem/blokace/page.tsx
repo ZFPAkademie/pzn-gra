@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient, requireOwner } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 import { BlokaceClient } from './blokace-client';
 
 export const dynamic = 'force-dynamic';
@@ -30,17 +31,19 @@ export default async function PronaJemBlokacePage() {
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  const ownedIds = await getOwnerApartmentIds(owner.id, admin);
   const { data: apartments } = await admin
     .from('apartments')
     .select('id, unit, building, in_rental_program')
-    .eq('owner_id', owner.id)
+    .in('id', ownedIds)
     .eq('in_rental_program', true)
     .order('unit');
 
+  // Blokace všech spolumajitelů apartmánu (manželé vidí i blokace toho druhého)
   const { data: blocks } = await admin
     .from('blocked_dates')
     .select('id, apartment_id, start_date, end_date, note, reason')
-    .eq('owner_id', owner.id)
+    .in('apartment_id', (apartments ?? []).map((a) => a.id))
     .eq('reason', 'owner_use')
     .gte('end_date', new Date().toISOString().slice(0, 10))
     .order('start_date', { ascending: true });

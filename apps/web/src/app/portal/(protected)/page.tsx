@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,10 +19,11 @@ export default async function PortalHomePage() {
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  const aptIds = await getOwnerApartmentIds(owner.id, admin);
   const { data: apartments } = await admin
     .from('apartments')
     .select('id, slug, unit, building, layout, area_m2, floor, features, in_rental_program')
-    .eq('owner_id', owner.id)
+    .in('id', aptIds)
     .order('unit');
 
   const apts = apartments ?? [];

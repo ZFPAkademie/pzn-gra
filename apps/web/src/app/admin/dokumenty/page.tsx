@@ -6,6 +6,7 @@
 import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getAllApartmentOwnerLinks } from '@/lib/apartment-owners';
 import { AdminNav } from '../_components/admin-nav';
 import { UploadOwnerDocForm, OwnerDocCard } from './dokumenty-client';
 import type { OwnerOption, OwnerDocItem } from './dokumenty-client';
@@ -18,13 +19,14 @@ export default async function AdminDocumentsPage() {
 
   const supabase = createSupabaseAdminClient();
 
-  const [{ data: owners }, { data: apartments }, { data: documents }] = await Promise.all([
+  const [{ data: owners }, { data: apartments }, { data: documents }, links] = await Promise.all([
     supabase.from('owners').select('id, name').eq('is_active', true).order('name'),
-    supabase.from('apartments').select('id, unit, building, owner_id'),
+    supabase.from('apartments').select('id, unit, building'),
     supabase
       .from('owner_documents')
       .select('id, owner_id, apartment_id, category, title, file_size_bytes, created_at')
       .order('created_at', { ascending: false }),
+    getAllApartmentOwnerLinks(supabase),
   ]);
 
   const aptLabel = new Map((apartments ?? []).map((a) => [a.id, `${a.building ?? ''} ${a.unit ?? ''}`.trim()]));
@@ -32,9 +34,9 @@ export default async function AdminDocumentsPage() {
   const ownerOptions: OwnerOption[] = (owners ?? []).map((o) => ({
     id: o.id,
     name: o.name ?? '—',
-    apartments: (apartments ?? [])
-      .filter((a) => a.owner_id === o.id)
-      .map((a) => ({ id: a.id, label: aptLabel.get(a.id) ?? '—' })),
+    apartments: links
+      .filter((l) => l.owner_id === o.id)
+      .map((l) => ({ id: l.apartment_id, label: aptLabel.get(l.apartment_id) ?? '—' })),
   }));
 
   const ownerName = new Map((owners ?? []).map((o) => [o.id, o.name ?? '—']));

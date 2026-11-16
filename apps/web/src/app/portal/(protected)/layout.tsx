@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 import { PortalNav } from './portal-nav';
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -17,10 +18,11 @@ export default async function PortalLayout({ children }: { children: React.React
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  const aptIds = await getOwnerApartmentIds(owner.id, admin);
   const { data: apartments } = await admin
     .from('apartments')
     .select('id, slug, unit, building, in_rental_program')
-    .eq('owner_id', owner.id)
+    .in('id', aptIds)
     .order('unit');
 
   return (

@@ -1519,3 +1519,19 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 
+
+
+-- Migrace 026 (ručně, dump z produkce selhal na DNS 16. 11. 2026)
+CREATE TABLE IF NOT EXISTS public.apartment_owners (
+  apartment_id  uuid NOT NULL REFERENCES public.apartments(id) ON DELETE CASCADE,
+  owner_id      uuid NOT NULL REFERENCES public.owners(id) ON DELETE CASCADE,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (apartment_id, owner_id)
+);
+
+CREATE INDEX IF NOT EXISTS apartment_owners_owner_id_idx ON public.apartment_owners(owner_id);
+
+-- Přístup jen přes admin client (DB-01), žádný veřejný ani owner přístup
+ALTER TABLE public.apartment_owners ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.apartment_owners FROM anon, authenticated;
+GRANT ALL ON TABLE public.apartment_owners TO service_role;

@@ -6,6 +6,7 @@
 import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getAllApartmentOwnerLinks } from '@/lib/apartment-owners';
 import { AdminNav } from '../_components/admin-nav';
 import { ApartmanyTable, AddApartmentForm } from './apartmany-client';
 
@@ -17,23 +18,29 @@ export default async function AdminApartmanyPage() {
 
   const supabase = createSupabaseAdminClient();
 
-  const [{ data: apartments }, { data: owners }] = await Promise.all([
+  const [{ data: apartmentRows }, { data: owners }, links] = await Promise.all([
     supabase
       .from('apartments')
-      .select('id, slug, title, unit, building, layout, area_m2, floor, status, for_sale, for_rent, in_rental_program, owner_id, base_price_cents')
+      .select('id, slug, title, unit, building, layout, area_m2, floor, status, for_sale, for_rent, in_rental_program, base_price_cents')
       .order('slug'),
     supabase
       .from('owners')
       .select('id, name, email')
       .eq('is_active', true)
       .order('name'),
+    getAllApartmentOwnerLinks(supabase),
   ]);
 
-  const apts = apartments ?? [];
+  // M:N (migrace 026) — apartmán může mít víc majitelů
+  const ownerIdsByApt: Record<string, string[]> = {};
+  for (const l of links) (ownerIdsByApt[l.apartment_id] ??= []).push(l.owner_id);
+  const apartments = (apartmentRows ?? []).map(a => ({ ...a, owner_ids: ownerIdsByApt[a.id] ?? [] }));
+
+  const apts = apartments;
   const forSale = apts.filter(a => a.for_sale).length;
   const forRent = apts.filter(a => a.for_rent).length;
   const inProgram = apts.filter(a => a.in_rental_program).length;
-  const withOwner = apts.filter(a => a.owner_id).length;
+  const withOwner = apts.filter(a => a.owner_ids.length > 0).length;
 
   return (
     <div className="min-h-screen bg-stone">

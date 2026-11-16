@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 import { OwnerDocumentRow } from './document-row';
 
 export const dynamic = 'force-dynamic';
@@ -33,10 +34,15 @@ export default async function OwnerDocumentsPage() {
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  // Dokumenty k apartmánu vidí všichni spolumajitelé; dokument bez apartmánu jen adresát
+  const ownedIds = await getOwnerApartmentIds(owner.id, admin);
+  const docFilter = ownedIds.length > 0
+    ? `owner_id.eq.${owner.id},apartment_id.in.(${ownedIds.join(',')})`
+    : `owner_id.eq.${owner.id}`;
   const { data: documents } = await admin
     .from('owner_documents')
     .select('id, category, title, file_size_bytes, created_at')
-    .eq('owner_id', owner.id)
+    .or(docFilter)
     .order('created_at', { ascending: false });
 
   const docs = documents ?? [];

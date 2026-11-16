@@ -89,15 +89,16 @@ export async function requireOwner(): Promise<
 
   if (!owner) return { ok: false, error: 'Přístup odepřen' };
 
-  const { data: apartments } = await admin
-    .from('apartments')
-    .select('id')
+  // M:N vazba (migrace 026) — apartmán může mít víc majitelů (např. manželé)
+  const { data: links } = await admin
+    .from('apartment_owners')
+    .select('apartment_id')
     .eq('owner_id', owner.id);
 
   return {
     ok: true,
     user,
     ownerId: owner.id,
-    apartmentIds: (apartments || []).map((a) => a.id),
+    apartmentIds: (links || []).map((l) => l.apartment_id as string),
   };
 }

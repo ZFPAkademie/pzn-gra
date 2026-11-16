@@ -43,14 +43,19 @@ export async function deleteOwnerBlock(blockId: string) {
 
   const admin = createSupabaseAdminClient();
 
-  // Ověř vlastnictví (DB-01) — owner může mazat jen své blokace
+  // Ověř vlastnictví (DB-01) — owner může mazat blokace majitelů svého apartmánu
+  // (i spolumajitele), nikdy blokace správce (owner_id = null)
   const { data: block } = await admin
     .from('blocked_dates')
-    .select('owner_id')
+    .select('owner_id, apartment_id, reason')
     .eq('id', blockId)
     .single();
 
-  if (!block || block.owner_id !== auth.ownerId) {
+  const allowed = !!block
+    && block.owner_id != null
+    && block.reason === 'owner_use'
+    && (block.owner_id === auth.ownerId || auth.apartmentIds.includes(block.apartment_id));
+  if (!allowed) {
     return { ok: false, error: 'Nemáte přístup k této blokaci' };
   }
 

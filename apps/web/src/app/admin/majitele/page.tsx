@@ -6,6 +6,7 @@
 import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getAllApartmentOwnerLinks } from '@/lib/apartment-owners';
 import { AdminNav } from '../_components/admin-nav';
 import { AddOwnerForm, InviteButton, CommissionEditor, ToggleActiveButton, EditOwnerForm, DeleteOwnerButton } from './majitele-client';
 
@@ -17,24 +18,35 @@ export default async function AdminMajitelePage() {
 
   const supabase = createSupabaseAdminClient();
 
-  const [{ data: owners }, { data: apartments }] = await Promise.all([
+  const [{ data: owners }, { data: apartments }, links] = await Promise.all([
     supabase
       .from('owners')
       .select('id, name, email, phone, commission_rate, is_active, user_id, created_at')
       .order('created_at', { ascending: false }),
     supabase
       .from('apartments')
-      .select('id, slug, title, owner_id, in_rental_program')
+      .select('id, slug, title, in_rental_program')
       .order('slug'),
+    getAllApartmentOwnerLinks(supabase),
   ]);
 
-  const aptByOwner: Record<string, typeof apartments> = {};
-  for (const apt of apartments ?? []) {
-    if (apt.owner_id) {
-      if (!aptByOwner[apt.owner_id]) aptByOwner[apt.owner_id] = [];
-      aptByOwner[apt.owner_id]!.push(apt);
-    }
+  // M:N (migrace 026): majitel → apartmány, apartmán → jména majitelů
+  const aptById = new Map((apartments ?? []).map(a => [a.id, a]));
+  const ownerNameById = new Map((owners ?? []).map(o => [o.id, o.name]));
+  const aptByOwner: Record<string, NonNullable<typeof apartments>> = {};
+  const ownersByApt: Record<string, { id: string; name: string }[]> = {};
+  for (const link of links) {
+    const apt = aptById.get(link.apartment_id);
+    if (apt) (aptByOwner[link.owner_id] ??= []).push(apt);
+    const name = ownerNameById.get(link.owner_id);
+    if (name) (ownersByApt[link.apartment_id] ??= []).push({ id: link.owner_id, name });
   }
+  // Volby apartmánů pro formulář; `exceptOwnerId` = nevypisovat upravovaného majitele
+  const aptOptions = (exceptOwnerId?: string) => (apartments ?? []).map(a => ({
+    id: a.id,
+    label: a.title ?? a.slug,
+    ownerNames: (ownersByApt[a.id] ?? []).filter(o => o.id !== exceptOwnerId).map(o => o.name),
+  }));
 
   return (
     <div className="min-h-screen bg-stone">
@@ -49,7 +61,7 @@ export default async function AdminMajitelePage() {
             </p>
           </div>
           <div className="shrink-0">
-            <AddOwnerForm apartments={apartments ?? []} />
+            <AddOwnerForm apartments={aptOptions()} />
           </div>
         </div>
 
@@ -61,6 +73,8 @@ export default async function AdminMajitelePage() {
           <div className="space-y-4">
             {(owners ?? []).map(owner => {
               const ownerApts = aptByOwner[owner.id] ?? [];
+              const coOwners = (apt: { id: string }) =>
+                (ownersByApt[apt.id] ?? []).filter(o => o.id !== owner.id).map(o => o.name);
               return (
                 <div key={owner.id} className="bg-white border border-stone p-4 sm:p-5">
                   {/* Hlavička */}
@@ -91,6 +105,7 @@ export default async function AdminMajitelePage() {
                         >
                           {apt.title ?? apt.slug}
                           {apt.in_rental_program && ' (pronájem)'}
+                          {coOwners(apt).length > 0 && ` · spolu s ${coOwners(apt).join(', ')}`}
                         </span>
                       ))}
                     </div>
@@ -99,7 +114,11 @@ export default async function AdminMajitelePage() {
                   {/* Akce */}
                   <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-stone">
                     <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
-                    <EditOwnerForm owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }} />
+                    <EditOwnerForm
+                      owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null }}
+                      apartments={aptOptions(owner.id)}
+                      selectedApartmentIds={ownerApts.map(a => a.id)}
+                    />
                     <DeleteOwnerButton ownerId={owner.id} name={owner.name} />
                   </div>
                 </div>

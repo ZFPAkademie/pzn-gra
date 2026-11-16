@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useTransition, useState } from 'react';
 import {
   updateApartmentFlags,
-  updateApartmentOwner,
+  updateApartmentOwners,
   updateApartmentBasePrice,
   createApartment,
 } from './actions';
@@ -23,7 +23,7 @@ interface Apartment {
   for_sale: boolean;
   for_rent: boolean;
   in_rental_program: boolean;
-  owner_id: string | null;
+  owner_ids: string[];
   base_price_cents: number | null;
 }
 
@@ -72,38 +72,62 @@ export function FlagToggle({
 
 // ─── Přiřazení majitele ───────────────────────────────────────────
 
-export function OwnerSelect({
+export function OwnersEditor({
   aptId,
-  currentOwnerId,
+  currentOwnerIds,
   owners,
 }: {
   aptId: string;
-  currentOwnerId: string | null;
+  currentOwnerIds: string[];
   owners: Owner[];
 }) {
   const [isPending, startTransition] = useTransition();
-  const [value, setValue] = useState(currentOwnerId ?? '');
+  const [ids, setIds] = useState<string[]>(currentOwnerIds);
+  const [error, setError] = useState('');
+  const nameById = new Map(owners.map(o => [o.id, o.name]));
+  const available = owners.filter(o => !ids.includes(o.id));
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const next = e.target.value;
-    setValue(next);
+  function save(next: string[]) {
+    const prev = ids;
+    setIds(next);
+    setError('');
     startTransition(async () => {
-      await updateApartmentOwner(aptId, next || null);
+      const result = await updateApartmentOwners(aptId, next);
+      if (!result.ok) { setIds(prev); setError(result.error ?? 'Chyba'); }
     });
   }
 
   return (
-    <select
-      value={value}
-      onChange={handleChange}
-      disabled={isPending}
-      className="text-xs border border-stone px-2 py-1 text-navy focus:outline-none focus:border-gold disabled:opacity-50 max-w-[160px]"
-    >
-      <option value="">— bez majitele —</option>
-      {owners.map(o => (
-        <option key={o.id} value={o.id}>{o.name}</option>
+    <div className={`flex flex-wrap items-center gap-1.5 max-w-[260px] ${isPending ? 'opacity-50' : ''}`}>
+      {ids.map(id => (
+        <span key={id} className="inline-flex items-center gap-1 text-xs bg-stone text-navy pl-2 pr-1 py-0.5">
+          {nameById.get(id) ?? 'neaktivní majitel'}
+          <button
+            type="button"
+            onClick={() => save(ids.filter(x => x !== id))}
+            disabled={isPending}
+            aria-label={`Odebrat majitele ${nameById.get(id) ?? ''}`}
+            className="px-1 text-slate-400 hover:text-red-600"
+          >
+            ×
+          </button>
+        </span>
       ))}
-    </select>
+      {available.length > 0 && (
+        <select
+          value=""
+          onChange={e => { if (e.target.value) save([...ids, e.target.value]); }}
+          disabled={isPending}
+          className="text-xs border border-stone px-2 py-1 text-navy focus:outline-none focus:border-gold disabled:opacity-50 max-w-[160px]"
+        >
+          <option value="">{ids.length === 0 ? '— bez majitele —' : '+ přidat majitele'}</option>
+          {available.map(o => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
+      )}
+      {error && <span className="w-full text-xs text-red-600">{error}</span>}
+    </div>
   );
 }
 
@@ -193,7 +217,7 @@ export function ApartmanyTable({
               </span>
             </div>
             <div className="mb-2">
-              <OwnerSelect aptId={apt.id} currentOwnerId={apt.owner_id} owners={owners} />
+              <OwnersEditor aptId={apt.id} currentOwnerIds={apt.owner_ids} owners={owners} />
             </div>
             <div className="flex items-center gap-4 mb-2">
               <label className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -223,7 +247,7 @@ export function ApartmanyTable({
             <tr className="border-b border-stone text-left">
               <th className="px-4 py-3 text-xs text-slate-500 font-normal">Apartmán</th>
               <th className="px-4 py-3 text-xs text-slate-500 font-normal">Status</th>
-              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Majitel</th>
+              <th className="px-4 py-3 text-xs text-slate-500 font-normal">Majitelé</th>
               <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Prodej</th>
               <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Pronájem</th>
               <th className="px-4 py-3 text-xs text-slate-500 font-normal text-center">Rental prog.</th>
@@ -248,7 +272,7 @@ export function ApartmanyTable({
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <OwnerSelect aptId={apt.id} currentOwnerId={apt.owner_id} owners={owners} />
+                  <OwnersEditor aptId={apt.id} currentOwnerIds={apt.owner_ids} owners={owners} />
                 </td>
                 <td className="px-4 py-3 text-center">
                   <FlagToggle aptId={apt.id} field="for_sale" value={apt.for_sale} label="Zobrazit v sekci Prodej" />

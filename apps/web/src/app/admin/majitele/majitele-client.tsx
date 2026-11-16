@@ -3,19 +3,46 @@
 import { useState, useTransition } from 'react';
 import { createOwner, sendMagicLink, updateOwnerCommission, toggleOwnerActive, updateOwner, deleteOwner } from './actions';
 
-interface Apartment {
+interface ApartmentOption {
   id: string;
-  slug: string;
-  title: string | null;
-  owner_id: string | null;
+  label: string;
+  /** Stávající majitelé apartmánu (bez upravovaného) — apartmán lze sdílet, např. manželé */
+  ownerNames: string[];
 }
 
-export function AddOwnerForm({ apartments }: { apartments: Apartment[] }) {
+/** Zaškrtávací seznam apartmánů — majitel může mít víc apartmánů, apartmán víc majitelů. */
+function ApartmentPicker({ apartments, selected = [] }: { apartments: ApartmentOption[]; selected?: string[] }) {
+  if (apartments.length === 0) {
+    return <p className="text-xs text-slate-400">Žádné apartmány v evidenci.</p>;
+  }
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 max-h-60 overflow-y-auto border border-stone bg-white p-2">
+      <input type="hidden" name="apartments_submitted" value="1" />
+      {apartments.map(a => (
+        <label key={a.id} className="flex items-start gap-2 py-1.5 px-1 text-sm text-navy cursor-pointer hover:bg-stone/50">
+          <input
+            type="checkbox"
+            name="apartment_ids"
+            value={a.id}
+            defaultChecked={selected.includes(a.id)}
+            className="mt-0.5 h-4 w-4 accent-navy shrink-0"
+          />
+          <span className="min-w-0">
+            <span className="block">{a.label}</span>
+            {a.ownerNames.length > 0 && (
+              <span className="block text-xs text-slate-400 truncate">majitel: {a.ownerNames.join(', ')}</span>
+            )}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+export function AddOwnerForm({ apartments }: { apartments: ApartmentOption[] }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
-
-  const freeApartments = apartments.filter(a => !a.owner_id);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,7 +68,7 @@ export function AddOwnerForm({ apartments }: { apartments: Apartment[] }) {
     <form onSubmit={handleSubmit} className="bg-white border border-stone p-6 space-y-4">
       <h3 className="text-sm font-medium text-navy">Nový majitel</h3>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-slate-500 mb-1">Jméno a příjmení *</label>
           <input name="name" required className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
@@ -58,14 +85,12 @@ export function AddOwnerForm({ apartments }: { apartments: Apartment[] }) {
           <label className="block text-xs text-slate-500 mb-1">Provize (%)</label>
           <input type="number" name="commission_rate" min="0" max="100" step="0.5" placeholder="20" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
         </div>
-        <div className="col-span-2">
-          <label className="block text-xs text-slate-500 mb-1">Přiřadit apartmán</label>
-          <select name="apartment_id" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold">
-            <option value="">Bez přiřazení (přidat later)</option>
-            {freeApartments.map(a => (
-              <option key={a.id} value={a.id}>{a.title ?? a.slug}</option>
-            ))}
-          </select>
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-slate-500 mb-1">Apartmány</label>
+          <ApartmentPicker apartments={apartments} />
+          <p className="text-xs text-slate-400 mt-1">
+            Můžete vybrat víc apartmánů. Apartmán, který už majitele má, bude sdílený — např. manželé, každý s vlastním přístupem do portálu.
+          </p>
         </div>
       </div>
 
@@ -195,7 +220,15 @@ export function ToggleActiveButton({ ownerId, isActive }: { ownerId: string; isA
   );
 }
 
-export function EditOwnerForm({ owner }: { owner: { id: string; name: string; email: string; phone: string | null } }) {
+export function EditOwnerForm({
+  owner,
+  apartments,
+  selectedApartmentIds,
+}: {
+  owner: { id: string; name: string; email: string; phone: string | null };
+  apartments: ApartmentOption[];
+  selectedApartmentIds: string[];
+}) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
@@ -235,6 +268,10 @@ export function EditOwnerForm({ owner }: { owner: { id: string; name: string; em
           <input name="phone" defaultValue={owner.phone ?? ''} className="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
         </div>
       </div>
+      <div>
+        <label className="block text-xs text-slate-500 mb-1">Apartmány</label>
+        <ApartmentPicker apartments={apartments} selected={selectedApartmentIds} />
+      </div>
       {error && <p className="text-red-600 text-xs">{error}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={isPending} className="px-3 py-1.5 bg-navy text-white text-xs hover:bg-navy/90 disabled:opacity-50">
@@ -250,7 +287,7 @@ export function DeleteOwnerButton({ ownerId, name }: { ownerId: string; name: st
   const [isPending, startTransition] = useTransition();
 
   function handleDelete() {
-    if (!confirm(`Deaktivovat majitele "${name}"? Apartmány budou odpojeny.`)) return;
+    if (!confirm(`Deaktivovat majitele "${name}"? Apartmány budou odpojeny (případní spolumajitelé zůstávají).`)) return;
     startTransition(async () => { await deleteOwner(ownerId); });
   }
 

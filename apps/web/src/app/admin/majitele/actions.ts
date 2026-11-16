@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { setOwnerApartments } from '@/lib/apartment-owners';
 
 export async function createOwner(formData: FormData) {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
@@ -10,7 +11,7 @@ export async function createOwner(formData: FormData) {
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
   const phone = formData.get('phone') as string;
-  const apartmentId = formData.get('apartment_id') as string;
+  const apartmentIds = formData.getAll('apartment_ids').map(String).filter(Boolean);
   const commissionStr = formData.get('commission_rate') as string;
 
   if (!name || !email) return { ok: false, error: 'Jméno a email jsou povinné' };
@@ -31,14 +32,13 @@ export async function createOwner(formData: FormData) {
 
   if (ownerError) return { ok: false, error: ownerError.message };
 
-  if (apartmentId && owner) {
-    await supabase
-      .from('apartments')
-      .update({ owner_id: owner.id, status: 'sold' })
-      .eq('id', apartmentId);
+  if (apartmentIds.length > 0 && owner) {
+    const linked = await setOwnerApartments(owner.id, apartmentIds);
+    if (!linked.ok) return { ok: false, error: `Majitel uložen, ale apartmány se nepřiřadily: ${linked.error}` };
   }
 
   revalidatePath('/admin/majitele');
+  revalidatePath('/admin/apartmany');
   return { ok: true };
 }
 
@@ -114,6 +114,7 @@ export async function updateOwner(ownerId: string, formData: FormData) {
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
   const phone = formData.get('phone') as string;
+  const apartmentIds = formData.getAll('apartment_ids').map(String).filter(Boolean);
 
   if (!name || !email) return { ok: false, error: 'Jméno a email jsou povinné' };
 
@@ -124,7 +125,15 @@ export async function updateOwner(ownerId: string, formData: FormData) {
     .eq('id', ownerId);
 
   if (error) return { ok: false, error: error.message };
+
+  // Formulář vždy posílá kompletní výběr apartmánů (i prázdný)
+  if (formData.get('apartments_submitted') === '1') {
+    const linked = await setOwnerApartments(ownerId, apartmentIds);
+    if (!linked.ok) return { ok: false, error: linked.error };
+  }
+
   revalidatePath('/admin/majitele');
+  revalidatePath('/admin/apartmany');
   return { ok: true };
 }
 
@@ -133,11 +142,9 @@ export async function deleteOwner(ownerId: string) {
 
   const supabase = createSupabaseAdminClient();
 
-  // Odpojit apartmány od majitele
-  await supabase
-    .from('apartments')
-    .update({ owner_id: null })
-    .eq('owner_id', ownerId);
+  // Odpojit apartmány od majitele (spolumajitelé zůstávají)
+  const unlinked = await setOwnerApartments(ownerId, []);
+  if (!unlinked.ok) return { ok: false, error: unlinked.error };
 
   const { error } = await supabase
     .from('owners')

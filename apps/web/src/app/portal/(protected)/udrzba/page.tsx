@@ -5,6 +5,7 @@
 
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 import { NewRequestForm } from './udrzba-client';
 
 export const dynamic = 'force-dynamic';
@@ -40,16 +41,21 @@ export default async function MaintenancePage() {
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  // Hlášení k apartmánu vidí všichni jeho spolumajitelé + vlastní hlášení
+  const ownedIds = await getOwnerApartmentIds(owner.id, admin);
+  const reqFilter = ownedIds.length > 0
+    ? `owner_id.eq.${owner.id},apartment_id.in.(${ownedIds.join(',')})`
+    : `owner_id.eq.${owner.id}`;
   const [{ data: apartments }, { data: requests }] = await Promise.all([
     admin
       .from('apartments')
       .select('id, unit, building')
-      .eq('owner_id', owner.id)
+      .in('id', ownedIds)
       .order('unit'),
     admin
       .from('maintenance_requests')
       .select('id, apartment_id, title, description, status, priority, admin_note, resolved_at, created_at')
-      .eq('owner_id', owner.id)
+      .or(reqFilter)
       .order('created_at', { ascending: false }),
   ]);
 

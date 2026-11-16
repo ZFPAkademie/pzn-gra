@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { formatMoney } from '@/lib/booking-engine/money';
 import { redirect } from 'next/navigation';
 import { getServerUser, createSupabaseAdminClient } from '@/lib/supabase-server';
+import { getOwnerApartmentIds } from '@/lib/apartment-owners';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,10 +50,11 @@ export default async function PronaJemPage() {
 
   if (!owner) redirect('/portal/login?error=no_access');
 
+  const ownedIds = await getOwnerApartmentIds(owner.id, admin);
   const { data: apartments } = await admin
     .from('apartments')
     .select('id, unit, building, in_rental_program')
-    .eq('owner_id', owner.id);
+    .in('id', ownedIds);
 
   const rentalApts = (apartments ?? []).filter(a => a.in_rental_program);
 

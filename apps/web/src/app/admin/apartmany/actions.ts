@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { setApartmentOwners } from '@/lib/apartment-owners';
 
 export async function updateApartmentFlags(
   apartmentId: string,
@@ -21,21 +22,14 @@ export async function updateApartmentFlags(
   return { ok: true };
 }
 
-export async function updateApartmentOwner(apartmentId: string, ownerId: string | null) {
+/** Přesný seznam majitelů apartmánu (M:N, migrace 026 — např. manželé). */
+export async function updateApartmentOwners(apartmentId: string, ownerIds: string[]) {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
 
-  const supabase = createSupabaseAdminClient();
-  const { error } = await supabase
-    .from('apartments')
-    .update({
-      owner_id: ownerId,
-      status: ownerId ? 'sold' : 'available',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', apartmentId);
-
-  if (error) return { ok: false, error: error.message };
+  const result = await setApartmentOwners(apartmentId, ownerIds);
+  if (!result.ok) return { ok: false, error: result.error };
   revalidatePath('/admin/apartmany');
+  revalidatePath('/admin/majitele');
   return { ok: true };
 }
 
