@@ -54,6 +54,10 @@
     {
       "route": "POST /api/vk/collect",
       "why": "vk-analytics: sběr z prohlížeče, jen po souhlasu s analytickými cookies (Origin check, validace, rate limit) — stejně jako HUB a KJM, nasazení schváleno uživatelem 13. 11. 2026"
+    },
+    {
+      "route": "POST /api/vk/identify",
+      "why": "vk-analytics: identifikace návštěvníka (sdílený modul analytics, stejně jako v ostatních projektech)"
     }
   ],
   "allow_insert": [
