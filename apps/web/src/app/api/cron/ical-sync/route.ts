@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withCronRun } from '@/lib/cron-run';
 import { syncAllConnections } from '@/lib/ical-sync';
 
+// Build nemá routu renderovat staticky (DynamicServerError → falešný řádek v cron_runs, Vibekodex SHIP-04)
+export const dynamic = "force-dynamic";
+
 // Called by Vercel Cron — secured via CRON_SECRET header
 async function handler(req: NextRequest) {
   const authHeader = req.headers.get('authorization');

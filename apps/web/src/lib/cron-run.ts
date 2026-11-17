@@ -8,6 +8,7 @@
 //
 // Co dělá: změří dobu, zapíše řádek do cron_runs (status, duration_ms, počty z JSON odpovědi, chybu),
 // výjimku z handleru nepropadne jako 500 bez stopy — zapíše ji a vrátí 500 s textem.
+// Doporučení: routa má mít `export const dynamic = "force-dynamic"`, ať ji build vůbec nezkouší renderovat.
 // Co nedělá: neověřuje tajemství (to zůstává v handleru / assertCron). Odpovědi 401/403 se NEEVIDUJÍ,
 // jinak by kdokoli bez klíče plnil tabulku. Zápis jde service_role klíčem přímo (bez závislosti na
 // projektovém klientu), selhání zápisu se jen zaloguje — cron kvůli evidenci nikdy nespadne.
@@ -46,6 +47,16 @@ async function record(row: Record<string, unknown>) {
   }
 }
 
+/** Next.js při `next build` zkouší GET routu vyrenderovat staticky; sáhnutí na request.headers vyhodí
+ *  DynamicServerError, který si Next sám chytá a routu označí za dynamickou. Ten se NESMÍ spolknout
+ *  ani evidovat (fabr 16. 11. 2026: 6 falešných řádků se status 500 z buildu — lokálního i na Vercelu). */
+function isNextInternal(e: unknown): boolean {
+  const d = (e as any)?.digest
+  return typeof d === "string" && (d === "DYNAMIC_SERVER_USAGE" || d.startsWith("NEXT_"))
+    || (e instanceof Error && /Dynamic server usage/i.test(e.message))
+}
+const BUILDING = process.env.NEXT_PHASE === "phase-production-build"
+
 export function withCronRun<R extends Request>(job: string, handler: Handler<R>): Handler<R> {
   return async (req: R, ctx?: any) => {
     const t0 = Date.now()
@@ -54,9 +65,11 @@ export function withCronRun<R extends Request>(job: string, handler: Handler<R>)
     try {
       res = await handler(req, ctx)
     } catch (e) {
+      if (isNextInternal(e)) throw e                       // interní signál Nextu, ne chyba cronu
       error = (e instanceof Error ? `${e.name}: ${e.message}` : String(e)).slice(0, 500)
       console.error(`[cron ${job}] pád:`, e)
     }
+    if (BUILDING) return res ?? NextResponse.json({ error }, { status: 500 })   // build nic neeviduje
     const status = res?.status ?? 500
     if (status === 401 || status === 403) return res!          // bez klíče: nic neevidovat
     let body: any = null

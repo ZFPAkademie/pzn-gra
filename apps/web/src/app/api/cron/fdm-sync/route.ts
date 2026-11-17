@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withCronRun } from '@/lib/cron-run';
 import { syncFdmCalendar } from '@/lib/fdm/sync';
 
+// Build nemá routu renderovat staticky (DynamicServerError → falešný řádek v cron_runs, Vibekodex SHIP-04)
+export const dynamic = "force-dynamic";
+
 export const maxDuration = 60;
 
 // Vercel Cron — chráněno CRON_SECRET (stejně jako ical-sync)
