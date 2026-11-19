@@ -54,7 +54,7 @@ export default async function AdminLeadsPage({
   const statusFilter = searchParams.status || undefined;
 
   // Fetch data
-  const { leads, total } = await getLeads({ 
+  const { leads } = await getLeads({
     status: statusFilter,
     limit: 100,
   });
@@ -66,7 +66,7 @@ export default async function AdminLeadsPage({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <Link
             href="/admin/leads?status=new"
             className={`bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
@@ -100,8 +100,18 @@ export default async function AdminLeadsPage({
               !statusFilter ? 'ring-2 ring-sky-500' : ''
             }`}
           >
-            <div className="text-3xl font-bold text-stone-700">{total}</div>
+            <div className="text-3xl font-bold text-stone-700">{(counts.new || 0) + (counts.in_progress || 0) + (counts.closed || 0)}</div>
             <div className="text-sm text-stone-700">Celkem</div>
+          </Link>
+          <Link
+            href="/admin/leads?status=spam"
+            title="Zachyceno antispamem — bez e-mailu, mimo inbox. Omyl vrátíte v detailu změnou stavu."
+            className={`bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
+              statusFilter === 'spam' ? 'ring-2 ring-sky-500' : ''
+            }`}
+          >
+            <div className="text-3xl font-bold text-stone-500">{counts.spam || 0}</div>
+            <div className="text-sm text-stone-700">Spam</div>
           </Link>
         </div>
 

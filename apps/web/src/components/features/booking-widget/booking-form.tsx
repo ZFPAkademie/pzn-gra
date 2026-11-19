@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useLanguage } from '@/components/providers/language-provider';
 import { trackConversion } from '@/components/features/site-analytics';
+import { useAntispam } from '@/lib/forms/antispam';
+import { EmailSuggestion } from '@/lib/forms/email-suggestion';
+import { validateEmail, validateName, validatePhone } from '@/lib/forms/validation';
 
 /** Polské množné číslo: 1 / 2–4 (mimo 12–14) / ostatní */
 function plPlural(n: number, one: string, few: string, many: string): string {
@@ -106,12 +109,25 @@ export function BookingForm({
   const [loading, setLoading] = useState(false);
   const { locale } = useLanguage();
   const t = TEXTS[locale];
+  const antispam = useAntispam();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!gdpr) {
       onError(t.gdprRequired);
+      return;
+    }
+
+    // Stejné kontroly jako na serveru (lib/forms/validation) — hláška v jazyce rezervace
+    const invalid = [
+      validateName(firstName, { required: true, locale }),
+      validateName(lastName, { required: true, locale }),
+      validateEmail(email, { required: true, locale }),
+      validatePhone(phone, { locale }),
+    ].find((c) => !c.ok);
+    if (invalid) {
+      onError(invalid.error ?? t.createFailed);
       return;
     }
 
@@ -131,6 +147,7 @@ export function BookingForm({
           email,
           phone,
           gdprConsent: gdpr,
+          ...antispam.payload(),
         }),
       });
 
@@ -152,6 +169,7 @@ export function BookingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {antispam.fields}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-navy/50 uppercase tracking-widest mb-1.5">
@@ -190,9 +208,11 @@ export function BookingForm({
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
           className="w-full px-4 py-3 bg-white border border-navy/20 text-navy text-sm focus:outline-none focus:border-navy transition-colors"
           placeholder={t.emailPh}
         />
+        <EmailSuggestion email={email} locale={locale} onAccept={setEmail} />
       </div>
 
       <div>

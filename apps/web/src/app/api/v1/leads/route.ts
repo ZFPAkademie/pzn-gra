@@ -8,6 +8,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createLead, LeadInput } from '@/lib/leads-service';
 import { getRequestLocale } from '@/lib/i18n-server';
 import { createCoopContactFromLead } from '@/lib/coop';
+import {
+  checkAntispam, clientIp, isSpam, rateLimit, spamSignals,
+  validateMessage, validateName, validatePhone,
+} from '@/lib/forms/validation';
+import { validateEmailDeliverable } from '@/lib/forms/validation.server';
 
 // Hlášky vracené návštěvníkovi — jazyk podle cookie NEXT_LOCALE
 const MESSAGES = {
@@ -49,30 +54,8 @@ function serviceError(error: string | undefined, locale: 'cs' | 'en'): string | 
   return map[error] ?? error;
 }
 
-// Rate limiting (simple in-memory)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 5;
-const RATE_WINDOW = 60 * 1000; // 1 minute
-
 // Příjemci notifikace o žádosti o podíl (družstvo)
 const NOTIFICATION_EMAILS = ['info@zfpreality.cz', 'druzstvo@zfpakademie.cz'];
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const record = rateLimitMap.get(ip);
-  
-  if (!record || now > record.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW });
-    return true;
-  }
-  
-  if (record.count >= RATE_LIMIT) {
-    return false;
-  }
-  
-  record.count++;
-  return true;
-}
 
 // Send email notification via Resend
 async function sendNotificationEmail(lead: any) {
@@ -133,31 +116,34 @@ export async function POST(request: NextRequest) {
   const locale = getRequestLocale();
   const msg = MESSAGES[locale];
   try {
-    // Get IP for rate limiting
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-               request.headers.get('x-real-ip') || 
-               'unknown';
-    
-    // Check rate limit
-    if (!checkRateLimit(ip)) {
+    const ip = clientIp(request.headers);
+    const body = await request.json();
+
+    // 1) Past a časová past (lib/forms/antispam.tsx) — bot dostane stejnou odpověď jako úspěch
+    const trap = checkAntispam(body);
+    if (!trap.ok) {
+      console.warn('[leads] zahozeno jako spam:', trap.reason, body?.type);
+      return NextResponse.json({ success: true, lead_id: null, message: msg.thankYou }, { status: 201 });
+    }
+
+    // 2) Strop na IP: 5 poptávek za 10 minut
+    const limit = rateLimit(`leads:${ip}`, { limit: 5, windowMs: 10 * 60 * 1000 });
+    if (!limit.ok) {
       return NextResponse.json(
         { error: msg.tooManyRequests },
-        { status: 429 }
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfterSec ?? 600) } }
       );
     }
-    
-    // Parse request body
-    const body = await request.json();
-    
-    // Handle simplified form (from nemovitostni-produkt)
-    if (body.name && !body.first_name) {
-      const nameParts = body.name.trim().split(' ');
+
+    // Handle simplified form (from /podil, nemovitostni-produkt): jedno pole „Jméno a příjmení“
+    if (typeof body.name === 'string' && !body.first_name) {
+      const nameParts = body.name.trim().split(/\s+/);
       body.first_name = nameParts[0] || body.name;
       body.last_name = nameParts.slice(1).join(' ') || '-';
       body.gdpr_consent = true;
       body.terms_accepted = true;
     }
-    
+
     // Validate required fields
     if (!body.type || !body.email) {
       return NextResponse.json(
@@ -165,7 +151,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Validate type
     const validTypes = ['rent_inquiry', 'sale_inquiry', 'investment_inquiry', 'investment_share_request', 'general_inquiry'];
     if (!validTypes.includes(body.type)) {
@@ -175,6 +161,31 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // 3) Obsahové signály spamu → uložit se stavem spam (bez e-mailu, bez Družstva), odpovědět úspěchem
+    const formLocale = body.metadata?.locale || body.language || locale;
+    const fullName = [body.first_name, body.last_name === '-' ? '' : body.last_name].filter(Boolean).join(' ');
+    const userAgent = request.headers.get('user-agent') || undefined;
+    const signals = spamSignals({ name: fullName, email: body.email, message: body.message, userAgent });
+    const spam = isSpam(signals);
+
+    // 4) Validace polí — člověk dostane konkrétní hlášku
+    if (!spam) {
+      const firstCheck = validateName(body.first_name, { required: true, locale: formLocale });
+      const lastCheck = body.last_name === '-' ? { ok: true as const, normalized: '-' } : validateName(body.last_name, { required: true, locale: formLocale });
+      const emailCheck = await validateEmailDeliverable(body.email, { required: true, locale: formLocale });
+      const phoneCheck = validatePhone(body.phone, { locale: formLocale });
+      const messageCheck = validateMessage(body.message, { locale: formLocale, max: 4000 });
+      const invalid = [firstCheck, lastCheck, emailCheck, phoneCheck, messageCheck].find((c) => !c.ok);
+      if (invalid) {
+        return NextResponse.json({ error: invalid.error }, { status: 400 });
+      }
+      body.first_name = firstCheck.normalized;
+      body.last_name = lastCheck.normalized;
+      body.email = emailCheck.normalized;
+      body.phone = phoneCheck.normalized ?? undefined;
+      body.message = messageCheck.normalized ?? undefined;
+    }
+
     // Build lead input
     const leadInput: LeadInput = {
       type: body.type,
@@ -193,11 +204,17 @@ export async function POST(request: NextRequest) {
       marketing_consent: body.marketing_consent === true,
       language: body.metadata?.locale || body.language || 'cs',
       ip_address: ip,
-      user_agent: request.headers.get('user-agent') || undefined,
+      user_agent: userAgent,
+      ...(spam ? { status: 'spam' as const, notes: `Antispam: ${signals.join(', ')}` } : {}),
     };
     
     // Create lead
     const result = await createLead(leadInput);
+
+    if (spam) {
+      console.warn('[leads] uloženo jako spam:', signals.join(','), result.lead_id ?? result.error);
+      return NextResponse.json({ success: true, lead_id: null, message: msg.thankYou }, { status: 201 });
+    }
     
     if (!result.success) {
       return NextResponse.json(

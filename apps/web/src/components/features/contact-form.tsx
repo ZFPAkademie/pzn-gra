@@ -7,6 +7,9 @@
 
 import { useState } from 'react';
 import { trackConversion } from '@/components/features/site-analytics';
+import { useAntispam } from '@/lib/forms/antispam';
+import { EmailSuggestion } from '@/lib/forms/email-suggestion';
+import { validateEmail, validateMessage, validateName, validatePhone } from '@/lib/forms/validation';
 
 interface ContactFormProps {
   locale: string;
@@ -14,6 +17,9 @@ interface ContactFormProps {
 
 export function ContactForm({ locale }: ContactFormProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const antispam = useAntispam();
 
   const t = locale === 'cs' ? {
     name: 'Jméno',
@@ -37,10 +43,24 @@ export function ContactForm({ locale }: ContactFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('loading');
-    
     const formData = new FormData(e.currentTarget);
-    
+    const field = (k: string) => String(formData.get(k) ?? '');
+
+    // Stejné kontroly jako na serveru — člověk hned ví, co opravit
+    const invalid = [
+      validateName(field('name'), { required: true, locale }),
+      validateEmail(field('email'), { required: true, locale }),
+      validatePhone(field('phone'), { locale }),
+      validateMessage(field('message'), { required: true, locale, max: 4000 }),
+    ].find((c) => !c.ok);
+    if (invalid) {
+      setErrorText(invalid.error ?? null);
+      setStatus('error');
+      return;
+    }
+
+    setStatus('loading');
+    setErrorText(null);
     try {
       const res = await fetch('/api/v1/contact', {
         method: 'POST',
@@ -50,6 +70,7 @@ export function ContactForm({ locale }: ContactFormProps) {
           email: formData.get('email'),
           phone: formData.get('phone'),
           message: formData.get('message'),
+          ...antispam.payload(),
         }),
       });
 
@@ -57,6 +78,8 @@ export function ContactForm({ locale }: ContactFormProps) {
         trackConversion('contact_submit');
         setStatus('success');
       } else {
+        const data = await res.json().catch(() => null);
+        setErrorText(typeof data?.error === 'string' ? data.error : null);
         setStatus('error');
       }
     } catch {
@@ -74,6 +97,7 @@ export function ContactForm({ locale }: ContactFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {antispam.fields}
       <div>
         <label className="block text-sm text-navy/40 mb-3">{t.name}</label>
         <input
@@ -90,8 +114,12 @@ export function ContactForm({ locale }: ContactFormProps) {
           type="email"
           name="email"
           required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full px-0 py-3 bg-transparent border-0 border-b border-navy/20 text-navy focus:border-gold focus:ring-0 outline-none transition-colors"
         />
+        <EmailSuggestion email={email} locale={locale} onAccept={setEmail} />
       </div>
       
       <div>
@@ -114,7 +142,7 @@ export function ContactForm({ locale }: ContactFormProps) {
       </div>
 
       {status === 'error' && (
-        <p className="text-red-600 text-sm">{t.error}</p>
+        <p className="text-red-600 text-sm" role="alert">{errorText ?? t.error}</p>
       )}
       
       <button

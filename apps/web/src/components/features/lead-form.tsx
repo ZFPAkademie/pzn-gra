@@ -13,6 +13,9 @@
 
 import { useState } from 'react';
 import { trackConversion } from '@/components/features/site-analytics';
+import { useAntispam } from '@/lib/forms/antispam';
+import { EmailSuggestion } from '@/lib/forms/email-suggestion';
+import { validateEmail, validateMessage, validateName, validatePhone } from '@/lib/forms/validation';
 
 interface LeadFormProps {
   type: 'rent_inquiry' | 'sale_inquiry' | 'investment_inquiry' | 'investment_share_request' | 'general_inquiry';
@@ -47,6 +50,7 @@ export function LeadForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const antispam = useAntispam();
 
   // Translations per design doc (calm, no exclamation marks)
   const t = locale === 'cs' ? {
@@ -118,6 +122,20 @@ export function LeadForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Stejné kontroly jako na serveru (lib/forms/validation)
+    const invalid = [
+      validateName(formData.first_name, { required: true, locale }),
+      validateName(formData.last_name, { required: true, locale }),
+      validateEmail(formData.email, { required: true, locale }),
+      validatePhone(formData.phone, { locale }),
+      validateMessage(formData.message, { locale, max: 4000 }),
+    ].find((c) => !c.ok);
+    if (invalid) {
+      setError(invalid.error ?? '');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -132,6 +150,7 @@ export function LeadForm({
           language: locale,
           ...formData,
           guest_count: formData.guest_count ? parseInt(formData.guest_count, 10) : undefined,
+          ...antispam.payload(),
         }),
       });
 
@@ -177,6 +196,7 @@ export function LeadForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {antispam.fields}
       <h3 className="text-xl font-medium text-navy">{t.title}</h3>
       
       {apartmentTitle && (
@@ -226,7 +246,13 @@ export function LeadForm({
           value={formData.email}
           onChange={handleChange}
           required
+          autoComplete="email"
           className="w-full px-3 py-2.5 border border-stone-400 rounded focus:outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-colors"
+        />
+        <EmailSuggestion
+          email={formData.email}
+          locale={locale}
+          onAccept={(v) => setFormData((prev) => ({ ...prev, email: v }))}
         />
       </div>
 

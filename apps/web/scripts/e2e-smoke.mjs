@@ -71,7 +71,7 @@ r = await fetch(`${BASE}/api/v1/bookings`, {
   headers: { "Content-Type": "application/json", cookie: "NEXT_LOCALE=cs" },
   body: JSON.stringify({
     apartmentId: APT_ID, checkIn: "2031-05-10", checkOut: "2031-05-13", guests: 5,
-    firstName: "QA", lastName: "Kapacita", email: "qa-kapacita@example.com", gdprConsent: true,
+    firstName: "QA", lastName: "Kapacita", email: "qa-kapacita@seed.test", gdprConsent: true,
   }),
 })
 j = await r.json().catch(() => ({}))

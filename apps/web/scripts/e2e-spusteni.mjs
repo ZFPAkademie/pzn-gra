@@ -69,7 +69,7 @@ for (const [from, to] of REDIRECTS) {
   const r = await fetch(`${BASE}/api/v1/contact`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "QA Kontakt", email: "qa-kontakt@example.com", phone: "", message: marker }),
+    body: JSON.stringify({ name: "QA Kontakt", email: "qa-kontakt@seed.test", phone: "", message: marker }),
   })
   const { data } = await admin.from("leads").select("id, type, first_name, last_name").eq("message", marker)
   check("kontaktní formulář → leads", r.status === 201 && data?.length === 1 && data[0].type === "general_inquiry", `${r.status} řádků ${data?.length}`)

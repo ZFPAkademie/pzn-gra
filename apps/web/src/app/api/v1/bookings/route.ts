@@ -7,6 +7,10 @@ import { sendBookingReceivedEmail, sendAdminNewBookingEmail } from '@/lib/email'
 import { fdmGetAvailability, isFdmConfigured } from '@/lib/fdm/client';
 import { pushBookingToFdm } from '@/lib/fdm/push';
 import { getRequestLocaleFull } from '@/lib/i18n-server';
+import {
+  checkAntispam, clientIp, formMessages, isSpam, rateLimit, spamSignals, validateName, validatePhone,
+} from '@/lib/forms/validation';
+import { validateEmailDeliverable } from '@/lib/forms/validation.server';
 
 const BANK_IBAN = process.env.BANK_IBAN ?? 'CZ00 0000 0000 0000 0000 0000';
 const BANK_NAME = process.env.BANK_NAME ?? 'Pod Zlatým návrším s.r.o.';
@@ -55,12 +59,46 @@ export async function POST(req: NextRequest) {
   const locale = getRequestLocaleFull();
   const e = ERR[locale];
   try {
-    const body = await req.json();
-    const { apartmentId, checkIn, checkOut, guests, firstName, lastName, email, phone, gdprConsent } = body;
+    // Strop na IP: rezervace zapisuje do DB i do FDM. 10 za 10 min snese opakované pokusy
+    // hosta (obsazený termín, překlep), ne smyčku bota.
+    const limit = rateLimit(`bookings:${clientIp(req.headers)}`, { limit: 10, windowMs: 10 * 60 * 1000 });
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: formMessages(locale).tooMany },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfterSec ?? 600) } }
+      );
+    }
 
-    if (!apartmentId || !checkIn || !checkOut || !firstName || !lastName || !email || !gdprConsent) {
+    const body = await req.json();
+    const { apartmentId, checkIn, checkOut, guests, gdprConsent } = body;
+
+    if (!apartmentId || !checkIn || !checkOut || !body.firstName || !body.lastName || !body.email || !gdprConsent) {
       return NextResponse.json({ error: e.missingField }, { status: 400 });
     }
+
+    // Antispam (lib/forms): past + zjevný bot → obecná chyba. Falešný úspěch tu nejde
+    // (klient přesměruje na kartu rezervace) a hlavně se nic nesmí zapsat do FDM.
+    const userAgent = req.headers.get('user-agent');
+    const trap = checkAntispam(body);
+    const signals = spamSignals({ name: `${body.firstName} ${body.lastName}`, email: body.email, userAgent });
+    if (!trap.ok || isSpam(signals)) {
+      console.warn('[bookings] zahozeno jako spam:', trap.reason ?? signals.join(','));
+      return NextResponse.json({ error: e.internal }, { status: 400 });
+    }
+
+    // Validace kontaktu — stejné funkce jako ve formuláři, tady závazně
+    const firstNameCheck = validateName(body.firstName, { required: true, locale });
+    const lastNameCheck = validateName(body.lastName, { required: true, locale });
+    const emailCheck = await validateEmailDeliverable(body.email, { required: true, locale });
+    const phoneCheck = validatePhone(body.phone, { locale });
+    const invalid = [firstNameCheck, lastNameCheck, emailCheck, phoneCheck].find((c) => !c.ok);
+    if (invalid) {
+      return NextResponse.json({ error: invalid.error }, { status: 400 });
+    }
+    const firstName = firstNameCheck.normalized as string;
+    const lastName = lastNameCheck.normalized as string;
+    const email = emailCheck.normalized as string;
+    const phone = phoneCheck.normalized;
 
     const admin = createSupabaseAdminClient();
     const { data: apartment } = await admin

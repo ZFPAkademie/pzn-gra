@@ -5,6 +5,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAntispam } from '@/lib/forms/antispam';
+import { EmailSuggestion } from '@/lib/forms/email-suggestion';
+import { validateEmail, validateMessage, validateName, validatePhone } from '@/lib/forms/validation';
 import { trackConversion } from '@/components/features/site-analytics';
 import { getCookieConsent } from '@/components/features/cookie-consent';
 
@@ -26,6 +29,8 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
   });
   const [geoData, setGeoData] = useState<GeoData>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const antispam = useAntispam();
 
   // Poloha z IP (předvyplnění PSČ) — IP jde třetí straně (ipapi.co), proto jen se souhlasem s analytikou
   useEffect(() => {
@@ -48,6 +53,21 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Stejné kontroly jako na serveru (lib/forms/validation)
+    const invalid = [
+      validateName(formData.name, { required: true, locale }),
+      validateEmail(formData.email, { required: true, locale }),
+      validatePhone(formData.phone, { locale }),
+      validateMessage(formData.message, { locale, max: 4000 }),
+    ].find((c) => !c.ok);
+    if (invalid) {
+      setErrorText(invalid.error ?? null);
+      setStatus('error');
+      return;
+    }
+
+    setErrorText(null);
     setStatus('loading');
 
     try {
@@ -70,6 +90,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
             apartment: 'chata-2-suite-7', // = PODIL_APARTMENT_SLUG v texts.tsx (serverový modul, sem se neimportuje)
             locale,
           },
+          ...antispam.payload(),
         }),
       });
 
@@ -77,6 +98,8 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
         trackConversion('share_request', { share_count: formData.shareCount ? parseInt(formData.shareCount) : null });
         setStatus('success');
       } else {
+        const data = await response.json().catch(() => null);
+        setErrorText(typeof data?.error === 'string' ? data.error : null);
         setStatus('error');
       }
     } catch {
@@ -127,6 +150,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-navy/10 p-6 sm:p-10 space-y-6">
+      {antispam.fields}
       {/* Name */}
       <div>
         <label htmlFor="podil-name" className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
@@ -155,6 +179,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className="w-full bg-transparent border-b border-navy/20 py-3 text-navy focus:border-gold focus:outline-none transition-colors"
         />
+        <EmailSuggestion email={formData.email} locale={locale} onAccept={(v) => setFormData((prev) => ({ ...prev, email: v }))} />
       </div>
 
       {/* Phone */}
@@ -222,7 +247,7 @@ export function ShareRequestForm({ locale = 'cs' }: { locale?: string }) {
 
       {/* Error */}
       {status === 'error' && (
-        <p className="text-red-600 text-sm">{t.error}</p>
+        <p className="text-red-600 text-sm" role="alert">{errorText ?? t.error}</p>
       )}
 
       {/* Submit */}

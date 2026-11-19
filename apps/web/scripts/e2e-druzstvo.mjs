@@ -22,7 +22,7 @@ for (const table of ["coop_contacts", "coop_contact_files", "coop_contact_events
 }
 
 // ── 2. Poptávka z webu → kontakt ─────────────────────────────────────────────
-const email = `qa-druzstvo-${Date.now()}@example.com`
+const email = `qa-druzstvo-${Date.now()}@seed.test`
 let r = await fetch(`${BASE}/api/v1/leads`, {
   method: "POST",
   headers: { "Content-Type": "application/json", "x-forwarded-for": `10.9.${Date.now() % 250}.1` },

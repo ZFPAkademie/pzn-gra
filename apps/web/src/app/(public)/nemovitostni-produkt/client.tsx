@@ -6,6 +6,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAntispam } from '@/lib/forms/antispam';
+import { EmailSuggestion } from '@/lib/forms/email-suggestion';
+import { validateEmail, validateMessage, validateName, validatePhone } from '@/lib/forms/validation';
 
 interface ShareRequestCTAProps {
   locale?: string;
@@ -31,6 +34,8 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
   });
   const [geoData, setGeoData] = useState<GeoData>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const antispam = useAntispam();
 
   // Fetch IP geolocation on mount
   useEffect(() => {
@@ -55,6 +60,21 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Stejné kontroly jako na serveru (lib/forms/validation)
+    const invalid = [
+      validateName(formData.name, { required: true, locale }),
+      validateEmail(formData.email, { required: true, locale }),
+      validatePhone(formData.phone, { locale }),
+      validateMessage(formData.message, { locale, max: 4000 }),
+    ].find((c) => !c.ok);
+    if (invalid) {
+      setErrorText(invalid.error ?? null);
+      setStatus('error');
+      return;
+    }
+
+    setErrorText(null);
     setStatus('loading');
 
     try {
@@ -76,6 +96,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
             source: 'nemovitostni-produkt',
             locale,
           },
+          ...antispam.payload(),
         }),
       });
 
@@ -87,6 +108,8 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
           setFormData({ name: '', email: '', phone: '', shareCount: '', message: '', postalCode: '' });
         }, 2000);
       } else {
+        const data = await response.json().catch(() => null);
+        setErrorText(typeof data?.error === 'string' ? data.error : null);
         setStatus('error');
       }
     } catch {
@@ -178,6 +201,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {antispam.fields}
                   {/* Name */}
                   <div>
                     <label className="block text-xs text-navy/40 uppercase tracking-widest mb-2">
@@ -204,6 +228,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-transparent border-b border-navy/20 py-3 text-navy focus:border-gold focus:outline-none transition-colors"
                     />
+                    <EmailSuggestion email={formData.email} locale={locale} onAccept={(v) => setFormData((prev) => ({ ...prev, email: v }))} />
                   </div>
 
                   {/* Phone */}
@@ -265,7 +290,7 @@ export function ShareRequestCTA({ locale = 'cs', variant = 'dark' }: ShareReques
 
                   {/* Error */}
                   {status === 'error' && (
-                    <p className="text-red-600 text-sm">{t.error}</p>
+                    <p className="text-red-600 text-sm" role="alert">{errorText ?? t.error}</p>
                   )}
 
                   {/* Submit */}

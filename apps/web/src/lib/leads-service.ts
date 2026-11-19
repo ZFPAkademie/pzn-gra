@@ -28,9 +28,13 @@ export interface LeadInput {
   language?: string;
   ip_address?: string;
   user_agent?: string;
+  /** 'spam' = zachycen antispamem (lib/forms) — bez notifikace, mimo výchozí inbox */
+  status?: 'new' | 'spam';
+  /** Interní poznámka (u spamu signály, které ho prozradily) */
+  notes?: string;
 }
 
-export interface Lead extends LeadInput {
+export interface Lead extends Omit<LeadInput, 'status'> {
   id: string;
   status: 'new' | 'in_progress' | 'closed' | 'spam';
   notes?: string;
@@ -99,7 +103,8 @@ export async function createLead(input: LeadInput): Promise<{ success: boolean; 
       language: input.language || 'cs',
       ip_address: input.ip_address || null,
       user_agent: input.user_agent || null,
-      status: 'new',
+      status: input.status ?? 'new',
+      notes: input.notes || null,
     };
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,9 +149,8 @@ export async function getLeads(options?: {
     .select('id, type, apartment_slug, apartment_title, first_name, last_name, email, status, created_at', { count: 'exact' })
     .order('created_at', { ascending: false });
 
-  if (options?.status) {
-    query = query.eq('status', options.status);
-  }
+  // Bez filtru = inbox bez spamu; spam má vlastní dlaždici (?status=spam)
+  query = options?.status ? query.eq('status', options.status) : query.neq('status', 'spam');
   if (options?.type) {
     query = query.eq('type', options.type);
   }
