@@ -21,6 +21,11 @@ Tři části, žádná nic nezapíše a žádná nevypíše data:
             - sekvence se nevolají (nextval rollback nevrací — číselné řady); posun se hlásí
             - u cloudu vypíše, jestli je registrace otevřená (kdo se cizím přihlášeným může stát)
 
+  5 HLAVIČKY (od 1. 11. 2026, jen s url) — bezpečnostní hlavičky úvodní stránky: CSP, ochrana
+            proti vložení do cizí stránky (X-Frame-Options / frame-ancestors), nosniff,
+            Referrer-Policy, HSTS. Zatím jen varování: chyběly skoro všude a nález by
+            zablokoval /ship všech projektů najednou. (KJM 30. 10.: upozornil cizí „expert“.)
+
 Výsledek je test: 0 = prošlo, 1 = nález, 2 = chyba konfigurace.
 Záměrně veřejné věci (články, ceník, formulář poptávky) se povolí v <projekt>/.vibekodex/security.json:
   { "ref": "abc…", "url": "https://web.cz",
@@ -581,6 +586,28 @@ def probe_api(folder, url, allow):
     return sorted(routes, key=lambda x: (x['path'], x['method']))
 
 
+def probe_headers(url):
+    """Bezpečnostní hlavičky úvodní stránky. Vrací (přehled, seznam chybějících)."""
+    code, hdr, _ = http('GET', url, timeout=20)
+    h = {k.lower(): v for k, v in hdr.items()}
+    csp = h.get('content-security-policy', '')
+    got = {
+        'csp': 'ano' if csp else ('jen report-only' if h.get('content-security-policy-report-only') else 'ne'),
+        'frame': bool(h.get('x-frame-options')) or 'frame-ancestors' in csp,
+        'nosniff': h.get('x-content-type-options', '').lower() == 'nosniff',
+        'referrer': bool(h.get('referrer-policy')),
+        'hsts': bool(h.get('strict-transport-security')),
+        'code': code,
+    }
+    missing = []
+    if got['csp'] != 'ano': missing.append('Content-Security-Policy' + (' (je jen report-only)' if got['csp'] == 'jen report-only' else ''))
+    if not got['frame']: missing.append('ochrana proti vložení do cizí stránky (X-Frame-Options / frame-ancestors)')
+    if not got['nosniff']: missing.append('X-Content-Type-Options: nosniff')
+    if not got['referrer']: missing.append('Referrer-Policy')
+    if not got['hsts']: missing.append('Strict-Transport-Security')
+    return got, missing
+
+
 ACTION_RE = re.compile(r'export\s+async\s+function\s+(\w+)|export\s+const\s+(\w+)\s*=\s*async')
 
 SERVICE_USE = re.compile(r'createAdminClient|createServiceClient|serviceClient|supabaseAdmin|adminClient|'
@@ -772,6 +799,10 @@ def main():
         if not r['guard'] and r['method'] != 'GET':
             fails.append(f"{r['method']} {r['path']} bez rozpoznané kontroly přihlášení"
                          " (veřejná záměrně, např. formulář? → allow_api)")
+        # Vercel Cron volá GET — cron GET bez CRON_SECRET spustí kdokoli. Do 19. 11. 2026 jen „pozor";
+        # odhalil to kanárek v security_all.sh hned při prvním běhu.
+        if not r['guard'] and r['method'] == 'GET' and re.search(r'/cron(/|$)', r['path']):
+            fails.append(f"GET {r['path']} je cron bez kontroly CRON_SECRET — spustí ho kdokoli (Vercel Cron volá GET)")
         if r['live'] == 200:
             fails.append(f"GET {r['path']} vrací 200 bez přihlášení, přestože kód vypadá chráněně")
     allow_action = {x['action'] if isinstance(x, dict) else x for x in cfg.get('allow_action', [])}
@@ -783,10 +814,20 @@ def main():
                      + ', '.join(f"{x['action']} ({x['file'].split('/')[-2] if '/' in x['file'] else x['file']})" for x in open_act[:8])
                      + (' …' if len(open_act) > 8 else ''))
     open_get = [r['path'] for r in routes if not r['guard'] and r['method'] == 'GET'
-                and not allowed(r['path'], 'GET', allow_api) and not DEFAULT_PUBLIC.search(r['path'])]
+                and not allowed(r['path'], 'GET', allow_api) and not DEFAULT_PUBLIC.search(r['path'])
+                and not re.search(r'/cron(/|$)', r['path'])]
     if open_get:
         warns.append(f"{len(open_get)} GET rout bez rozpoznané kontroly (veřejná data? ověřit → allow_api): "
                      + ', '.join(open_get[:8]) + (' …' if len(open_get) > 8 else ''))
+
+    # 5 — bezpečnostní hlavičky (jen s url; zatím varování, viz hlavička souboru)
+    if url and not (a.local or a.auth_only or a.api_only):
+        hdrs, missing = probe_headers(url)
+        report['headers'] = hdrs; report['headers_missing'] = missing
+        if not hdrs['code']:
+            warns.append(f'hlavičky neověřeny: {url} neodpovídá')
+        elif missing:
+            warns.append(f'chybí bezpečnostní hlavičky ({len(missing)}): ' + '; '.join(missing))
 
     # Baseline: známé nálezy (zapsané vědomě přes --baseline) nezastaví /ship, jen nové ano.
     # Stejný princip jako typecheck proti baseline — brána, která padá na starém dluhu, se naučí ignorovat.
@@ -843,6 +884,11 @@ def main():
               f"s rozpoznanou kontrolou {sum(r['guard'] for r in routes)}"
               + (f", živě ověřeno {len(live)} (401/403/3xx: {sum(1 for r in live if r['live'] != 200)})"
                  if url else ', živý test ne (chybí url)'))
+        if report.get('headers'):
+            hh = report['headers']
+            print(f"  hlavičky: CSP {hh['csp']} · vložení do cizí stránky {'blokováno' if hh['frame'] else 'NECHRÁNĚNO'}"
+                  f" · nosniff {'ano' if hh['nosniff'] else 'ne'} · Referrer-Policy {'ano' if hh['referrer'] else 'ne'}"
+                  f" · HSTS {'ano' if hh['hsts'] else 'ne'}")
         for f in fails: print('  FAIL  ' + f)
         for k in known: print('  známé ' + k)
         for w in warns: print('  pozor ' + w)
