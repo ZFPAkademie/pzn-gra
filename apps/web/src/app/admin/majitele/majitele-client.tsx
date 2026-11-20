@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createOwner, sendMagicLink, updateOwnerCommission, toggleOwnerActive, updateOwner, deleteOwner } from './actions';
+import { createOwner, sendMagicLink, updateOwnerCommission, toggleOwnerActive, updateOwner, deleteOwner, lookupCompany } from './actions';
 
 /** 0.2 → "20", 0.125 → "12.5" (DB vrací numeric jako string, proto Number() u volajícího) */
 function formatPercent(rate: number): string {
@@ -41,6 +41,81 @@ function ApartmentPicker({ apartments, selected = [] }: { apartments: ApartmentO
         </label>
       ))}
     </div>
+  );
+}
+
+export interface OwnerCompany {
+  company_name: string | null;
+  company_id: string | null;
+  company_vat_id: string | null;
+  company_address: string | null;
+}
+
+/**
+ * Firma, která apartmán vlastní (majitel = kontaktní osoba). IČO → „Načíst z ARES“
+ * vyplní název, DIČ a sídlo; vše jde přepsat ručně.
+ */
+function CompanyFields({ initial, inputCls }: { initial?: OwnerCompany; inputCls: string }) {
+  const [v, setV] = useState({
+    company_name: initial?.company_name ?? '',
+    company_id: initial?.company_id ?? '',
+    company_vat_id: initial?.company_vat_id ?? '',
+    company_address: initial?.company_address ?? '',
+  });
+  const [isPending, startTransition] = useTransition();
+  const [note, setNote] = useState<{ text: string; error: boolean } | null>(null);
+  const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement>) => setV(prev => ({ ...prev, [k]: e.target.value }));
+
+  function loadAres() {
+    setNote(null);
+    startTransition(async () => {
+      const r = await lookupCompany(v.company_id);
+      if (!r.ok) { setNote({ text: r.error, error: true }); return; }
+      setV(prev => ({
+        ...prev,
+        company_name: r.data.name,
+        company_vat_id: r.data.vat_id ?? '',
+        company_address: r.data.address ?? prev.company_address,
+      }));
+      setNote(r.data.dissolved
+        ? { text: 'Pozor: podle ARES firma zanikla.', error: true }
+        : { text: 'Načteno z ARES.', error: false });
+    });
+  }
+
+  return (
+    <fieldset className="border border-stone bg-white/60 p-3">
+      <legend className="px-1 text-xs text-slate-500">Firma, která apartmán vlastní (nepovinné)</legend>
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="sm:col-span-1">
+          <label className="block text-xs text-slate-500 mb-1">IČO</label>
+          <div className="flex gap-1">
+            <input name="company_id" value={v.company_id} onChange={set('company_id')} inputMode="numeric" autoComplete="off" className={inputCls} />
+            <button
+              type="button"
+              onClick={loadAres}
+              disabled={isPending || v.company_id.replace(/\s/g, '').length < 6}
+              className="shrink-0 px-2 text-xs border border-navy text-navy hover:bg-navy hover:text-white disabled:opacity-40"
+            >
+              {isPending ? '…' : 'ARES'}
+            </button>
+          </div>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-xs text-slate-500 mb-1">Název firmy</label>
+          <input name="company_name" value={v.company_name} onChange={set('company_name')} autoComplete="off" placeholder="např. Apartmány Labská s.r.o." className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1">DIČ</label>
+          <input name="company_vat_id" value={v.company_vat_id} onChange={set('company_vat_id')} autoComplete="off" className={inputCls} />
+        </div>
+        <div className="sm:col-span-4">
+          <label className="block text-xs text-slate-500 mb-1">Sídlo</label>
+          <input name="company_address" value={v.company_address} onChange={set('company_address')} autoComplete="off" className={inputCls} />
+        </div>
+      </div>
+      {note && <p className={`text-xs mt-2 ${note.error ? 'text-red-600' : 'text-green-700'}`}>{note.text}</p>}
+    </fieldset>
   );
 }
 
@@ -89,6 +164,9 @@ export function AddOwnerForm({ apartments }: { apartments: ApartmentOption[] }) 
         <div>
           <label className="block text-xs text-slate-500 mb-1">Provize (%)</label>
           <input type="number" name="commission_rate" min="0" max="100" step="0.5" placeholder="20" className="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold" />
+        </div>
+        <div className="sm:col-span-2">
+          <CompanyFields inputCls="w-full border border-stone px-3 py-2 text-sm text-navy focus:outline-none focus:border-gold bg-white" />
         </div>
         <div className="sm:col-span-2">
           <label className="block text-xs text-slate-500 mb-1">Apartmány</label>
@@ -239,7 +317,7 @@ export function EditOwnerForm({
   apartments,
   selectedApartmentIds,
 }: {
-  owner: { id: string; name: string; email: string; phone: string | null; commission_rate: number | null };
+  owner: { id: string; name: string; email: string; phone: string | null; commission_rate: number | null } & OwnerCompany;
   apartments: ApartmentOption[];
   selectedApartmentIds: string[];
 }) {
@@ -295,6 +373,10 @@ export function EditOwnerForm({
           />
         </div>
       </div>
+      <CompanyFields
+        initial={owner}
+        inputCls="w-full border border-stone px-3 py-1.5 text-sm text-navy focus:outline-none focus:border-gold bg-white"
+      />
       <div>
         <label className="block text-xs text-slate-500 mb-1">Apartmány</label>
         <ApartmentPicker apartments={apartments} selected={selectedApartmentIds} />

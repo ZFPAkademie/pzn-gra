@@ -21,7 +21,7 @@ export default async function AdminMajitelePage() {
   const [{ data: owners }, { data: apartments }, links] = await Promise.all([
     supabase
       .from('owners')
-      .select('id, name, email, phone, commission_rate, is_active, user_id, created_at')
+      .select('id, name, email, phone, commission_rate, is_active, user_id, created_at, company_name, company_id, company_vat_id, company_address')
       .order('created_at', { ascending: false }),
     supabase
       .from('apartments')
@@ -86,6 +86,15 @@ export default async function AdminMajitelePage() {
                     )}
                   </div>
 
+                  {/* Firma, která apartmán vlastní (migrace 028) */}
+                  {owner.company_name && (
+                    <p className="text-sm text-navy mb-1">
+                      {owner.company_name}
+                      {owner.company_id && <span className="text-slate-500"> · IČO {owner.company_id}</span>}
+                      {owner.company_address && <span className="text-slate-400"> · {owner.company_address}</span>}
+                    </p>
+                  )}
+
                   {/* Kontakt */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6 text-sm text-slate-500 mb-2">
                     <span className="truncate">{owner.email}</span>
@@ -115,7 +124,11 @@ export default async function AdminMajitelePage() {
                   <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-stone">
                     <InviteButton ownerId={owner.id} email={owner.email} hasPortalAccess={!!owner.user_id} />
                     <EditOwnerForm
-                      owner={{ id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null, commission_rate: owner.commission_rate ?? null }}
+                      owner={{
+                        id: owner.id, name: owner.name, email: owner.email, phone: owner.phone ?? null, commission_rate: owner.commission_rate ?? null,
+                        company_name: owner.company_name ?? null, company_id: owner.company_id ?? null,
+                        company_vat_id: owner.company_vat_id ?? null, company_address: owner.company_address ?? null,
+                      }}
                       apartments={aptOptions(owner.id)}
                       selectedApartmentIds={ownerApts.map(a => a.id)}
                     />

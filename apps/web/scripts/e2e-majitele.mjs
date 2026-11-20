@@ -4,6 +4,7 @@
  *  - spolumajitelé v portálu: sdílený dokument ano, osobní dokument druhého ne
  *  - odebrání majitele v Apartmánech, odškrtnutí v Upravit, audit_log
  *  - úprava provize u stávajícího majitele: inline i formulář Upravit (16. 11. 2026 nešla)
+ *  - firma, která apartmán vlastní (migrace 028): neplatné IČO, načtení z ARES, uložení, portál Profil
  * Heslo adminu pro QA: .vibekodex/qa.json → env.ADMIN_DASH_PASSWORD
  */
 import { env, admin, BASE, launch, check, summary } from "./qa-env.mjs"
@@ -137,6 +138,41 @@ try {
   await page.waitForTimeout(2500)
   check("provize z Upravit 30 % uložena", Math.abs(await rate(wId) - 0.3) < 1e-9, String(await rate(wId)))
   check("Upravit nezměnil apartmány", JSON.stringify(await links(wId)) === JSON.stringify([APT1]))
+
+  // 8) Firma majitele — neplatné IČO odmítne, ARES předvyplní, uloží se, portál ji ukáže
+  const company = async (id) => (await admin.from("owners").select("company_name, company_id, company_vat_id, company_address").eq("id", id).single()).data
+  await page.goto(`${BASE}/admin/majitele`)
+  await wCard.locator("text=Upravit").first().click()
+  await wCard.locator("input[name=company_id]").fill("24074952")
+  await wCard.locator("input[name=company_name]").fill("QA Firma s.r.o.")
+  await wCard.locator("form button[type=submit]").click()
+  await page.waitForTimeout(2000)
+  check("neplatné IČO → hláška, nic neuloženo", (await wCard.textContent()).includes("IČO firmy nemá platný tvar") && (await company(wId)).company_name === null)
+
+  await wCard.locator("input[name=company_id]").fill("24074951")
+  await wCard.locator('button:text-is("ARES")').click()
+  await wCard.locator("text=Načteno z ARES").waitFor({ timeout: 15000 }).catch(() => {})
+  check("ARES předvyplnil název a DIČ",
+    (await wCard.locator("input[name=company_name]").inputValue()) === "Echo Wave s.r.o." && (await wCard.locator("input[name=company_vat_id]").inputValue()) === "CZ24074951",
+    await wCard.locator("input[name=company_name]").inputValue())
+  await wCard.locator("form button[type=submit]").click()
+  await page.waitForTimeout(2500)
+  const c = await company(wId)
+  check("firma uložena k majiteli", c?.company_name === "Echo Wave s.r.o." && c.company_id === "24074951" && c.company_vat_id === "CZ24074951" && !!c.company_address, JSON.stringify(c))
+  check("karta majitele ukazuje firmu", (await wCard.textContent()).includes("Echo Wave s.r.o. · IČO 24074951"))
+  check("firma nezměnila provizi ani apartmány", Math.abs(await rate(wId) - 0.3) < 1e-9 && JSON.stringify(await links(wId)) === JSON.stringify([APT1]))
+
+  {
+    const pc = await browser.newContext(); const p = await pc.newPage()
+    await p.goto(`${BASE}/portal/login`)
+    await p.fill("input[type=email]", W.email)
+    await p.fill("input[type=password]", PW)
+    await Promise.all([p.waitForURL(u => u.pathname === "/portal" || u.pathname === "/portal/", { timeout: 30000 }), p.click("button[type=submit]")])
+    await p.goto(`${BASE}/portal/profil`)
+    const prof = await p.textContent("main")
+    check("portál Profil: vlastník apartmánu = firma", prof.includes("Vlastník apartmánu") && prof.includes("Echo Wave s.r.o.") && prof.includes("CZ24074951"))
+    await pc.close()
+  }
 } finally {
   await browser.close()
   await cleanup()

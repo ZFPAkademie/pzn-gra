@@ -4,6 +4,28 @@ import { revalidatePath } from 'next/cache';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { setOwnerApartments } from '@/lib/apartment-owners';
+import { isValidIco, lookupAresCompany, normalizeIco } from '@/lib/ares';
+
+/** Firma, která apartmán vlastní (migrace 028) — prázdná pole = null */
+function companyFields(formData: FormData):
+  | { ok: true; data: { company_name: string | null; company_id: string | null; company_vat_id: string | null; company_address: string | null } }
+  | { ok: false; error: string } {
+  const val = (k: string) => String(formData.get(k) ?? '').trim() || null;
+  const rawIco = val('company_id');
+  const company_id = rawIco ? normalizeIco(rawIco) : null;
+  if (company_id && !isValidIco(company_id)) return { ok: false, error: 'IČO firmy nemá platný tvar (8 číslic s kontrolní číslicí)' };
+  const company_vat_id = val('company_vat_id')?.replace(/\s/g, '').toUpperCase() ?? null;
+  const data = { company_name: val('company_name'), company_id, company_vat_id, company_address: val('company_address') };
+  if (!data.company_name && (company_id || company_vat_id || data.company_address)) {
+    return { ok: false, error: 'Vyplňte název firmy (nebo ho načtěte z ARES podle IČO)' };
+  }
+  return { ok: true, data };
+}
+
+export async function lookupCompany(ico: string) {
+  if (!await isAdminAuthenticated()) return { ok: false as const, error: 'Neautorizováno' };
+  return lookupAresCompany(ico);
+}
 
 export async function createOwner(formData: FormData) {
   if (!await isAdminAuthenticated()) return { ok: false, error: 'Neautorizováno' };
@@ -15,6 +37,8 @@ export async function createOwner(formData: FormData) {
   const commissionStr = formData.get('commission_rate') as string;
 
   if (!name || !email) return { ok: false, error: 'Jméno a email jsou povinné' };
+  const company = companyFields(formData);
+  if (!company.ok) return company;
 
   const supabase = createSupabaseAdminClient();
 
@@ -26,6 +50,7 @@ export async function createOwner(formData: FormData) {
       phone: phone || null,
       commission_rate: commissionStr ? parseFloat(commissionStr) / 100 : null,
       is_active: true,
+      ...company.data,
     })
     .select('id')
     .single();
@@ -128,11 +153,13 @@ export async function updateOwner(ownerId: string, formData: FormData) {
     if (isNaN(pct) || pct < 0 || pct > 100) return { ok: false, error: 'Provize musí být 0–100 %' };
     commission_rate = pct / 100;
   }
+  const company = companyFields(formData);
+  if (!company.ok) return company;
 
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase
     .from('owners')
-    .update({ name, email, phone: phone || null, commission_rate })
+    .update({ name, email, phone: phone || null, commission_rate, ...company.data })
     .eq('id', ownerId);
 
   if (error) return { ok: false, error: error.message };
